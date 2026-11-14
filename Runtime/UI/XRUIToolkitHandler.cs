@@ -1,6 +1,11 @@
-#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#if UIELEMENTS_MODULE_PRESENT
+#if UNITY_6000_2_OR_NEWER
 #define UITOOLKIT_WORLDSPACE_ENABLED
 #endif
+#if UNITY_6000_5_OR_NEWER
+#define UITOOLKIT_PANEL_RENDERER_ENABLED
+#endif
+#endif // UIELEMENTS_MODULE_PRESENT
 #if ENABLE_VR && (VR_MODULE_PRESENT || UNITY_6000_5_OR_NEWER)
 #define XR_SETTINGS_AVAILABLE
 #endif
@@ -27,12 +32,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public Quaternion worldOrientation;
         public float hitDistance;
         public Collider hitCollider;
-#if UIELEMENTS_MODULE_PRESENT
+#if UITOOLKIT_WORLDSPACE_ENABLED
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+        public IPanelComponent hitPanelComponent;
+#else
         public UIDocument hitDocument;
+#endif
         public VisualElement hitElement;
+
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+        public readonly bool TryGetPanelComponent(out IPanelComponent panelComponent)
+        {
+            panelComponent = hitPanelComponent;
+            if (panelComponent != null)
+                return true;
+
+            if (hitCollider != null && hitCollider.TryGetComponent(out panelComponent))
+                return true;
+
+            return false;
+        }
+#endif
 
         public readonly bool TryGetUIDocument(out UIDocument document)
         {
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            if (TryGetPanelComponent(out var panelComponent) && panelComponent is UIDocument uiDocument)
+            {
+                document = uiDocument;
+                return true;
+            }
+
+            document = null;
+            return false;
+#else
             document = hitDocument;
             if (document != null)
                 return true;
@@ -41,20 +74,25 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 return true;
 
             return false;
+#endif
         }
 #endif
     }
 
     /// <summary>
-    /// Helper struct to contain physical collision data with UI Documents
+    /// Helper struct to contain physical collision data with UI Toolkit panels
     /// </summary>
     internal struct InteractorHitData
     {
-        public Vector3 closestPoint; // On document collider surface
+        public Vector3 closestPoint;
         public Vector3 interactorOrigin;
         public Vector3 interactorDirection;
-#if UIELEMENTS_MODULE_PRESENT
+#if UITOOLKIT_WORLDSPACE_ENABLED
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+        public IPanelComponent hitPanelComponent;
+#else
         public UIDocument hitDocument;
+#endif
 #endif
     }
 
@@ -86,6 +124,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Used to determine whether or not to process UI Toolkit events from interactors.
         /// </summary>
         public static bool uiToolkitSupportEnabled { get; set; }
+
+        /// <summary>
+        /// The scroll momentum that UI scroll input with momentum is added to, owned by the enabled <see cref="XRUIToolkitManager"/>.
+        /// </summary>
+        /// <remarks>
+        /// The manager owns the momentum, and sets and clears this reference as it is enabled and disabled.
+        /// </remarks>
+        internal static ScrollMomentum activeScrollMomentum { get; set; }
 
         /// <summary>
         /// Gets the number of registered interactors.
@@ -125,7 +171,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         struct HoverState
         {
             public VisualElement element;
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            public IPanelComponent panelComponent;
+#else
             public UIDocument document;
+#endif
             public GameObject uiObject;
         }
 
@@ -155,17 +205,35 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (!shouldReset && TryGetPointerHitData(interactor, out var hitData))
             {
                 var hitElement = hitData.hitElement;
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+                // UIDocument is a Behaviour but PanelRenderer is a Renderer, so check enabled by component type.
+                if (hitElement != null && hitData.TryGetPanelComponent(out var hitPanel) &&
+                    hitPanel.gameObject.activeInHierarchy &&
+                    hitPanel is Behaviour { enabled: true } or Renderer { enabled: true })
+                {
+                    currentState.element = hitElement;
+                    currentState.panelComponent = hitPanel;
+                    currentState.uiObject = hitPanel.gameObject;
+                }
+#else
                 if (hitElement != null && hitData.TryGetUIDocument(out var hitDocument) && hitDocument.isActiveAndEnabled)
                 {
                     currentState.element = hitElement;
                     currentState.document = hitDocument;
                     currentState.uiObject = hitDocument.gameObject;
                 }
+#endif
             }
 
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            if (ReferenceEquals(previousState.element, currentState.element) &&
+                ReferenceEquals(previousState.panelComponent, currentState.panelComponent) &&
+                previousState.uiObject == currentState.uiObject)
+#else
             if (ReferenceEquals(previousState.element, currentState.element) &&
                 ReferenceEquals(previousState.document, currentState.document) &&
                 previousState.uiObject == currentState.uiObject)
+#endif
             {
                 return; // No state change
             }
@@ -182,7 +250,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     args.uiSystem = UIHoverEventArgs.UISystem.UIToolkit;
                     args.uiObject = previousState.uiObject;
                     args.visualElement = previousState.element;
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
+                    args.uiDocument = previousState.panelComponent as UIDocument;
+#pragma warning restore CS0618
+                    args.panelComponent = previousState.panelComponent;
+#else
                     args.uiDocument = previousState.document;
+#endif
 
                     deviceModel.selectableObject = previousState.uiObject;
                     args.deviceModel = deviceModel;
@@ -197,7 +272,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                     args.uiSystem = UIHoverEventArgs.UISystem.UIToolkit;
                     args.uiObject = currentState.uiObject;
                     args.visualElement = currentState.element;
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
+                    args.uiDocument = currentState.panelComponent as UIDocument;
+#pragma warning restore CS0618
+                    args.panelComponent = currentState.panelComponent;
+#else
                     args.uiDocument = currentState.document;
+#endif
 
                     deviceModel.selectableObject = currentState.uiObject;
                     deviceModel.isScrollable = currentState.element is ScrollView || currentState.element.GetFirstAncestorOfType<ScrollView>() != null;
@@ -382,13 +464,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <param name="scrollDelta">The amount to scroll based on input.</param>
         /// <param name="isUiSelectInputActive">Whether the UI select input is active.</param>
         /// <param name="shouldReset">Whether the pointer should be reset.</param>
+        /// <param name="scrollMomentum">Whether the scroll continues with momentum on the hovered ScrollView instead of scrolling immediately.</param>
         public static void HandlePointerUpdate(
             IXRInteractor interactor,
             Vector3 pos,
             Quaternion rot,
             Vector2 scrollDelta,
             bool isUiSelectInputActive,
-            bool shouldReset)
+            bool shouldReset,
+            bool scrollMomentum = false)
         {
             if (!TryGetPointerIndex(interactor, out var pointerIndex))
                 return;
@@ -449,17 +533,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             // Handle scroll
             if (scrollDelta != Vector2.zero)
             {
-                var scrollEvent = new InputForUI.PointerEvent
+                // On a reset the pointer has left the panel, so don't start momentum on the stale hover.
+                var hoveredElement = s_PreviousHover.TryGetValue(interactor, out var hover) ? hover.element : null;
+                if (!scrollMomentum || shouldReset || activeScrollMomentum == null || !activeScrollMomentum.TryAdd(hoveredElement, scrollDelta))
                 {
-                    pointerIndex = pointerIndex,
-                    type = InputForUI.PointerEvent.Type.Scroll,
-                    worldPosition = eventPos,
-                    worldOrientation = eventRot,
-                    eventSource = InputForUI.EventSource.TrackedDevice,
-                    maxDistance = k_MaxRaycastDistance,
-                    scroll = -scrollDelta
-                };
-                InputForUI.EventProvider.Dispatch(InputForUI.Event.From(scrollEvent));
+                    var scrollEvent = new InputForUI.PointerEvent
+                    {
+                        pointerIndex = pointerIndex,
+                        type = InputForUI.PointerEvent.Type.Scroll,
+                        worldPosition = eventPos,
+                        worldOrientation = eventRot,
+                        eventSource = InputForUI.EventSource.TrackedDevice,
+                        maxDistance = k_MaxRaycastDistance,
+                        scroll = -scrollDelta
+                    };
+                    InputForUI.EventProvider.Dispatch(InputForUI.Event.From(scrollEvent));
+                }
             }
 #endif
 
@@ -499,7 +588,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 worldOrientation = trackedState.worldOrientation,
                 hitDistance = trackedState.hit.distance,
                 hitCollider = trackedState.hit.collider,
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+                hitPanelComponent = trackedState.hit.panelComponent,
+#else
                 hitDocument = trackedState.hit.document,
+#endif
                 hitElement = trackedState.hit.element,
             };
 
@@ -612,23 +705,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Takes a set of colliders and checks if the first one in the list has a
-        /// UI Document component.
+        /// UI Toolkit panel component (<see cref="UIDocument"/> or <see cref="PanelRenderer"/>).
         /// </summary>
         /// <param name="colliders">List of type <see cref="Collider"/>.</param>
-        /// <returns>Will return <see langword="true"/> if a UI Document is found on the first collider in the list.</returns>
+        /// <returns>Will return <see langword="true"/> if a panel component is found on the first collider in the list.</returns>
         public static bool IsValidUIToolkitInteraction(List<Collider> colliders)
         {
-            return colliders.Count > 0 && HasUIDocument(colliders[0]);
+            return colliders.Count > 0 && HasPanelComponent(colliders[0]);
         }
 
         /// <summary>
-        /// Takes a single collider and checks to see if that collider has a UI Document component.
+        /// Takes a single collider and checks to see if that collider has a UI Toolkit panel component
+        /// (<see cref="UIDocument"/> or <see cref="PanelRenderer"/>).
         /// </summary>
         /// <param name="collider">The <see cref="Collider"/> to check.</param>
-        /// <returns>Will return <see langword="true"/> if a UI Document is found on the <paramref name="collider"/>.</returns>
-        public static bool HasUIDocument(Collider collider)
+        /// <returns>Will return <see langword="true"/> if a panel component is found on the <paramref name="collider"/>.</returns>
+        public static bool HasPanelComponent(Collider collider)
         {
-#if UIELEMENTS_MODULE_PRESENT
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            return collider.TryGetComponent<IPanelComponent>(out _);
+#elif UITOOLKIT_WORLDSPACE_ENABLED
             return collider.TryGetComponent(out UIDocument _);
 #else
             return false;
@@ -707,6 +803,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         static void ResetStaticsOnLoad()
         {
             uiToolkitSupportEnabled = false;
+            activeScrollMomentum = null;
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
             s_PanelInputConfigurationRef = null;

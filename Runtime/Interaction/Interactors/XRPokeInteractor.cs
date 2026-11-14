@@ -162,7 +162,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         QueryUIDocumentInteraction m_UIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
 
         /// <summary>
-        /// Whether physics casts should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders,
+        /// Whether physics casts should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (UIDocument or PanelRenderer),
         /// even if the physics cast is set to ignore triggers.
         /// If you are not using UI Toolkit, you should set this property
         /// to <see cref="QueryUIDocumentInteraction.Ignore"/> to avoid the performance cost.
@@ -172,12 +172,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
         /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
         /// the physics cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
-        /// hits that are not UI Toolkit UI Documents.
+        /// hits that are not UI Toolkit panels.
         /// <br />
         /// When set to <see cref="QueryUIDocumentInteraction.Ignore"/> when <see cref="physicsTriggerInteraction"/> is set to hit trigger colliders
         /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
         /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
-        /// this behavior will ignore any trigger collider hits that are UI Toolkit UI Documents.
+        /// this behavior will ignore any trigger collider hits that are UI Toolkit panels.
         /// </remarks>
         /// <seealso cref="physicsTriggerInteraction"/>
         public QueryUIDocumentInteraction uiDocumentTriggerInteraction

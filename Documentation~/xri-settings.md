@@ -23,7 +23,7 @@ The XR Interaction Toolkit provides a few settings that modify Editor and runtim
 
 ### Interaction Simulator Settings
 
-These settings control the [XR Interaction Simulator](xref:xri-xr-interaction-simulator-overview) and the [XR Device Simulator (Legacy)](xref:xri-samples-xr-device-simulator), which are package samples that you can [install](xref:xri-installation#installing-samples) from the Package Manager window.
+These settings control the [XR Interaction Simulator](xref:xri-xr-interaction-simulator-overview), which is a package sample that you can [install](xref:xri-installation#installing-samples) from the Package Manager window.
 
 * **Use XR Interaction Simulator in scenes**
 
@@ -32,10 +32,6 @@ These settings control the [XR Interaction Simulator](xref:xri-xr-interaction-si
 * **Instantiate in Editor Only**
 
    When enabled, the simulator prefab is only added in the Editor. Disable to add the prefab to Standalone (desktop) builds, too. (The simulator prefab is never added to XR platform builds automatically.)
-
-* **Use Classic XR Device Simulator**
-
-   When enabled, the classic XR Device Simulator prefab is used instead of the XR Interaction Simulator.
 
 * **XR Interaction Simulator prefab**
 

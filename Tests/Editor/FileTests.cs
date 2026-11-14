@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -11,6 +10,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
     {
         // 140 is the reserved length that PVP tests check for.
         const int k_MaxFilePathLength = 140;
+
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
 
         // Root path for sample asset folder when imported into a project
         const string k_RootSearchPath = "Packages/com.unity.xr.interaction.toolkit/Samples~";
@@ -25,12 +26,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [Test]
         public void PackageCacheFilePathLengthIsBelowMaxLimit()
         {
-            var assembly = Assembly.Load("Unity.XR.Interaction.Toolkit");
-            Assert.That(assembly, Is.Not.Null);
-
             // Get the root file path of the XRI package in the project.
             // Example: "C:\UnitySrc\Example-Unity-3D-Project-6000.0\Library\PackageCache\com.unity.xr.interaction.toolkit@3.0.0"
-            var packageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
+            var packageInfo = PackageManager.PackageInfo.FindForPackageName(k_PackageName);
             Assert.That(packageInfo, Is.Not.Null);
             Assert.That(packageInfo.resolvedPath, Is.Not.Null);
 

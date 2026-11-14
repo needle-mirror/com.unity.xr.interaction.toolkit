@@ -11,12 +11,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRBaseController"/>.
     /// </summary>
     [CustomEditor(typeof(XRBaseController), true), CanEditMultipleObjects]
-    [Obsolete("XRBaseControllerEditor has been deprecated in version 3.0.0.")]
+    [Obsolete(k_XRBaseControllerEditorDeprecated, true)]
     public class XRBaseControllerEditor : BaseInteractionEditor
     {
-        /// <inheritdoc cref="m_ModelParent"/>
-        [Obsolete("m_ModelTransform has been deprecated due to being renamed. Use m_ModelParent instead. (UnityUpgradable) -> m_ModelParent", true)]
-        protected SerializedProperty m_ModelTransform;
+        const string k_XRBaseControllerEditorDeprecated = "XRBaseControllerEditor has been deprecated in version 3.0.0.";
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseController.updateTrackingType"/>.</summary>
         protected SerializedProperty m_UpdateTrackingType;
@@ -73,10 +71,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
 
             /// <summary>The help box message when Model Prefab and Model are both set.</summary>
             public static readonly GUIContent modelPrefabIgnored = EditorGUIUtility.TrTextContent("Model Prefab will be ignored and not instantiated since Model is already set.");
-
-            /// <inheritdoc cref="modelParent"/>
-            [Obsolete("modelTransform has been deprecated due to being renamed. Use modelParent instead.", true)]
-            public static GUIContent modelTransform;
         }
 
         /// <summary>
@@ -85,15 +79,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="MonoBehaviour"/>
         protected virtual void OnEnable()
         {
-            m_UpdateTrackingType = serializedObject.FindProperty("m_UpdateTrackingType");
-            m_EnableInputTracking = serializedObject.FindProperty("m_EnableInputTracking");
-            m_EnableInputActions = serializedObject.FindProperty("m_EnableInputActions");
-            m_ModelPrefab = serializedObject.FindProperty("m_ModelPrefab");
-            m_ModelParent = serializedObject.FindProperty("m_ModelParent");
-            m_Model = serializedObject.FindProperty("m_Model");
-            m_AnimateModel = serializedObject.FindProperty("m_AnimateModel");
-            m_ModelSelectTransition = serializedObject.FindProperty("m_ModelSelectTransition");
-            m_ModelDeSelectTransition = serializedObject.FindProperty("m_ModelDeSelectTransition");
         }
 
         /// <inheritdoc />
@@ -102,9 +87,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
         protected override void DrawInspector()
         {
-            DrawBeforeProperties();
-            DrawProperties();
-            DrawDerivedProperties();
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -114,7 +97,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawBeforeProperties()
         {
-            DrawScript();
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -126,19 +109,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawProperties()
         {
-            DrawTrackingConfiguration();
-
-            EditorGUILayout.Space();
-
-            DrawInputConfiguration();
-
-            EditorGUILayout.Space();
-
-            DrawOtherActions();
-
-            EditorGUILayout.Space();
-
-            DrawModelProperties();
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -147,9 +118,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawTrackingConfiguration()
         {
-            EditorGUILayout.LabelField(BaseContents.trackingHeader, EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_UpdateTrackingType, BaseContents.updateTrackingType);
-            EditorGUILayout.PropertyField(m_EnableInputTracking, BaseContents.enableInputTracking);
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -158,8 +127,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawInputConfiguration()
         {
-            EditorGUILayout.LabelField(BaseContents.inputHeader, EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(m_EnableInputActions, BaseContents.enableInputActions);
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -167,6 +135,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawOtherActions()
         {
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
 
         /// <summary>
@@ -174,32 +143,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawModelProperties()
         {
-            EditorGUILayout.LabelField(BaseContents.modelHeader, EditorStyles.boldLabel);
-
-            if (!Application.isPlaying && m_ModelPrefab.objectReferenceValue != null && m_Model.objectReferenceValue != null)
-                EditorGUILayout.HelpBox(BaseContents.modelPrefabIgnored.text, MessageType.Warning);
-
-            using (new EditorGUI.DisabledScope(!Application.isPlaying && m_Model.objectReferenceValue != null))
-            {
-                EditorGUILayout.PropertyField(m_ModelPrefab, BaseContents.modelPrefab);
-                EditorGUILayout.PropertyField(m_ModelParent, BaseContents.modelParent);
-            }
-
-            using (new EditorGUI.DisabledScope(!Application.isPlaying && m_ModelPrefab.objectReferenceValue != null && m_Model.objectReferenceValue == null))
-            {
-                EditorGUILayout.PropertyField(m_Model, BaseContents.model);
-            }
-
-            EditorGUILayout.PropertyField(m_AnimateModel, BaseContents.animateModel);
-
-            if (m_AnimateModel.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_ModelSelectTransition, BaseContents.modelSelectTransition);
-                    EditorGUILayout.PropertyField(m_ModelDeSelectTransition, BaseContents.modelDeSelectTransition);
-                }
-            }
+            throw new NotSupportedException(k_XRBaseControllerEditorDeprecated);
         }
     }
 }

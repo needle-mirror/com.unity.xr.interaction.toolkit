@@ -277,7 +277,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        class SquareDistanceAttachPointEvaluator : IInteractorDistanceEvaluator
+        internal class SquareDistanceAttachPointEvaluator : IInteractorDistanceEvaluator
         {
             /// <summary>
             /// Evaluates the squared distance between the attachment points of an interactor and an interactable.
@@ -301,7 +301,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #if BURST_PRESENT
             [BurstCompile]
 #endif
-            static float SqDistanceToInteractable(in float3 attachPosition, in float3 interactablePosition)
+            internal static float SqDistanceToInteractable(in float3 attachPosition, in float3 interactablePosition)
             {
                 return math.lengthsq(attachPosition - interactablePosition);
             }

@@ -7,10 +7,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Custom editor for an <see cref="ARPlacementInteractable"/>.
     /// </summary>
-    [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.")]
+    [Obsolete(k_ARPlacementInteractableEditorDeprecated, true)]
     [CustomEditor(typeof(ARPlacementInteractable), true), CanEditMultipleObjects]
     public class ARPlacementInteractableEditor : ARBaseGestureInteractableEditor
     {
+        const string k_ARPlacementInteractableEditorDeprecated = "ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARPlacementInteractable.placementPrefab"/>.</summary>
         protected SerializedProperty m_PlacementPrefab;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARPlacementInteractable.fallbackLayerMask"/>.</summary>
@@ -35,45 +37,18 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_PlacementPrefab = serializedObject.FindProperty("m_PlacementPrefab");
-            m_FallbackLayerMask = serializedObject.FindProperty("m_FallbackLayerMask");
-            m_ObjectPlaced = serializedObject.FindProperty("m_ObjectPlaced");
-
-            m_OnObjectPlaced = serializedObject.FindProperty("m_OnObjectPlaced");
-            m_OnObjectPlacedCalls = m_OnObjectPlaced.FindPropertyRelative("m_PersistentCalls.m_Calls");
         }
 
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            base.DrawProperties();
-            EditorGUILayout.PropertyField(m_PlacementPrefab);
-            EditorGUILayout.PropertyField(m_FallbackLayerMask);
+            throw new NotSupportedException(k_ARPlacementInteractableEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawInteractableEventsNested()
         {
-            EditorGUILayout.PropertyField(m_ObjectPlaced);
-            if (m_OnObjectPlacedCalls.arraySize > 0 || m_OnObjectPlacedCalls.hasMultipleDifferentValues)
-                EditorGUILayout.PropertyField(m_OnObjectPlaced, Contents.onObjectPlaced);
-            base.DrawInteractableEventsNested();
-        }
-
-        /// <inheritdoc />
-        [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.", true)]
-        protected override bool IsDeprecatedEventsInUse()
-        {
-            return default;
-        }
-
-        /// <inheritdoc />
-        [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.", true)]
-        protected override void MigrateEvents(SerializedObject serializedObject)
-        {
-            base.MigrateEvents(serializedObject);
+            throw new NotSupportedException(k_ARPlacementInteractableEditorDeprecated);
         }
     }
 }

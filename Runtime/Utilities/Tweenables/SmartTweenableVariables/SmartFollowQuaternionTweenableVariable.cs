@@ -115,7 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewTweenTarget(float deltaTime, float angleOffsetDeg, float maxAngleAllowed, float lowerSpeed, float upperSpeed, out float newTweenTarget)
+        internal static void ComputeNewTweenTarget(float deltaTime, float angleOffsetDeg, float maxAngleAllowed, float lowerSpeed, float upperSpeed, out float newTweenTarget)
         {
             float speedMultiplier = (1f - math.clamp(angleOffsetDeg / maxAngleAllowed, 0f, 1f));
             newTweenTarget = deltaTime * math.clamp(speedMultiplier * upperSpeed, lowerSpeed, upperSpeed);

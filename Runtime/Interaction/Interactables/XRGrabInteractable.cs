@@ -1831,7 +1831,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void EaseAttachBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
+        internal static void EaseAttachBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
             float attachEaseInTime, ref float currentAttachEaseTime)
         {
             var easePercent = currentAttachEaseTime / attachEaseInTime;
@@ -1844,7 +1844,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StepSmoothingBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
+        internal static void StepSmoothingBurst(ref Pose targetPose, ref Vector3 targetLocalScale, in Pose rawTargetPose, in Vector3 rawTargetLocalScale, float deltaTime,
             bool smoothPos, float smoothPosAmount, float tightenPos,
             bool smoothRot, float smoothRotAmount, float tightenRot,
             bool smoothScale, float smoothScaleAmount, float tightenScale)

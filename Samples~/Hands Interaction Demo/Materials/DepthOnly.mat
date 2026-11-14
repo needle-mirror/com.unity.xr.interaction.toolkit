@@ -27,6 +27,7 @@ Material:
     m_Floats: []
     m_Colors: []
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &8557380758366049678
 MonoBehaviour:
   m_ObjectHideFlags: 11

@@ -218,19 +218,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             s_WaitlistInteractors?.Remove(interactor);
         }
 
-        [HideInInspector]
-        [SerializeField]
         ActiveInputMode m_ActiveInputMode;
 
         /// <summary>
         /// Configures which Active Input Mode will be used in the situation where the Active Input Handling project setting is set to Both.
         /// </summary>
         /// <seealso cref="ActiveInputMode"/>
-        [Obsolete("activeInputMode has been deprecated in version 3.1.0. Input System Package (New) will be the default input handling mode used when active input handling is set to Both.")]
+        [Obsolete("activeInputMode has been deprecated in version 3.1.0. Input System Package (New) will be the default input handling mode used when active input handling is set to Both.", true)]
         public ActiveInputMode activeInputMode
         {
-            get => m_ActiveInputMode;
-            set => m_ActiveInputMode = value;
+            get => default;
+            set => _ = value;
         }
 
         [Header("Input Devices")]
@@ -258,6 +256,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             get => m_EnableMouseInput;
             set => m_EnableMouseInput = value;
+        }
+
+        internal bool blockWorldSpacePointerInput
+        {
+            get => m_BlockWorldSpacePointerInput;
+            set => m_BlockWorldSpacePointerInput = value;
         }
 
         [SerializeField]
@@ -597,6 +601,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             if (m_ActiveInputMode != ActiveInputMode.InputManagerBindings)
                 DisableAllActions();
+
+            scrollMomentum.Clear();
 
             base.OnDisable();
         }

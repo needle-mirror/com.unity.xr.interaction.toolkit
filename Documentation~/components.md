@@ -15,15 +15,6 @@ uid: xri-components
 - [Teleportation Area](teleportation-area.md)
 - [Teleportation Multi-Anchor Volume](teleportation-multi-anchor-volume.md)
 
-### AR interactables (deprecated)
-
-- [AR Annotation Interactable](ar-annotation-interactable.md)
-- [AR Placement Interactable](ar-placement-interactable.md)
-- [AR Rotation Interactable](ar-rotation-interactable.md)
-- [AR Scale Interactable](ar-scale-interactable.md)
-- [AR Selection Interactable](ar-selection-interactable.md)
-- [AR Translation Interactable](ar-translation-interactable.md)
-
 ## Interactors
 
 - [Near-Far Interactor](near-far-interactor.md)
@@ -41,13 +32,10 @@ uid: xri-components
 
 - [Interaction Attach Controller](interaction-attach-controller.md)
 
-### AR interactors (deprecated)
-
-- [AR Gesture Interactor](ar-gesture-interactor.md)
-
 ## Input
 
 - [Input Action Manager](input-action-manager.md)
+- [Press Scroll Input](press-scroll-input.md)
 - [XR Input Modality Manager](xr-input-modality-manager.md)
 - [XR Transform Stabilizer](xr-transform-stabilizer.md)
 
@@ -71,6 +59,7 @@ uid: xri-components
 - [Gravity Provider](gravity-provider.md)
 - [Jump Provider](jump-provider.md)
 - [Snap Turn Provider](snap-turn-provider.md)
+- [Step Move Provider](step-move-provider.md)
 - [Teleportation Provider](teleportation-provider.md)
 - [Two-Handed Grab Move Provider](two-handed-grab-move-provider.md)
 
@@ -102,7 +91,6 @@ uid: xri-components
 
 ## Other components
 
-- [XR Device Simulator](xr-device-simulator.md)
 - [XR Hand Skeleton Poke Displacer](xr-hand-skeleton-poke-displacer.md)
 - [XR Interactable Snap Volume](xr-interactable-snap-volume.md)
 - [XR Interaction Group](xr-interaction-group.md)

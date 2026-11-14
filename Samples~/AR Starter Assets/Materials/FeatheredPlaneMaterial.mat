@@ -86,3 +86,4 @@ Material:
     - _TexTintColor: {r: 1, g: 1, b: 1, a: 0.69803923}
     - _TintColor: {r: 0.99215686, g: 0.72156864, b: 0.07450981, a: 0.32941177}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1

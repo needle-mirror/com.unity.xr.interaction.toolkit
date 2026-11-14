@@ -26,7 +26,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
         static long s_EnteredPlayModeTicks;
         static XRIAnalyticsUtility.XRManagementData s_ManagementData;
 
-        static SimulatorSessionTracker s_DeviceSimulatorSessionTracker = new SimulatorSessionTracker();
         static SimulatorSessionTracker s_InteractionSimulatorSessionTracker = new SimulatorSessionTracker();
         static InteractionManagerTracker s_InteractionManagerTracker = new InteractionManagerTracker();
         static InputModalityManagerTracker s_InputModalityManagerTracker = new InputModalityManagerTracker();
@@ -40,19 +39,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                 return;
 
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
-        }
-
-        static void OnDeviceSimulatorInstanceChanged(bool active)
-        {
-            var now = Time.realtimeSinceStartupAsDouble;
-
-            using (s_AnalyticsMarker.Auto())
-            {
-                if (active)
-                    s_DeviceSimulatorSessionTracker.StartSession(now);
-                else
-                    s_DeviceSimulatorSessionTracker.EndSession(now);
-            }
         }
 
         static void OnInteractionSimulatorInstanceChanged(bool active)
@@ -113,11 +99,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                     s_EnteredPlayModeRealtime = now;
                     s_EnteredPlayModeTicks = nowTicks;
 
-#pragma warning disable CS0618
-                    if (XRDeviceSimulator.instance != null)
-                        s_DeviceSimulatorSessionTracker.StartSession(now);
-#pragma warning restore CS0618
-
                     if (XRInteractionSimulator.instance != null)
                         s_InteractionSimulatorSessionTracker.StartSession(now);
 
@@ -135,10 +116,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
                     s_LocomotionProviderTracker.StartSession();
 
-#pragma warning disable CS0618
-                    XRDeviceSimulator.instanceChanged += OnDeviceSimulatorInstanceChanged;
-#pragma warning restore CS0618
-
                     XRInteractionSimulator.instanceChanged += OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged += OnActiveInteractionManagersChanged;
                     XRInputModalityManager.activeModalityManagersChanged += OnActiveInputModalityManagersChanged;
@@ -155,11 +132,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
             {
                 using (s_AnalyticsMarker.Auto())
                 {
-#pragma warning disable CS0618
-                    if (XRDeviceSimulator.instance != null)
-                        s_DeviceSimulatorSessionTracker.EndSession(now);
-#pragma warning restore CS0618
-
                     if (XRInteractionSimulator.instance != null)
                         s_InteractionSimulatorSessionTracker.EndSession(now);
 
@@ -175,17 +147,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
 
                     s_LocomotionProviderTracker.EndSession();
 
-#pragma warning disable CS0618
-                    XRDeviceSimulator.instanceChanged -= OnDeviceSimulatorInstanceChanged;
-#pragma warning restore CS0618
-
                     XRInteractionSimulator.instanceChanged -= OnInteractionSimulatorInstanceChanged;
                     XRInteractionManager.activeInteractionManagersChanged -= OnActiveInteractionManagersChanged;
                     XRInputModalityManager.activeModalityManagersChanged -= OnActiveInputModalityManagersChanged;
 
                     XRIAnalytics.Send(GetEventPayload(now, nowTicks));
 
-                    s_DeviceSimulatorSessionTracker.Reset();
                     s_InteractionSimulatorSessionTracker.Reset();
                     s_InteractionManagerTracker.Cleanup();
                     s_InputModalityManagerTracker.Cleanup();
@@ -217,8 +184,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Analytics.Hooks
                 playModeEndTimeTicks = nowTicks,
                 enteredPlayModeDurationSeconds = (float)s_EnteredPlayModeRealtime,
                 playModeDurationSeconds = (float)(now - s_EnteredPlayModeRealtime),
-                deviceSimulatorDurationSeconds = (float)s_DeviceSimulatorSessionTracker.sessionDuration,
-                deviceSimulatorSessionCount = s_DeviceSimulatorSessionTracker.sessionCount,
+                deviceSimulatorDurationSeconds = 0f,
+                deviceSimulatorSessionCount = 0,
                 interactionSimulatorDurationSeconds = (float)s_InteractionSimulatorSessionTracker.sessionDuration,
                 interactionSimulatorSessionCount = s_InteractionSimulatorSessionTracker.sessionCount,
             };

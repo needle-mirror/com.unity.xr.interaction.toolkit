@@ -28,34 +28,36 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     public partial class DragGesture
     {
+        const string k_ReinitializeDeprecated = "Reinitialize(Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch) instead.";
+
 #pragma warning disable IDE1006 // Naming Styles
         /// <inheritdoc cref="fingerId"/>
         /// <remarks>
         /// <c>FingerId</c> has been deprecated. Use <see cref="fingerId"/> instead.
         /// </remarks>
-        [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId")]
-        public int FingerId => fingerId;
+        [Obsolete("FingerId has been deprecated. Use fingerId instead. (UnityUpgradable) -> fingerId", true)]
+        public int FingerId => default;
 
         /// <inheritdoc cref="startPosition"/>
         /// <remarks>
         /// <c>StartPosition</c> has been deprecated. Use <see cref="startPosition"/> instead.
         /// </remarks>
-        [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition")]
-        public Vector2 StartPosition => startPosition;
+        [Obsolete("StartPosition has been deprecated. Use startPosition instead. (UnityUpgradable) -> startPosition", true)]
+        public Vector2 StartPosition => default;
 
         /// <inheritdoc cref="position"/>
         /// <remarks>
         /// <c>Position</c> has been deprecated. Use <see cref="position"/> instead.
         /// </remarks>
-        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
-        public Vector2 Position => position;
+        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position", true)]
+        public Vector2 Position => default;
 
         /// <inheritdoc cref="delta"/>
         /// <remarks>
         /// <c>Delta</c> has been deprecated. Use <see cref="delta"/> instead.
         /// </remarks>
-        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
-        public Vector2 Delta => delta;
+        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta", true)]
+        public Vector2 Delta => default;
 
 #if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
@@ -67,14 +69,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <c>DragGesture(DragGestureRecognizer, Touch)</c> has been deprecated for its reference to Input Manager Touch. Use
         /// <see cref="DragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch)"/> instead.
         /// </remarks>
-        [Obsolete("DragGesture(DragGestureRecognizer, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use DragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch) instead.")]
+        [Obsolete("DragGesture(DragGestureRecognizer, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use DragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch) instead.", true)]
         public DragGesture(DragGestureRecognizer recognizer, Touch touch)
             : this(recognizer, new CommonTouch(touch))
         {
         }
 
-        [Obsolete("Reinitialize(Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch) instead.")]
-        internal void Reinitialize(Touch touch) => Reinitialize(new CommonTouch(touch));
+        [Obsolete(k_ReinitializeDeprecated, true)]
+        internal void Reinitialize(Touch touch)
+        {
+            throw new NotSupportedException(k_ReinitializeDeprecated);
+        }
 #endif
 #pragma warning restore IDE1006
     }

@@ -1119,7 +1119,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void CalculateLineCurveRenderPoints(int numTargetPoints, float curveRatio, in Vector3 lineOrigin, in Vector3 lineDirection, in Vector3 endPoint, ref NativeArray<Vector3> targetPoints)
+        internal static void CalculateLineCurveRenderPoints(int numTargetPoints, float curveRatio, in Vector3 lineOrigin, in Vector3 lineDirection, in Vector3 endPoint, ref NativeArray<Vector3> targetPoints)
         {
             var float3TargetPoints = targetPoints.Reinterpret<float3>();
             CurveUtility.GenerateCubicBezierCurve(numTargetPoints, curveRatio, lineOrigin, lineDirection, endPoint, ref float3TargetPoints);
@@ -1128,7 +1128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static int ComputeNewRenderPoints(int numRenderPoints, int numTargetPoints, float targetLineLength, bool shouldSmoothPoints, bool shouldOverwritePoints, float pointSmoothIncrement,
+        internal static int ComputeNewRenderPoints(int numRenderPoints, int numTargetPoints, float targetLineLength, bool shouldSmoothPoints, bool shouldOverwritePoints, float pointSmoothIncrement,
             ref NativeArray<float3> targetPoints, ref NativeArray<float3> previousRenderPoints, ref NativeArray<float3> renderPoints)
         {
             var length = 0f;
@@ -1160,7 +1160,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static bool EvaluateLineEndPoint(float targetLineLength, bool shouldSmoothPoint, in float3 unsmoothedTargetPoint, in float3 lastRenderPoint, ref float3 newRenderPoint, ref float lineLength)
+        internal static bool EvaluateLineEndPoint(float targetLineLength, bool shouldSmoothPoint, in float3 unsmoothedTargetPoint, in float3 lastRenderPoint, ref float3 newRenderPoint, ref float lineLength)
         {
             var segmentVector = newRenderPoint - lastRenderPoint;
             var segmentLength = math.length(segmentVector);

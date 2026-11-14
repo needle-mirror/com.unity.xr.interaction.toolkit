@@ -27,11 +27,9 @@ using Unity.Scripting.LifecycleManagement;
 
 using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -41,9 +39,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #if UNITY_6000_5_OR_NEWER
     [NoAutoStaticsCleanup]
 #endif
-    [Obsolete("GestureTransformationUtility has been replaced in function by the ARTransformer. Please use the ARTransformer instead.")]
+    [Obsolete(k_GestureTransformationUtilityDeprecated, true)]
     public static class GestureTransformationUtility
     {
+        const string k_GestureTransformationUtilityDeprecated = "GestureTransformationUtility has been replaced in function by the ARTransformer. Please use the ARTransformer instead.";
+        const string k_RaycastDeprecated = "Raycast with the ARSessionOrigin parameter has been deprecated. Use Raycast with the XROrigin parameter instead.";
+        const string k_GetBestPlacementPositionDeprecated = "GetBestPlacementPosition with the ARSessionOrigin parameter has been deprecated. Use GetBestPlacementPosition with the XROrigin parameter instead.";
+        const string k_RaycastDeprecated2 = "Raycast has been deprecated. Use Raycast with updated signature instead.";
+        const string k_GetBestPlacementPositionDeprecated2 = "GetBestPlacementPosition has been deprecated. Use GetBestPlacementPosition with updated signature instead.";
+
         /// <summary>
         /// Represents the alignment of a plane where translation is allowed.
         /// </summary>
@@ -80,125 +84,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         const float k_HoverDistanceThreshold = 1f;
 
-        static XROrigin s_XROrigin;
-#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
-        static ARSessionOrigin s_ARSessionOrigin;
-#pragma warning restore CS0618
-        static ARRaycastManager s_ARRaycastManager;
-        static ARPlaneManager s_ARPlaneManager;
-
-        static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
-
-        static bool TryGetTrackableManager([CanBeNull] XROrigin sessionOrigin, out ARRaycastManager raycastManager) =>
-            TryGetTrackableManager(sessionOrigin, ref s_ARRaycastManager, out raycastManager);
-
-        static bool TryGetTrackableManager([CanBeNull] XROrigin sessionOrigin, out ARPlaneManager planeManager) =>
-            TryGetTrackableManager(sessionOrigin, ref s_ARPlaneManager, out planeManager);
-
-        static bool TryGetTrackableManager<T>([CanBeNull] XROrigin sessionOrigin, ref T cachedManager, out T manager)
-        {
-            // This method is used to get the Trackable Manager component on the XROrigin GameObject
-            // by caching the manager component from the most recently used XROrigin.
-            // There is typically only one XROrigin, so this serves as a simple cache to avoid
-            // doing a GetComponent call to get the manager component each time.
-            if (sessionOrigin == null)
-            {
-                if (s_XROrigin == null)
-                {
-                    cachedManager = default;
-                    if (!ComponentLocatorUtility<XROrigin>.TryFindComponent(out s_XROrigin))
-                    {
-                        Debug.LogWarning($"Could not find {nameof(XROrigin)} in scene.");
-                        manager = default;
-                        return false;
-                    }
-                }
-            }
-            else if (sessionOrigin != s_XROrigin)
-            {
-                s_XROrigin = sessionOrigin;
-                cachedManager = default;
-            }
-
-            // The cached Trackable Managers are associated with an XROrigin.
-            // Update and use cached version
-            var found = cachedManager != null || s_XROrigin.TryGetComponent(out cachedManager);
-            manager = cachedManager;
-            return found;
-        }
-
-        static bool TryGetSessionOrigin(out XROrigin sessionOrigin)
-        {
-            if (s_XROrigin == null)
-            {
-                if (!ComponentLocatorUtility<XROrigin>.TryFindComponent(out s_XROrigin))
-                {
-                    Debug.LogWarning($"Could not find {nameof(XROrigin)} in scene.");
-                    sessionOrigin = s_XROrigin;
-                    return false;
-                }
-            }
-
-            sessionOrigin = s_XROrigin;
-            return true;
-        }
-
 #region Deprecated ARSessionOrigin overloads
-
-#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
-        static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARRaycastManager raycastManager) =>
-            TryGetTrackableManager(sessionOrigin, ref s_ARRaycastManager, out raycastManager);
-
-        static bool TryGetTrackableManager([CanBeNull] ARSessionOrigin sessionOrigin, out ARPlaneManager planeManager) =>
-            TryGetTrackableManager(sessionOrigin, ref s_ARPlaneManager, out planeManager);
-
-        static bool TryGetTrackableManager<T>([CanBeNull] ARSessionOrigin sessionOrigin, ref T cachedManager, out T manager)
-        {
-            // This method is used to get the Trackable Manager component on the ARSessionOrigin GameObject
-            // by caching the manager component from the most recently used ARSessionOrigin.
-            // There is typically only one ARSessionOrigin, so this serves as a simple cache to avoid
-            // doing a GetComponent call to get the manager component each time.
-            if (sessionOrigin == null)
-            {
-                if (s_ARSessionOrigin == null)
-                {
-                    cachedManager = default;
-                    if (!ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out s_ARSessionOrigin))
-                    {
-                        Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
-                        manager = default;
-                        return false;
-                    }
-                }
-            }
-            else if (sessionOrigin != s_ARSessionOrigin)
-            {
-                s_ARSessionOrigin = sessionOrigin;
-                cachedManager = default;
-            }
-
-            // The cached Trackable Managers are associated with an ARSessionOrigin.
-            // Update and use cached version
-            var found = cachedManager != null || s_ARSessionOrigin.TryGetComponent(out cachedManager);
-            manager = cachedManager;
-            return found;
-        }
-
-        static bool TryGetSessionOrigin(out ARSessionOrigin sessionOrigin)
-        {
-            if (s_ARSessionOrigin == null)
-            {
-                if (!ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out s_ARSessionOrigin))
-                {
-                    Debug.LogWarning($"Could not find {nameof(ARSessionOrigin)} in scene.");
-                    sessionOrigin = s_ARSessionOrigin;
-                    return false;
-                }
-            }
-
-            sessionOrigin = s_ARSessionOrigin;
-            return true;
-        }
 #pragma warning restore CS0618
 
 #endregion
@@ -229,43 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #endif
             int fallbackLayerMask = 0)
         {
-            if ((sessionOrigin != null || TryGetSessionOrigin(out sessionOrigin)) &&
-                TryGetTrackableManager(sessionOrigin, out ARRaycastManager raycastManager) &&
-                raycastManager.Raycast(screenPoint, hitResults, trackableTypes))
-            {
-                return true;
-            }
-
-            // No hits on trackables, try debug planes
-            hitResults.Clear();
-            const TrackableType hitType = TrackableType.PlaneWithinPolygon;
-            if (fallbackLayerMask == 0 || (trackableTypes & hitType) == 0)
-                return false;
-
-            var camera = sessionOrigin != null ? sessionOrigin.Camera : Camera.main;
-            if (camera == null)
-                return false;
-
-            var ray = camera.ScreenPointToRay(screenPoint);
-            if (camera.gameObject.scene.GetPhysicsScene().Raycast(ray.origin, ray.direction, out var hit, Mathf.Infinity, fallbackLayerMask))
-            {
-                var transform = sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform;
-                hitResults.Add(new ARRaycastHit(
-                    new XRRaycastHit(
-                        TrackableId.invalidId,
-                        new Pose(hit.point, Quaternion.LookRotation(Vector3.forward, hit.normal)),
-                        hit.distance,
-                        hitType),
-                    hit.distance,
-#if AR_FOUNDATION_4_1_OR_NEWER
-                    transform, null));
-#else
-                    transform));
-#endif
-                return true;
-            }
-
-            return false;
+            throw new NotSupportedException(k_GestureTransformationUtilityDeprecated);
         }
 
         /// <summary>
@@ -305,154 +155,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             TrackableType trackableTypes = TrackableType.PlaneWithinPolygon,
             int fallbackLayerMask = 0)
         {
-            var result = new Placement();
-
-            if (sessionOrigin == null)
-                TryGetSessionOrigin(out sessionOrigin);
-
-            var camera = sessionOrigin != null ? sessionOrigin.Camera : Camera.main;
-            if (camera == null)
-                return result;
-
-            var cameraTransform = camera.transform;
-
-            result.updatedGroundingPlaneHeight = groundingPlaneHeight;
-
-            // Get the angle between the camera and the object's down direction.
-            var angle = 90f - Vector3.Angle(cameraTransform.forward, Vector3.down);
-
-            var touchOffsetRatio = Mathf.Clamp01(angle / 90f);
-            var screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
-            screenPosition.y += DisplayUtility.InchesToPixels(screenTouchOffset);
-
-            var hoverRatio = Mathf.Clamp01(angle / 45f);
-            hoverOffset *= hoverRatio;
-
-            var distance = (cameraTransform.position - currentAnchorPosition).magnitude;
-            var distanceHoverRatio = Mathf.Clamp01(distance / k_HoverDistanceThreshold);
-            hoverOffset *= distanceHoverRatio;
-
-            // The best estimate of the point in the plane where the object will be placed:
-            Vector3 groundingPoint;
-
-            // Get the ray to cast into the scene from the perspective of the camera.
-            if (Raycast(screenPosition, s_Hits, sessionOrigin, trackableTypes, fallbackLayerMask))
-            {
-                if (!TryGetTrackableManager(sessionOrigin, out ARPlaneManager planeManager))
-                    return result;
-
-                var firstHit = s_Hits[0];
-                var plane = planeManager.GetPlane(firstHit.trackableId);
-                if (plane == null || IsPlaneTypeAllowed(gestureTranslationMode, plane.alignment))
-                {
-                    // Avoid detecting the back of existing planes.
-                    if (Vector3.Dot(cameraTransform.position - firstHit.pose.position,
-                                    firstHit.pose.rotation * Vector3.up) < 0f)
-                        return result;
-
-                    // Don't allow hovering for vertical or horizontal downward facing planes.
-                    if (plane == null ||
-                        plane.alignment == PlaneAlignment.Vertical ||
-                        plane.alignment == PlaneAlignment.HorizontalDown ||
-                        plane.alignment == PlaneAlignment.HorizontalUp)
-                    {
-                        groundingPoint = LimitTranslation(
-                            firstHit.pose.position, currentAnchorPosition, maxTranslationDistance);
-
-                        if (plane != null)
-                        {
-                            result.placementPlane = plane;
-                            result.hasPlane = true;
-                        }
-
-                        result.hasPlacementPosition = true;
-                        result.placementPosition = groundingPoint;
-                        result.hasHoveringPosition = true;
-                        result.hoveringPosition = groundingPoint;
-                        result.updatedGroundingPlaneHeight = groundingPoint.y;
-                        result.placementRotation = firstHit.pose.rotation;
-                        return result;
-                    }
-                }
-                else
-                {
-                    // Plane type not allowed.
-                    return result;
-                }
-            }
-
-            // Return early if the camera is pointing upwards.
-            if (angle < 0f)
-            {
-                return result;
-            }
-
-            // If the grounding point is lower than the current grounding plane height, or if the
-            // ray cast did not return a hit, then we extend the grounding plane to infinity, and do
-            // a new ray cast into the scene from the perspective of the camera.
-            var cameraRay = camera.ScreenPointToRay(screenPosition);
-            var groundingPlane =
-                new Plane(Vector3.up, new Vector3(0f, groundingPlaneHeight, 0f));
-
-            // Find the hovering position by casting from the camera onto the grounding plane
-            // and offsetting the result by the hover offset.
-            if (groundingPlane.Raycast(cameraRay, out var enter))
-            {
-                groundingPoint = LimitTranslation(
-                    cameraRay.GetPoint(enter), currentAnchorPosition, maxTranslationDistance);
-
-                result.hasHoveringPosition = true;
-                result.hoveringPosition = groundingPoint + (Vector3.up * hoverOffset);
-            }
-            else
-            {
-                // If we can't successfully cast onto the groundingPlane, just return early.
-                return result;
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Limits the translation to the maximum distance allowed.
-        /// </summary>
-        /// <returns>Returns the new target position, limited so that the object does not translate more
-        /// than the maximum allowed distance.</returns>
-        /// <param name="desiredPosition">Desired position.</param>
-        /// <param name="currentPosition">Current position.</param>
-        /// <param name="maxTranslationDistance">Max translation distance.</param>
-        static Vector3 LimitTranslation(Vector3 desiredPosition, Vector3 currentPosition, float maxTranslationDistance)
-        {
-            if ((desiredPosition - currentPosition).sqrMagnitude > Mathf.Pow(maxTranslationDistance, 2f))
-            {
-                return currentPosition + (
-                    (desiredPosition - currentPosition).normalized * maxTranslationDistance);
-            }
-
-            return desiredPosition;
-        }
-
-        static bool IsPlaneTypeAllowed(GestureTranslationMode gestureTranslationMode, PlaneAlignment planeAlignment)
-        {
-            if (gestureTranslationMode == GestureTranslationMode.Any)
-            {
-                return true;
-            }
-
-            if (gestureTranslationMode == GestureTranslationMode.Horizontal &&
-                (planeAlignment == PlaneAlignment.HorizontalDown ||
-                    planeAlignment == PlaneAlignment.HorizontalUp))
-            {
-                return true;
-            }
-
-            if (gestureTranslationMode == GestureTranslationMode.Vertical &&
-                planeAlignment == PlaneAlignment.Vertical)
-            {
-                return true;
-            }
-
-            return false;
+            throw new NotSupportedException(k_GestureTransformationUtilityDeprecated);
         }
 
         /// <summary>
@@ -523,7 +226,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Defaults to Nothing which skips the fallback ray cast.</param>
         /// <returns>Returns <see langword="true"/> if the ray cast hit a trackable in the <paramref name="trackableTypes"/> or if the fallback ray cast hit.
         /// Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("Raycast with the ARSessionOrigin parameter has been deprecated. Use Raycast with the XROrigin parameter instead.")]
+        [Obsolete(k_RaycastDeprecated, true)]
         public static bool Raycast(
             Vector2 screenPoint,
             List<ARRaycastHit> hitResults,
@@ -531,38 +234,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             TrackableType trackableTypes = TrackableType.All,
             int fallbackLayerMask = 0)
         {
-            if ((sessionOrigin != null || TryGetSessionOrigin(out sessionOrigin)) &&
-                TryGetTrackableManager(sessionOrigin, out ARRaycastManager raycastManager) &&
-                raycastManager.Raycast(screenPoint, hitResults, trackableTypes))
-            {
-                return true;
-            }
-
-            // No hits on trackables, try debug planes
-            hitResults.Clear();
-            const TrackableType hitType = TrackableType.PlaneWithinPolygon;
-            if (fallbackLayerMask == 0 || (trackableTypes & hitType) == 0)
-                return false;
-
-            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
-            if (camera == null)
-                return false;
-
-            var ray = camera.ScreenPointToRay(screenPoint);
-            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, fallbackLayerMask))
-            {
-                hitResults.Add(new ARRaycastHit(
-                    new XRRaycastHit(
-                        TrackableId.invalidId,
-                        new Pose(hit.point, Quaternion.LookRotation(Vector3.forward, hit.normal)),
-                        hit.distance,
-                        hitType),
-                    hit.distance,
-                    sessionOrigin != null ? sessionOrigin.transform : hit.collider.transform));
-                return true;
-            }
-
-            return false;
+            throw new NotSupportedException(k_RaycastDeprecated);
         }
 
         /// <summary>
@@ -591,7 +263,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// higher plane to a lower plane. When moving from a lower plane to a higher plane, this
         /// function returns a new groundingPlane to replace the old one.
         /// </remarks>
-        [Obsolete("GetBestPlacementPosition with the ARSessionOrigin parameter has been deprecated. Use GetBestPlacementPosition with the XROrigin parameter instead.")]
+        [Obsolete(k_GetBestPlacementPositionDeprecated, true)]
         public static Placement GetBestPlacementPosition(
             Vector3 currentAnchorPosition,
             Vector2 screenPosition,
@@ -603,112 +275,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             TrackableType trackableTypes = TrackableType.PlaneWithinPolygon,
             int fallbackLayerMask = 0)
         {
-            var result = new Placement();
-
-            if (sessionOrigin == null)
-                TryGetSessionOrigin(out sessionOrigin);
-
-            var camera = sessionOrigin != null ? sessionOrigin.camera : Camera.main;
-            if (camera == null)
-                return result;
-
-            var cameraTransform = camera.transform;
-
-            result.updatedGroundingPlaneHeight = groundingPlaneHeight;
-
-            // Get the angle between the camera and the object's down direction.
-            var angle = 90f - Vector3.Angle(cameraTransform.forward, Vector3.down);
-
-            var touchOffsetRatio = Mathf.Clamp01(angle / 90f);
-            var screenTouchOffset = touchOffsetRatio * k_MaxScreenTouchOffset;
-            screenPosition.y += DisplayUtility.InchesToPixels(screenTouchOffset);
-
-            var hoverRatio = Mathf.Clamp01(angle / 45f);
-            hoverOffset *= hoverRatio;
-
-            var distance = (cameraTransform.position - currentAnchorPosition).magnitude;
-            var distanceHoverRatio = Mathf.Clamp01(distance / k_HoverDistanceThreshold);
-            hoverOffset *= distanceHoverRatio;
-
-            // The best estimate of the point in the plane where the object will be placed:
-            Vector3 groundingPoint;
-
-            // Get the ray to cast into the scene from the perspective of the camera.
-            if (Raycast(screenPosition, s_Hits, sessionOrigin, trackableTypes, fallbackLayerMask))
-            {
-                if (!TryGetTrackableManager(sessionOrigin, out ARPlaneManager planeManager))
-                    return result;
-
-                var firstHit = s_Hits[0];
-                var plane = planeManager.GetPlane(firstHit.trackableId);
-                if (plane == null || IsPlaneTypeAllowed(gestureTranslationMode, plane.alignment))
-                {
-                    // Avoid detecting the back of existing planes.
-                    if (Vector3.Dot(cameraTransform.position - firstHit.pose.position,
-                                    firstHit.pose.rotation * Vector3.up) < 0f)
-                        return result;
-
-                    // Don't allow hovering for vertical or horizontal downward facing planes.
-                    if (plane == null ||
-                        plane.alignment == PlaneAlignment.Vertical ||
-                        plane.alignment == PlaneAlignment.HorizontalDown ||
-                        plane.alignment == PlaneAlignment.HorizontalUp)
-                    {
-                        groundingPoint = LimitTranslation(
-                            firstHit.pose.position, currentAnchorPosition, maxTranslationDistance);
-
-                        if (plane != null)
-                        {
-                            result.placementPlane = plane;
-                            result.hasPlane = true;
-                        }
-
-                        result.hasPlacementPosition = true;
-                        result.placementPosition = groundingPoint;
-                        result.hasHoveringPosition = true;
-                        result.hoveringPosition = groundingPoint;
-                        result.updatedGroundingPlaneHeight = groundingPoint.y;
-                        result.placementRotation = firstHit.pose.rotation;
-                        return result;
-                    }
-                }
-                else
-                {
-                    // Plane type not allowed.
-                    return result;
-                }
-            }
-
-            // Return early if the camera is pointing upwards.
-            if (angle < 0f)
-            {
-                return result;
-            }
-
-            // If the grounding point is lower than the current grounding plane height, or if the
-            // ray cast did not return a hit, then we extend the grounding plane to infinity, and do
-            // a new ray cast into the scene from the perspective of the camera.
-            var cameraRay = camera.ScreenPointToRay(screenPosition);
-            var groundingPlane =
-                new Plane(Vector3.up, new Vector3(0f, groundingPlaneHeight, 0f));
-
-            // Find the hovering position by casting from the camera onto the grounding plane
-            // and offsetting the result by the hover offset.
-            if (groundingPlane.Raycast(cameraRay, out var enter))
-            {
-                groundingPoint = LimitTranslation(
-                    cameraRay.GetPoint(enter), currentAnchorPosition, maxTranslationDistance);
-
-                result.hasHoveringPosition = true;
-                result.hoveringPosition = groundingPoint + (Vector3.up * hoverOffset);
-            }
-            else
-            {
-                // If we can't successfully cast onto the groundingPlane, just return early.
-                return result;
-            }
-
-            return result;
+            throw new NotSupportedException(k_GetBestPlacementPositionDeprecated);
         }
 
         /// <summary>
@@ -719,12 +286,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="trackableTypes">(Optional) The types of trackables to cast against.</param>
         /// <returns>Returns <see langword="true"/> if the ray cast hit a trackable in the <paramref name="trackableTypes"/>.
         /// Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("Raycast has been deprecated. Use Raycast with updated signature instead.")]
+        [Obsolete(k_RaycastDeprecated2, true)]
         public static bool Raycast(Vector2 screenPoint, List<ARRaycastHit> hitResults, TrackableType trackableTypes = TrackableType.All)
         {
-            // For backwards compatibility, use the TestPlanes layer value from the AR examples project.
-            const int fallbackLayerMask = 1 << 9;
-            return Raycast(screenPoint, hitResults, (ARSessionOrigin)null, trackableTypes, fallbackLayerMask);
+            throw new NotSupportedException(k_RaycastDeprecated2);
         }
 
         /// <summary>
@@ -749,7 +314,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// higher plane to a lower plane. When moving from a lower plane to a higher plane, this
         /// function returns a new groundingPlane to replace the old one.
         /// </remarks>
-        [Obsolete("GetBestPlacementPosition has been deprecated. Use GetBestPlacementPosition with updated signature instead.")]
+        [Obsolete(k_GetBestPlacementPositionDeprecated2, true)]
         public static Placement GetBestPlacementPosition(
             Vector3 currentAnchorPosition,
             Vector2 screenPos,
@@ -758,93 +323,74 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             float maxTranslationDistance,
             GestureTranslationMode gestureTranslationMode)
         {
-            // For backwards compatibility, use the TestPlanes layer value from the AR examples project.
-            const int fallbackLayerMask = 1 << 9;
-            return GetBestPlacementPosition(currentAnchorPosition,
-                screenPos,
-                groundingPlaneHeight,
-                hoverOffset,
-                maxTranslationDistance,
-                gestureTranslationMode,
-                (ARSessionOrigin)null,
-                fallbackLayerMask: fallbackLayerMask);
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStaticsOnLoad()
-        {
-            s_XROrigin = null;
-            s_ARSessionOrigin = null;
-            s_ARRaycastManager = null;
-            s_ARPlaneManager = null;
-            s_Hits.Clear();
+            throw new NotSupportedException(k_GetBestPlacementPositionDeprecated2);
         }
 
         public partial struct Placement
         {
 #pragma warning disable IDE1006 // Naming Styles
             /// <inheritdoc cref="hasHoveringPosition"/>
-            [Obsolete("HasHoveringPosition has been deprecated. Use hasHoveringPosition instead. (UnityUpgradable) -> hasHoveringPosition")]
+            [Obsolete("HasHoveringPosition has been deprecated. Use hasHoveringPosition instead. (UnityUpgradable) -> hasHoveringPosition", true)]
             public bool HasHoveringPosition
             {
-                get => hasHoveringPosition;
-                set => hasHoveringPosition = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="hoveringPosition"/>
-            [Obsolete("HoveringPosition has been deprecated. Use hoveringPosition instead. (UnityUpgradable) -> hoveringPosition")]
+            [Obsolete("HoveringPosition has been deprecated. Use hoveringPosition instead. (UnityUpgradable) -> hoveringPosition", true)]
             public Vector3 HoveringPosition
             {
-                get => hoveringPosition;
-                set => hoveringPosition = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="hasPlacementPosition"/>
-            [Obsolete("HasPlacementPosition has been deprecated. Use hasPlacementPosition instead. (UnityUpgradable) -> hasPlacementPosition")]
+            [Obsolete("HasPlacementPosition has been deprecated. Use hasPlacementPosition instead. (UnityUpgradable) -> hasPlacementPosition", true)]
             public bool HasPlacementPosition
             {
-                get => hasPlacementPosition;
-                set => hasPlacementPosition = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="placementPosition"/>
-            [Obsolete("PlacementPosition has been deprecated. Use placementPosition instead. (UnityUpgradable) -> placementPosition")]
+            [Obsolete("PlacementPosition has been deprecated. Use placementPosition instead. (UnityUpgradable) -> placementPosition", true)]
             public Vector3 PlacementPosition
             {
-                get => placementPosition;
-                set => placementPosition = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="placementRotation"/>
-            [Obsolete("PlacementRotation has been deprecated. Use placementRotation instead. (UnityUpgradable) -> placementRotation")]
+            [Obsolete("PlacementRotation has been deprecated. Use placementRotation instead. (UnityUpgradable) -> placementRotation", true)]
             public Quaternion PlacementRotation
             {
-                get => placementRotation;
-                set => placementRotation = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="hasPlane"/>
-            [Obsolete("HasPlane has been deprecated. Use hasPlane instead. (UnityUpgradable) -> hasPlane")]
+            [Obsolete("HasPlane has been deprecated. Use hasPlane instead. (UnityUpgradable) -> hasPlane", true)]
             public bool HasPlane
             {
-                get => hasPlane;
-                set => hasPlane = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="placementPlane"/>
-            [Obsolete("PlacementPlane has been deprecated. Use placementPlane instead. (UnityUpgradable) -> placementPlane")]
+            [Obsolete("PlacementPlane has been deprecated. Use placementPlane instead. (UnityUpgradable) -> placementPlane", true)]
             public ARPlane PlacementPlane
             {
-                get => placementPlane;
-                set => placementPlane = value;
+                get => default;
+                set => _ = value;
             }
 
             /// <inheritdoc cref="updatedGroundingPlaneHeight"/>
-            [Obsolete("UpdatedGroundingPlaneHeight has been deprecated. Use updatedGroundingPlaneHeight instead. (UnityUpgradable) -> updatedGroundingPlaneHeight")]
+            [Obsolete("UpdatedGroundingPlaneHeight has been deprecated. Use updatedGroundingPlaneHeight instead. (UnityUpgradable) -> updatedGroundingPlaneHeight", true)]
             public float UpdatedGroundingPlaneHeight
             {
-                get => updatedGroundingPlaneHeight;
-                set => updatedGroundingPlaneHeight = value;
+                get => default;
+                set => _ = value;
             }
 #pragma warning restore IDE1006 // Naming Styles
         }

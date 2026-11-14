@@ -28,7 +28,7 @@ Interactor used for interacting with interactables through poking, typically wit
 | **Physics Layer Mask** | Physics layer mask used for limiting poke sphere overlap. |
 | **Physics Trigger Interaction** | Determines whether the poke sphere overlap will hit triggers. |
 | **Snap Volume Interaction** | Whether physics cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the physics cast is set to ignore triggers. |
-| **UI Document Trigger Interaction** | Whether physics cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the physics cast is set to ignore triggers. |
+| **UI Document Trigger Interaction** | Whether physics cast should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (`UIDocument` or `PanelRenderer`), even if the physics cast is set to ignore triggers. |
 | **Require Poke Filter** | Denotes whether or not valid targets will only include objects with a poke filter. |
 | **UI Interaction** | When enabled, this allows the poke interactor to hover and select UI elements. |
 | **Click UI On Down** | When enabled, this will invoke click events on press down instead of on release for buttons, toggles, input fields, and dropdowns. |

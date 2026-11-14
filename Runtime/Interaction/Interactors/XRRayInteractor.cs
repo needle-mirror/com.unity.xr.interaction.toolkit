@@ -502,7 +502,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         QueryUIDocumentInteraction m_RaycastUIDocumentTriggerInteraction = QueryUIDocumentInteraction.Collide;
 
         /// <summary>
-        /// Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders,
+        /// Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (UIDocument or PanelRenderer),
         /// even if the ray cast is set to ignore triggers.
         /// If you are not using UI Toolkit, you should set this property
         /// to <see cref="QueryUIDocumentInteraction.Ignore"/> to avoid the performance cost.
@@ -512,12 +512,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// (when set to <see cref="QueryTriggerInteraction.Ignore"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
         /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="false"/>),
         /// the ray cast query will be modified to include trigger colliders, but then this behavior will ignore any trigger collider
-        /// hits that are not UI Toolkit UI Documents.
+        /// hits that are not UI Toolkit panels.
         /// <br />
         /// When set to <see cref="QueryUIDocumentInteraction.Ignore"/> when <see cref="raycastTriggerInteraction"/> is set to hit trigger colliders
         /// (when set to <see cref="QueryTriggerInteraction.Collide"/> or when set to <see cref="QueryTriggerInteraction.UseGlobal"/>
         /// while <see cref="Physics.queriesHitTriggers"/> is <see langword="true"/>),
-        /// this behavior will ignore any trigger collider hits that are UI Toolkit UI Documents.
+        /// this behavior will ignore any trigger collider hits that are UI Toolkit panels.
         /// </remarks>
         /// <seealso cref="raycastTriggerInteraction"/>
         public QueryUIDocumentInteraction raycastUIDocumentTriggerInteraction
@@ -836,6 +836,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         }
 
         [SerializeField]
+        bool m_UIScrollMomentum;
+
+        /// <summary>
+        /// Whether UI scroll input continues with momentum on the scroll view it was aimed at, slowing to a stop at that
+        /// scroll view's deceleration rate. Each scroll view finishes its own momentum scroll, even after this interactor aims elsewhere.
+        /// </summary>
+        /// <seealso cref="Inputs.PressScrollInput"/>
+        public bool uiScrollMomentum
+        {
+            get => m_UIScrollMomentum;
+            set => m_UIScrollMomentum = value;
+        }
+
+        [SerializeField]
         XRInputValueReader<Vector2> m_TranslateManipulationInput = new XRInputValueReader<Vector2>("Translate Manipulation");
 
         /// <summary>
@@ -990,11 +1004,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         {
             get
             {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (forceDeprecatedInput)
-                    return uiScrollValue;
-#pragma warning restore CS0618
-
                 return m_UIScrollInput.ReadValue();
             }
         }
@@ -1740,25 +1749,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             var originTransform = effectiveRayOrigin;
 
             bool select;
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (forceDeprecatedInput)
-            {
-                select = isUISelectActive;
-            }
-#pragma warning restore CS0618
+            if (m_HoverToSelect && m_HoverUISelectActive)
+                select = allowSelect;
             else
-            {
-                if (m_HoverToSelect && m_HoverUISelectActive)
-                    select = allowSelect;
-                else
-                    select = m_UIPressInput.ReadIsPerformed();
-            }
+                select = m_UIPressInput.ReadIsPerformed();
 
             var originPose = originTransform.GetWorldPose();
             model.position = originPose.position;
             model.orientation = originPose.rotation;
             model.select = select;
             model.scrollDelta = uiScrollInputValue;
+            model.scrollMomentum = m_UIScrollMomentum;
             model.raycastLayerMask = m_RaycastMask;
             model.interactionType = UIInteractionType.Ray;
 
@@ -2217,18 +2218,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 // Update the pose of the Attach Transform
                 if (m_ManipulateAttachTransform && hasSelection)
                 {
-#pragma warning disable CS0618 // Type or member is obsolete -- Use old methods for manipulation
-                    if (forceDeprecatedInput)
-                    {
-                        ProcessManipulationInputDeviceBasedController();
-                        ProcessManipulationInputActionBasedController();
-                        ProcessManipulationInputScreenSpaceController();
-                    }
-#pragma warning restore CS0618
-                    else
-                    {
-                        ProcessManipulationInput();
-                    }
+                    ProcessManipulationInput();
                 }
             }
         }
@@ -2246,18 +2236,14 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 {
                     case RotateMode.RotateOverTime:
                         if (m_RotateManipulationInput.TryReadValue(out var rotateAmt))
-#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls RotateAttachTransform for backwards compatibility
-                            RotateAnchor(attachTransform, rotateAmt.x);
-#pragma warning restore CS0618
+                            RotateAttachTransform(attachTransform, rotateAmt.x);
                         break;
 
                     case RotateMode.MatchDirection:
                         if (m_DirectionalManipulationInput.TryReadValue(out var directionAmt))
                         {
                             var referenceRotation = m_RotateReferenceFrame != null ? m_RotateReferenceFrame.rotation : effectiveRayOrigin.rotation;
-#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls RotateAttachTransform for backwards compatibility
-                            RotateAnchor(attachTransform, directionAmt, referenceRotation);
-#pragma warning restore CS0618
+                            RotateAttachTransform(attachTransform, directionAmt, referenceRotation);
                         }
                         break;
 
@@ -2267,11 +2253,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 }
 
                 if (m_TranslateManipulationInput.TryReadValue(out var translateAmt))
-                {
-#pragma warning disable CS0618 // Type or member is obsolete -- Calling deprecated method which calls TranslateAttach for backwards compatibility
-                    TranslateAnchor(effectiveRayOrigin, attachTransform, translateAmt.y);
-#pragma warning restore CS0618
-                }
+                    TranslateAttachTransform(effectiveRayOrigin, attachTransform, translateAmt.y);
             }
             else if (m_ScaleMode == ScaleMode.ScaleOverTime && m_ScaleOverTimeInput.TryReadValue(out var scaleAmt))
             {
@@ -2722,23 +2704,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             }
         }
 
-
         /// <inheritdoc />
         public override bool CanHover(IXRHoverInteractable interactable)
         {
-            if (base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable)))
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (forceDeprecatedInput)
-                {
-                    return !m_IsScreenSpaceController || m_ScreenSpaceController.currentControllerState.isTracked;
-                }
-#pragma warning restore CS0618
-
-                return true;
-            }
-
-            return false;
+            return base.CanHover(interactable) && (!hasSelection || IsSelecting(interactable));
         }
 
         /// <inheritdoc />
@@ -3014,7 +2983,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 Quaternion.LookRotation(direction),
                 uiScrollInputValue,
                 uiPressActive,
-                shouldReset);
+                shouldReset,
+                m_UIScrollMomentum);
         }
 #endif
     }

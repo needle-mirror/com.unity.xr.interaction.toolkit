@@ -58,5 +58,4 @@ For UI Toolkit world space panels that create colliders dynamically, refer to th
 ## Additional resources
 
 * [Climb Interactable](climb-interactable.md)
-* [AR Interactables](ar-interactable-components.md)
 * [Component index](components.md)

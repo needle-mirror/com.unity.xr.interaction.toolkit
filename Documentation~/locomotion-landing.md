@@ -13,6 +13,7 @@ Navigate a virtual environment with different modes of locomotion, such as telep
 |[Continuous movement](continuous-movement.md)|Move and turn smoothly in a virtual environment with the Continuous Turn Provider and Continuous Move Provider.|
 |[Grab movement](grab-movement.md)|Move as if grabbing the whole world around you with the Grab Move Provider and Two-Handed Grab Move Provider.|
 |[Snap turning](snap-turning.md)|Rotate in discrete increments with the Snap Turn Provider.|
+|[Step movement](step-movement.md)|Move in fixed distance steps with the Step Move Provider.|
 |[Climbing](climbing.md)|Climb an interactable object with the Climb Provider and Climb Interactable.|
 |[Locomotion components](locomotion-components.md)|Get a list of all locomotion components available in the package.|
 

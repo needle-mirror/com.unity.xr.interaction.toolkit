@@ -94,6 +94,8 @@ You can implement such an object to provide custom or synthesized input.
 
 ![](images/reader-object-reference.png)
 
+The [Press Scroll Input](press-scroll-input.md) component is one such object. It scrolls a fixed distance once per input event, such as a button press or a microgesture swipe, when used as an interactor's **UI Scroll Input**.
+
 > [!NOTE]
 > The [Legacy XR Input Reader](#legacy-xr-input-readers) sample provides a set of assets that you can use with the **Object Reference** source mode get input directly from a specific hardware device control, such as the **X** button of the left-hand controller. These assets are designed to replace the **XR Controller (Device-based)** components used in earlier versions of the XR Interaction Toolkit.
 

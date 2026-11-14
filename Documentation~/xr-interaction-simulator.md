@@ -7,7 +7,7 @@ The XR Interaction Simulator is a component which handles mouse and keyboard inp
 
 This class does not directly manipulate the camera or controllers which are part of the XR Origin, but rather moves them indirectly through simulated input devices.
 
-Use the Package Manager window to install the **XR Device Simulator** sample into your project to get sample mouse and keyboard bindings for [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest/index.html) actions that this component expects. The sample also includes a prefab of a `GameObject` with this component attached that has references to those sample actions already set. To make use of this simulator, add the prefab to your scene.
+Use the Package Manager window to install the **XR Interaction Simulator** sample into your project to get sample mouse and keyboard bindings for [Input System](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest/index.html) actions that this component expects. The sample also includes a prefab of a `GameObject` with this component attached that has references to those sample actions already set. To make use of this simulator, add the prefab to your scene.
 
 For more information about how to install and how to set it up in a scene, refer to the [XR Interaction Simulator overview](xr-interaction-simulator-overview.md).
 

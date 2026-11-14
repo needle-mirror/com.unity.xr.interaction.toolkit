@@ -169,7 +169,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void CalculatePokeParams(in float3 interactionPoint, in float3 pokableAttachPosition, in float3 axisNormal, out float interactionDepth, out float entranceVectorDot)
+        internal static void CalculatePokeParams(in float3 interactionPoint, in float3 pokableAttachPosition, in float3 axisNormal, out float interactionDepth, out float entranceVectorDot)
         {
             var interactionPointOffset = interactionPoint - pokableAttachPosition;
             var axisAlignedInteractionPointOffset = math.project(interactionPointOffset, axisNormal);
@@ -180,7 +180,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void CalculateInteractionPoint(in float3 pokerAttachPosition, in float3 axisNormal, float combinedPokeOffset, out float3 interactionPoint)
+        internal static void CalculateInteractionPoint(in float3 pokerAttachPosition, in float3 axisNormal, float combinedPokeOffset, out float3 interactionPoint)
         {
             float3 toleranceOffset = axisNormal * combinedPokeOffset;
             interactionPoint = pokerAttachPosition - toleranceOffset;
@@ -198,7 +198,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Filtering
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static bool IsVelocitySufficient(in float3 velocity, float threshold) => math.lengthsq(velocity) > threshold;
+        internal static bool IsVelocitySufficient(in float3 velocity, float threshold) => math.lengthsq(velocity) > threshold;
 
         bool CalculateRequirements(ref bool meetsHoverRequirements, float clampedDepthPercent, object interactor)
         {

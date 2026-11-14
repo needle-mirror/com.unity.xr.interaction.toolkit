@@ -1,4 +1,5 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+using System;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Transformers;
 
@@ -8,14 +9,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
     /// Custom editor for an <see cref="ARTransformer"/>.
     /// </summary>
     [CustomEditor(typeof(ARTransformer), true), CanEditMultipleObjects]
-    public class ARTransformerEditor : BaseInteractionEditor
+    public partial class ARTransformerEditor : BaseInteractionEditor
     {
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARTransformer.objectPlaneTranslationMode"/>.</summary>
         protected SerializedProperty m_ObjectPlaneTranslationMode;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARTransformer.enablePlaneClassificationFilter"/>.</summary>
         protected SerializedProperty m_EnablePlaneClassificationFilter;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARTransformer.planeClassificationsList"/>.</summary>
-        protected SerializedProperty m_PlaneClassificationsList;
 #if AR_FOUNDATION_6_0_OR_NEWER
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARTransformer.planeClassifications"/>.</summary>
         protected SerializedProperty m_PlaneClassifications;
@@ -40,14 +39,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        protected static class Contents
+        protected static partial class Contents
         {
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.objectPlaneTranslationMode"/>.</summary>
             public static readonly GUIContent objectPlaneTranslationMode = EditorGUIUtility.TrTextContent("Object Plane Translation Mode", "Controls whether Unity constrains the object vertically, horizontally, or free to move in all axes.");
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.enablePlaneClassificationFilter"/>.</summary>
             public static readonly GUIContent enablePlaneClassificationFilter = EditorGUIUtility.TrTextContent("Plane Classification Filter", "Enabling this will filter interactable manipulation down to only planes that match any of the allowed plane classifications.");
-            /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.planeClassificationsList"/>.</summary>
-            public static readonly GUIContent planeClassificationsList = EditorGUIUtility.TrTextContent("Plane Classifications List", "The classifications a plane needs to match one of to allow interactable manipulation with.");
 #if AR_FOUNDATION_6_0_OR_NEWER
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.planeClassifications"/>.</summary>
             public static readonly GUIContent planeClassifications = EditorGUIUtility.TrTextContent("Plane Classifications", "The classifications a plane needs to match one of to allow interactable manipulation with.");
@@ -68,11 +65,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
             public static readonly GUIContent enableElasticBreakLimit = EditorGUIUtility.TrTextContent("Enable Elastic Break Limit", "Whether to enable the elastic break limit when scaling the object beyond range.");
             /// <summary><see cref="GUIContent"/> for <see cref="ARTransformer.elasticBreakLimit"/>.</summary>
             public static readonly GUIContent elasticBreakLimit = EditorGUIUtility.TrTextContent("Elastic Break Limit", "The break limit of the elastic ratio used when scaling the object. Returns to min/max range over time after scaling beyond this limit.");
-
-#if AR_FOUNDATION_6_0_OR_NEWER
-            /// <summary>The help box message when a version of AR Foundation 6.0 or higher is present and the old PlaneClassification property was previously set.</summary>
-            public static readonly GUIContent planeClassificationWarning = EditorGUIUtility.TrTextContent("The PlaneClassification enum was deprecated in AR Foundation 6.0. The old plane classification filter property for the ARTransformer contains prior settings. Please update your settings to the new PlaneClassifications enum type.");
-#endif
         }
 
         /// <summary>
@@ -82,7 +74,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
         {
             m_ObjectPlaneTranslationMode = serializedObject.FindProperty("m_ObjectPlaneTranslationMode");
             m_EnablePlaneClassificationFilter = serializedObject.FindProperty("m_EnablePlaneClassificationFilter");
+#pragma warning disable 618 // Find the deprecated plane classifications list for migration
             m_PlaneClassificationsList = serializedObject.FindProperty("m_PlaneClassificationsList");
+#pragma warning restore 618
 #if AR_FOUNDATION_6_0_OR_NEWER
             m_PlaneClassifications = serializedObject.FindProperty("m_PlaneClassifications");
 #endif
@@ -134,6 +128,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
+#pragma warning disable 618 // Show and migrate the deprecated plane classifications list
 #if AR_FOUNDATION_6_0_OR_NEWER
                     if (m_PlaneClassificationsList.arraySize > 0)
                     {
@@ -155,6 +150,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Transformers
 #else
                     EditorGUILayout.PropertyField(m_PlaneClassificationsList, Contents.planeClassificationsList);
 #endif
+#pragma warning restore 618
                 }
             }
 

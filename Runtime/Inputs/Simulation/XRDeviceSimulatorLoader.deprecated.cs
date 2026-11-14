@@ -7,14 +7,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// (Deprecated) This class instantiates the <see cref="XRDeviceSimulator"/> in the scene depending on
     /// project settings.
     /// </summary>
-    [Obsolete("XRDeviceSimulatorLoader has been replaced by the XRInteractionSimulatorLoader. ", false)]
+    [Obsolete(k_XRDeviceSimulatorLoaderDeprecated, true)]
     public static class XRDeviceSimulatorLoader
     {
+        const string k_XRDeviceSimulatorLoaderDeprecated = "XRDeviceSimulatorLoader has been replaced by the XRInteractionSimulatorLoader. ";
+
         /// <summary>
         /// (Deprecated) This method has been replaced with <see cref="XRInteractionSimulatorLoader.Initialize"/>.
         /// </summary>
         public static void Initialize()
         {
+            throw new NotSupportedException(k_XRDeviceSimulatorLoaderDeprecated);
         }
     }
 }

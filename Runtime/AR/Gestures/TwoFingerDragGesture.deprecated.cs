@@ -28,48 +28,50 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     public partial class TwoFingerDragGesture
     {
+        const string k_ReinitializeDeprecated = "Reinitialize(Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.";
+
 #pragma warning disable IDE1006 // Naming Styles
         /// <inheritdoc cref="fingerId1"/>
         /// <remarks>
         /// <c>FingerId1</c> has been deprecated. Use <see cref="fingerId1"/> instead.
         /// </remarks>
-        [Obsolete("FingerId1 has been deprecated. Use fingerId1 instead. (UnityUpgradable) -> fingerId1")]
-        public int FingerId1 => fingerId1;
+        [Obsolete("FingerId1 has been deprecated. Use fingerId1 instead. (UnityUpgradable) -> fingerId1", true)]
+        public int FingerId1 => default;
 
         /// <inheritdoc cref="fingerId2"/>
         /// <remarks>
         /// <c>FingerId2</c> has been deprecated. Use <see cref="fingerId2"/> instead.
         /// </remarks>
-        [Obsolete("FingerId2 has been deprecated. Use fingerId2 instead. (UnityUpgradable) -> fingerId2")]
-        public int FingerId2 => fingerId2;
+        [Obsolete("FingerId2 has been deprecated. Use fingerId2 instead. (UnityUpgradable) -> fingerId2", true)]
+        public int FingerId2 => default;
 
         /// <inheritdoc cref="startPosition1"/>
         /// <remarks>
         /// <c>StartPosition1</c> has been deprecated. Use <see cref="startPosition1"/> instead.
         /// </remarks>
-        [Obsolete("StartPosition1 has been deprecated. Use startPosition1 instead. (UnityUpgradable) -> startPosition1")]
-        public Vector2 StartPosition1 => startPosition1;
+        [Obsolete("StartPosition1 has been deprecated. Use startPosition1 instead. (UnityUpgradable) -> startPosition1", true)]
+        public Vector2 StartPosition1 => default;
 
         /// <inheritdoc cref="startPosition2"/>
         /// <remarks>
         /// <c>StartPosition2</c> has been deprecated. Use <see cref="startPosition2"/> instead.
         /// </remarks>
-        [Obsolete("StartPosition2 has been deprecated. Use startPosition2 instead. (UnityUpgradable) -> startPosition2")]
-        public Vector2 StartPosition2 => startPosition2;
+        [Obsolete("StartPosition2 has been deprecated. Use startPosition2 instead. (UnityUpgradable) -> startPosition2", true)]
+        public Vector2 StartPosition2 => default;
 
         /// <inheritdoc cref="position"/>
         /// <remarks>
         /// <c>Position</c> has been deprecated. Use <see cref="position"/> instead.
         /// </remarks>
-        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position")]
-        public Vector2 Position => position;
+        [Obsolete("Position has been deprecated. Use position instead. (UnityUpgradable) -> position", true)]
+        public Vector2 Position => default;
 
         /// <inheritdoc cref="delta"/>
         /// <remarks>
         /// <c>Delta</c> has been deprecated. Use <see cref="delta"/> instead.
         /// </remarks>
-        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta")]
-        public Vector2 Delta => delta;
+        [Obsolete("Delta has been deprecated. Use delta instead. (UnityUpgradable) -> delta", true)]
+        public Vector2 Delta => default;
 
 #if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
@@ -81,14 +83,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <remarks>
         /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
         /// </remarks>
-        [Obsolete("TwoFingerDragGesture(DragGestureRecognizer, Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TwoFingerDragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
+        [Obsolete("TwoFingerDragGesture(DragGestureRecognizer, Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TwoFingerDragGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.", true)]
         public TwoFingerDragGesture(TwoFingerDragGestureRecognizer recognizer, Touch touch1, Touch touch2)
             : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
         {
         }
 
-        [Obsolete("Reinitialize(Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
-        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
+        [Obsolete(k_ReinitializeDeprecated, true)]
+        internal void Reinitialize(Touch touch1, Touch touch2)
+        {
+            throw new NotSupportedException(k_ReinitializeDeprecated);
+        }
 #endif
 #pragma warning restore IDE1006 // Naming Styles
     }

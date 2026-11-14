@@ -17,7 +17,7 @@ This tab can be used to verify that the input controls that are bound to the act
 
 ### Troubleshooting missing input devices
 
-This **Input Devices** tab doesn't display input devices that are only registered with the [Input System package](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest), such as the simulated devices created by the [XR Interaction Simulator](xref:xri-xr-interaction-simulator-overview) or the [XR Device Simulator](xref:xri-xr-device-simulator-overview). Additionally, the tracked hand devices created by the [XR Hands package](xref:xrhands-manual) are only registered with the Input System package and do not currently appear in this window.
+This **Input Devices** tab doesn't display input devices that are only registered with the [Input System package](https://docs.unity3d.com/Packages/com.unity.inputsystem@latest), such as the simulated devices created by the [XR Interaction Simulator](xref:xri-xr-interaction-simulator-overview). Additionally, the tracked hand devices created by the [XR Hands package](xref:xrhands-manual) are only registered with the Input System package and do not currently appear in this window.
 
 If you do not see any XR devices in either the **Input Devices** tab or within the **Input Debugger** window, your project may not be configured for XR. Check for any warnings or errors that could be preventing expected behavior on the **Project Validation** page under **XR Plug-in Management** in your **Project Settings** (menu: **Edit** &gt; **Project Settings**).
 

@@ -17,9 +17,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #endif
     [AddComponentMenu("XR/Locomotion/Legacy/Continuous Move Provider (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_DeviceBasedContinuousMoveProvider)]
-    [Obsolete("DeviceBasedContinuousMoveProvider has been deprecated in version 3.0.0. Use ContinuousMoveProvider instead.")]
+    [Obsolete(k_DeviceBasedContinuousMoveProviderDeprecated, true)]
     public class DeviceBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {
+        const string k_DeviceBasedContinuousMoveProviderDeprecated = "DeviceBasedContinuousMoveProvider has been deprecated in version 3.0.0. Use ContinuousMoveProvider instead.";
+
         /// <summary>
         /// Sets which input axis to use when reading from controller input.
         /// </summary>
@@ -36,84 +38,46 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Secondary2DAxis = 1,
         }
 
-        [SerializeField]
-        [Tooltip("The 2D Input Axis on the controller devices that will be used to trigger a move.")]
-        InputAxes m_InputBinding = InputAxes.Primary2DAxis;
         /// <summary>
         /// The 2D Input Axis on the controller devices that will be used to trigger a move.
         /// </summary>
         public InputAxes inputBinding
         {
-            get => m_InputBinding;
-            set => m_InputBinding = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("A list of controllers that allow move.  If an XRController is not enabled, or does not have input actions enabled, move will not work.")]
-        List<XRBaseController> m_Controllers = new List<XRBaseController>();
         /// <summary>
         /// The XRControllers that allow movement. An XRController must be enabled in order to move.
         /// </summary>
         public List<XRBaseController> controllers
         {
-            get => m_Controllers;
-            set => m_Controllers = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Value below which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.")]
-        float m_DeadzoneMin = 0.125f;
         /// <summary>
         /// Value below which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.
         /// </summary>
         public float deadzoneMin
         {
-            get => m_DeadzoneMin;
-            set => m_DeadzoneMin = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Value above which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.")]
-        float m_DeadzoneMax = 0.925f;
         /// <summary>
         /// Value above which input values will be clamped. After clamping, values will be renormalized to [0, 1] between min and max.
         /// </summary>
         public float deadzoneMax
         {
-            get => m_DeadzoneMax;
-            set => m_DeadzoneMax = value;
+            get => default;
+            set => _ = value;
         }
-
-        /// <summary>
-        /// Mapping of <see cref="InputAxes"/> to actual common usage values.
-        /// </summary>
-        static readonly InputFeatureUsage<Vector2>[] k_Vec2UsageList =
-        {
-            CommonUsages.primary2DAxis,
-            CommonUsages.secondary2DAxis,
-        };
 
         /// <inheritdoc />
         protected override Vector2 ReadInput()
         {
-            if (m_Controllers.Count == 0)
-                return Vector2.zero;
-
-            // Accumulate all the controller inputs
-            var input = Vector2.zero;
-            var feature = k_Vec2UsageList[(int)m_InputBinding];
-            for (var i = 0; i < m_Controllers.Count; ++i)
-            {
-                var controller = m_Controllers[i] as XRController;
-                if (controller != null &&
-                    controller.enableInputActions &&
-                    controller.inputDevice.TryGetFeatureValue(feature, out var controllerInput))
-                {
-                    input += GetDeadzoneAdjustedValue(controllerInput);
-                }
-            }
-
-            return input;
+            throw new NotSupportedException(k_DeviceBasedContinuousMoveProviderDeprecated);
         }
 
         /// <summary>
@@ -123,13 +87,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns adjusted 2D vector.</returns>
         protected Vector2 GetDeadzoneAdjustedValue(Vector2 value)
         {
-            var magnitude = value.magnitude;
-            var newMagnitude = GetDeadzoneAdjustedValue(magnitude);
-            if (Mathf.Approximately(newMagnitude, 0f))
-                value = Vector2.zero;
-            else
-                value *= newMagnitude / magnitude;
-            return value;
+            throw new NotSupportedException(k_DeviceBasedContinuousMoveProviderDeprecated);
         }
 
         /// <summary>
@@ -139,16 +97,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns adjusted value.</returns>
         protected float GetDeadzoneAdjustedValue(float value)
         {
-            var min = m_DeadzoneMin;
-            var max = m_DeadzoneMax;
-
-            var absValue = Mathf.Abs(value);
-            if (absValue < min)
-                return 0f;
-            if (absValue > max)
-                return Mathf.Sign(value);
-
-            return Mathf.Sign(value) * ((absValue - min) / (max - min));
+            throw new NotSupportedException(k_DeviceBasedContinuousMoveProviderDeprecated);
         }
     }
 }

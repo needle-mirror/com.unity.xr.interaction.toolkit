@@ -8,10 +8,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Custom editor for an <see cref="ARGestureInteractor"/>.
     /// </summary>
-    [Obsolete("ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.")]
+    [Obsolete(k_ARGestureInteractorEditorDeprecated, true)]
     [CustomEditor(typeof(ARGestureInteractor), true), CanEditMultipleObjects]
     public class ARGestureInteractorEditor : XRBaseInteractorEditor
     {
+        const string k_ARGestureInteractorEditorDeprecated = "ARGestureInteractor has been replaced by the XRScreenspaceController and XRRayInteractor.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARGestureInteractor.xrOrigin"/>.</summary>
         protected SerializedProperty m_XROrigin;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARGestureInteractor.arSessionOrigin"/>.</summary>
@@ -42,33 +44,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_XROrigin = serializedObject.FindProperty("m_XROrigin");
-            m_ARSessionOrigin = serializedObject.FindProperty("m_ARSessionOrigin");
-            m_RaycastMask = serializedObject.FindProperty("m_RaycastMask");
-            m_RaycastTriggerInteraction = serializedObject.FindProperty("m_RaycastTriggerInteraction");
         }
 
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            base.DrawProperties();
-#if AR_FOUNDATION_5_0_OR_NEWER
-            EditorGUILayout.PropertyField(m_XROrigin, Contents.xrOrigin);
-            using (new EditorGUI.IndentLevelScope())
-            {
-                if (m_ARSessionOrigin.objectReferenceValue != null)
-                    EditorGUILayout.HelpBox(Contents.arSessionOriginDeprecated.text, MessageType.Warning);
-
-                EditorGUILayout.PropertyField(m_ARSessionOrigin, Contents.arSessionOrigin);
-            }
-#else
-            EditorGUILayout.PropertyField(m_ARSessionOrigin, Contents.arSessionOrigin);
-#endif
-
-            EditorGUILayout.PropertyField(m_RaycastMask, Contents.raycastMask);
-            EditorGUILayout.PropertyField(m_RaycastTriggerInteraction, Contents.raycastTriggerInteraction);
+            throw new NotSupportedException(k_ARGestureInteractorEditorDeprecated);
         }
     }
 }

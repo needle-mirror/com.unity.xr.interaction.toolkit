@@ -11,6 +11,7 @@ The XR Interaction Toolkit package provides a set of locomotion primitives that 
 - A Snap Turn Provider that rotates the user by fixed angles
 - A Continuous Turn Provider that smoothly rotates the user over time
 - A Continuous Move Provider that smoothly moves the user over time
+- A Step Move Provider that moves the user by fixed distances
 - A Grab Move Provider that moves the user counter to controller movement
 - A Two-Handed Grab Move Provider that can move, rotate, and scale the user counter to controller movement
 - A Climb Provider that moves the user while they are selecting a Climb Interactable
@@ -61,7 +62,7 @@ The Locomotion Mediator will then grant that Provider access to the XR Body Tran
 
 #### Locomotion State
 
-Locomotion State is a replacement for the deprecated Locomotion Phase. It represents the state of locomotion for any given Locomotion Provider.
+Locomotion State is a replacement for the obsolete Locomotion Phase. It represents the state of locomotion for any given Locomotion Provider.
 
 | **Property** | **Description** |
 |---|---|

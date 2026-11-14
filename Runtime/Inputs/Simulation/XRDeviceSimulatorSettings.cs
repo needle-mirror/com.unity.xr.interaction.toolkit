@@ -60,18 +60,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         [SerializeField]
-        bool m_UseClassic;
-
-        /// <summary>
-        /// Enable this to automatically use the legacy <see cref="XRDeviceSimulator"/> prefab. Disable to return to the default behavior of automatically using of the <see cref="XRInteractionSimulator"/> prefab instead.
-        /// </summary>
-        internal bool useClassic
-        {
-            get => m_UseClassic;
-            set => m_UseClassic = value;
-        }
-
-        [SerializeField]
         GameObject m_SimulatorPrefab;
 
         /// <summary>
@@ -82,6 +70,5 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             get => m_SimulatorPrefab;
             set => m_SimulatorPrefab = value;
         }
-
     }
 }

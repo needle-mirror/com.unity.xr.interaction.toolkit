@@ -35,6 +35,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         static readonly Type[] s_RuntimeBehaviorTypes;
 
 #if UNITY_EDITOR
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
+
         /// <summary>
         /// <see cref="PackageInfo"/> for com.unity.xr.interaction.toolkit.
         /// </summary>
@@ -67,10 +69,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         public void SetUp()
         {
 #if UNITY_EDITOR
-            var assembly = Assembly.Load("Unity.XR.Interaction.Toolkit");
-            Assert.That(assembly, Is.Not.Null);
-
-            m_PackageInfo = PackageInfo.FindForAssembly(assembly);
+            m_PackageInfo = PackageInfo.FindForPackageName(k_PackageName);
             Assert.That(m_PackageInfo, Is.Not.Null);
 
             // Parse the major.minor version

@@ -7,11 +7,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
         /// <summary>
         /// (Deprecated) Width of the line at the start.
         /// </summary>
-        [Obsolete("starWidth has been renamed to startWidth. (UnityUpgradable) -> startWidth")]
+        [Obsolete("starWidth has been renamed to startWidth. (UnityUpgradable) -> startWidth", true)]
         public float starWidth
         {
-            get => m_StartWidth;
-            set => m_StartWidth = value;
+            get => default;
+            set => _ = value;
         }
     }
 }

@@ -9,9 +9,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRBaseControllerInteractor"/>.
     /// </summary>
     [CustomEditor(typeof(XRBaseControllerInteractor), true), CanEditMultipleObjects]
-    [Obsolete("XRBaseControllerInteractorEditor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractorEditor. (UnityUpgradable) -> UnityEditor.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractorEditor")]
+    [Obsolete(k_XRBaseControllerInteractorEditorDeprecated, true)]
     public class XRBaseControllerInteractorEditor : XRBaseInteractorEditor
     {
+        const string k_XRBaseControllerInteractorEditorDeprecated = "XRBaseControllerInteractorEditor has been deprecated in version 3.0.0. It has been renamed to XRBaseInputInteractorEditor. (UnityUpgradable) -> UnityEditor.XR.Interaction.Toolkit.Interactors.XRBaseInputInteractorEditor";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
         protected SerializedProperty m_SelectActionTrigger;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRBaseControllerInteractor.hideControllerOnSelect"/>.</summary>
@@ -90,9 +92,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        [Obsolete("XRBaseControllerInteractorEditor.BaseControllerContents has been deprecated in version 3.0.0. It has been moved to XRBaseInputInteractorEditor.BaseInputContents.")]
+        [Obsolete(k_BaseControllerContentsDeprecated, true)]
         protected static class BaseControllerContents
         {
+            const string k_BaseControllerContentsDeprecated = "XRBaseControllerInteractorEditor.BaseControllerContents has been deprecated in version 3.0.0. It has been moved to XRBaseInputInteractorEditor.BaseInputContents.";
+
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.selectActionTrigger"/>.</summary>
             public static readonly GUIContent selectActionTrigger = EditorGUIUtility.TrTextContent("Select Action Trigger", "Choose how the select action is triggered, either by current state, state transition, toggle when the select button is pressed, or sticky toggle when the select button is pressed and deselect the second time the select button is depressed.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRBaseControllerInteractor.hideControllerOnSelect"/>.</summary>
@@ -177,81 +181,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
-            m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
-            m_AllowHoveredActivate = serializedObject.FindProperty("m_AllowHoveredActivate");
-            m_TargetPriorityMode = serializedObject.FindProperty("m_TargetPriorityMode");
-
-            m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
-            m_AudioClipForOnSelectEntered = serializedObject.FindProperty("m_AudioClipForOnSelectEntered");
-            m_PlayAudioClipOnSelectExited = serializedObject.FindProperty("m_PlayAudioClipOnSelectExited");
-            m_AudioClipForOnSelectExited = serializedObject.FindProperty("m_AudioClipForOnSelectExited");
-            m_PlayAudioClipOnSelectCanceled = serializedObject.FindProperty("m_PlayAudioClipOnSelectCanceled");
-            m_AudioClipForOnSelectCanceled = serializedObject.FindProperty("m_AudioClipForOnSelectCanceled");
-            m_PlayAudioClipOnHoverEntered = serializedObject.FindProperty("m_PlayAudioClipOnHoverEntered");
-            m_AudioClipForOnHoverEntered = serializedObject.FindProperty("m_AudioClipForOnHoverEntered");
-            m_PlayAudioClipOnHoverExited = serializedObject.FindProperty("m_PlayAudioClipOnHoverExited");
-            m_AudioClipForOnHoverExited = serializedObject.FindProperty("m_AudioClipForOnHoverExited");
-            m_PlayAudioClipOnHoverCanceled = serializedObject.FindProperty("m_PlayAudioClipOnHoverCanceled");
-            m_AudioClipForOnHoverCanceled = serializedObject.FindProperty("m_AudioClipForOnHoverCanceled");
-            m_AllowHoverAudioWhileSelecting = serializedObject.FindProperty("m_AllowHoverAudioWhileSelecting");
-
-            m_PlayHapticsOnSelectEntered = serializedObject.FindProperty("m_PlayHapticsOnSelectEntered");
-            m_HapticSelectEnterIntensity = serializedObject.FindProperty("m_HapticSelectEnterIntensity");
-            m_HapticSelectEnterDuration = serializedObject.FindProperty("m_HapticSelectEnterDuration");
-            m_PlayHapticsOnHoverEntered = serializedObject.FindProperty("m_PlayHapticsOnHoverEntered");
-            m_HapticHoverEnterIntensity = serializedObject.FindProperty("m_HapticHoverEnterIntensity");
-            m_HapticHoverEnterDuration = serializedObject.FindProperty("m_HapticHoverEnterDuration");
-            m_PlayHapticsOnSelectExited = serializedObject.FindProperty("m_PlayHapticsOnSelectExited");
-            m_HapticSelectExitIntensity = serializedObject.FindProperty("m_HapticSelectExitIntensity");
-            m_HapticSelectExitDuration = serializedObject.FindProperty("m_HapticSelectExitDuration");
-            m_PlayHapticsOnSelectCanceled = serializedObject.FindProperty("m_PlayHapticsOnSelectCanceled");
-            m_HapticSelectCancelIntensity = serializedObject.FindProperty("m_HapticSelectCancelIntensity");
-            m_HapticSelectCancelDuration = serializedObject.FindProperty("m_HapticSelectCancelDuration");
-            m_PlayHapticsOnHoverExited = serializedObject.FindProperty("m_PlayHapticsOnHoverExited");
-            m_HapticHoverExitIntensity = serializedObject.FindProperty("m_HapticHoverExitIntensity");
-            m_HapticHoverExitDuration = serializedObject.FindProperty("m_HapticHoverExitDuration");
-            m_PlayHapticsOnHoverCanceled = serializedObject.FindProperty("m_PlayHapticsOnHoverCanceled");
-            m_HapticHoverCancelIntensity = serializedObject.FindProperty("m_HapticHoverCancelIntensity");
-            m_HapticHoverCancelDuration = serializedObject.FindProperty("m_HapticHoverCancelDuration");
-            m_AllowHoverHapticsWhileSelecting = serializedObject.FindProperty("m_AllowHoverHapticsWhileSelecting");
         }
 
         /// <inheritdoc />
         protected override void DrawBeforeProperties()
         {
-            base.DrawBeforeProperties();
-            VerifyControllerPresent();
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            // Not calling base method to completely override drawn properties
-
-            DrawCoreConfiguration();
-            DrawSelectActionTrigger();
-            EditorGUILayout.PropertyField(m_KeepSelectedTargetValid, BaseContents.keepSelectedTargetValid);
-            EditorGUILayout.PropertyField(m_HideControllerOnSelect, BaseControllerContents.hideControllerOnSelect);
-            EditorGUILayout.PropertyField(m_AllowHoveredActivate, BaseControllerContents.allowHoveredActivate);
-            EditorGUILayout.PropertyField(m_TargetPriorityMode, BaseControllerContents.targetPriorityMode);
-            DrawParentInteractableConfiguration();
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawEvents()
         {
-            DrawAudioEvents();
-
-            EditorGUILayout.Space();
-
-            DrawHapticEvents();
-
-            EditorGUILayout.Space();
-
-            base.DrawEvents();
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -260,15 +207,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void VerifyControllerPresent()
         {
-            foreach (var targetObject in serializedObject.targetObjects)
-            {
-                var interactor = (XRBaseControllerInteractor)targetObject;
-                if (interactor.GetComponentInParent<XRBaseController>(true) == null)
-                {
-                    EditorGUILayout.HelpBox(BaseControllerContents.missingRequiredController, MessageType.Warning, true);
-                    break;
-                }
-            }
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -276,13 +215,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawSelectActionTrigger()
         {
-            EditorGUILayout.PropertyField(m_SelectActionTrigger, BaseControllerContents.selectActionTrigger);
-            if (m_StartingSelectedInteractable.objectReferenceValue != null &&
-                m_SelectActionTrigger.intValue != (int)XRBaseControllerInteractor.InputTriggerType.Toggle &&
-                m_SelectActionTrigger.intValue != (int)XRBaseControllerInteractor.InputTriggerType.Sticky)
-            {
-                EditorGUILayout.HelpBox(BaseControllerContents.selectActionTriggerWarning, MessageType.Warning, true);
-            }
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -291,14 +224,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="DrawAudioEventsNested"/>
         protected virtual void DrawAudioEvents()
         {
-            m_PlayAudioClipOnSelectEntered.isExpanded = EditorGUILayout.Foldout(m_PlayAudioClipOnSelectEntered.isExpanded, EditorGUIUtility.TrTempContent("Audio Events"), true);
-            if (m_PlayAudioClipOnSelectEntered.isExpanded)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    DrawAudioEventsNested();
-                }
-            }
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -307,61 +233,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="DrawAudioEvents"/>
         protected virtual void DrawAudioEventsNested()
         {
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectEntered, BaseControllerContents.playAudioClipOnSelectEntered);
-            if (m_PlayAudioClipOnSelectEntered.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectEntered, BaseControllerContents.audioClipForOnSelectEntered);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectExited, BaseControllerContents.playAudioClipOnSelectExited);
-            if (m_PlayAudioClipOnSelectExited.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectExited, BaseControllerContents.audioClipForOnSelectExited);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnSelectCanceled, BaseControllerContents.playAudioClipOnSelectCanceled);
-            if (m_PlayAudioClipOnSelectCanceled.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnSelectCanceled, BaseControllerContents.audioClipForOnSelectCanceled);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverEntered, BaseControllerContents.playAudioClipOnHoverEntered);
-            if (m_PlayAudioClipOnHoverEntered.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverEntered, BaseControllerContents.audioClipForOnHoverEntered);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverExited, BaseControllerContents.playAudioClipOnHoverExited);
-            if (m_PlayAudioClipOnHoverExited.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverExited, BaseControllerContents.audioClipForOnHoverExited);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayAudioClipOnHoverCanceled, BaseControllerContents.playAudioClipOnHoverCanceled);
-            if (m_PlayAudioClipOnHoverCanceled.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_AudioClipForOnHoverCanceled, BaseControllerContents.audioClipForOnHoverCanceled);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_AllowHoverAudioWhileSelecting, BaseControllerContents.allowHoverAudioWhileSelecting);
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -370,14 +242,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="DrawHapticEventsNested"/>
         protected virtual void DrawHapticEvents()
         {
-            m_PlayHapticsOnSelectEntered.isExpanded = EditorGUILayout.Foldout(m_PlayHapticsOnSelectEntered.isExpanded, EditorGUIUtility.TrTempContent("Haptic Events"), true);
-            if (m_PlayHapticsOnSelectEntered.isExpanded)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    DrawHapticEventsNested();
-                }
-            }
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
 
         /// <summary>
@@ -386,67 +251,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="DrawHapticEvents"/>
         protected virtual void DrawHapticEventsNested()
         {
-            EditorGUILayout.PropertyField(m_PlayHapticsOnSelectEntered, BaseControllerContents.playHapticsOnSelectEntered);
-            if (m_PlayHapticsOnSelectEntered.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticSelectEnterIntensity, BaseControllerContents.hapticSelectEnterIntensity);
-                    EditorGUILayout.PropertyField(m_HapticSelectEnterDuration, BaseControllerContents.hapticSelectEnterDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayHapticsOnSelectExited, BaseControllerContents.playHapticsOnSelectExited);
-            if (m_PlayHapticsOnSelectExited.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticSelectExitIntensity, BaseControllerContents.hapticSelectExitIntensity);
-                    EditorGUILayout.PropertyField(m_HapticSelectExitDuration, BaseControllerContents.hapticSelectExitDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayHapticsOnSelectCanceled, BaseControllerContents.playHapticsOnSelectCanceled);
-            if (m_PlayHapticsOnSelectCanceled.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticSelectCancelIntensity, BaseControllerContents.hapticSelectCancelIntensity);
-                    EditorGUILayout.PropertyField(m_HapticSelectCancelDuration, BaseControllerContents.hapticSelectCancelDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayHapticsOnHoverEntered, BaseControllerContents.playHapticsOnHoverEntered);
-            if (m_PlayHapticsOnHoverEntered.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticHoverEnterIntensity, BaseControllerContents.hapticHoverEnterIntensity);
-                    EditorGUILayout.PropertyField(m_HapticHoverEnterDuration, BaseControllerContents.hapticHoverEnterDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayHapticsOnHoverExited, BaseControllerContents.playHapticsOnHoverExited);
-            if (m_PlayHapticsOnHoverExited.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticHoverExitIntensity, BaseControllerContents.hapticHoverExitIntensity);
-                    EditorGUILayout.PropertyField(m_HapticHoverExitDuration, BaseControllerContents.hapticHoverExitDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PlayHapticsOnHoverCanceled, BaseControllerContents.playHapticsOnHoverCanceled);
-            if (m_PlayHapticsOnHoverCanceled.boolValue)
-            {
-                using (new EditorGUI.IndentLevelScope())
-                {
-                    EditorGUILayout.PropertyField(m_HapticHoverCancelIntensity, BaseControllerContents.hapticHoverCancelIntensity);
-                    EditorGUILayout.PropertyField(m_HapticHoverCancelDuration, BaseControllerContents.hapticHoverCancelDuration);
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_AllowHoverHapticsWhileSelecting, BaseControllerContents.allowHoverHapticsWhileSelecting);
+            throw new NotSupportedException(k_XRBaseControllerInteractorEditorDeprecated);
         }
     }
 }

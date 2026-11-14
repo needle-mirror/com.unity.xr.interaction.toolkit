@@ -1,8 +1,13 @@
+using System.Collections;
 using NUnit.Framework;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
+using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -215,6 +220,124 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(action.ReadValue<Vector2>(), Is.EqualTo(Vector2.zero));
             Assert.That(action.GetControlMagnitude(), Is.EqualTo(0f));
             Assert.That(reader.ReadValue(), Is.EqualTo(0f));
+        }
+
+        const float k_ScrollAmount = 300f;
+        const float k_ScrollDeltaMultiplier = 5f;
+        const float k_ScrollTolerance = 0.0001f;
+
+        [TestCase(0f, 1f, k_ScrollDeltaMultiplier)]
+        [TestCase(0f, -1f, k_ScrollDeltaMultiplier)]
+        [TestCase(1f, 0f, 2f)] // A different input module multiplier still lands on scrollAmount pixels.
+        [TestCase(-1f, 0f, k_ScrollDeltaMultiplier)]
+        [TestCase(0.2f, 0f, k_ScrollDeltaMultiplier)] // A partial input is normalized, so it still scrolls the full amount.
+        [TestCase(0.5f, 0.5f, k_ScrollDeltaMultiplier)] // Diagonal.
+        [TestCase(0f, 1f, -k_ScrollDeltaMultiplier)] // A negative multiplier inverts scrolling in the UI layer, so the output keeps the pressed direction.
+        public void PressScrollInputScrollsAmountInPressedDirection(float x, float y, float multiplier)
+        {
+            var scrollInput = CreatePressScrollInput();
+            var direction = new Vector2(x, y);
+            scrollInput.scrollInput.manualValue = direction;
+
+            scrollInput.ProcessScroll(multiplier);
+
+            // The UI layer multiplies the output by the multiplier's magnitude, landing on scrollAmount pixels in the
+            // pressed direction whatever the input's magnitude or the multiplier's sign.
+            var expected = direction.normalized * (k_ScrollAmount / Mathf.Abs(multiplier));
+            Assert.That(scrollInput.ReadValue(), Is.EqualTo(expected).Using(Vector2EqualityComparer.Instance));
+        }
+
+        [Test]
+        public void PressScrollInputScrollsOncePerPress()
+        {
+            var gamepad = InputSystem.InputSystem.AddDevice<Gamepad>();
+            var action = new InputAction(type: InputActionType.Value, expectedControlType: "Vector2");
+            action.AddCompositeBinding("2DVector")
+                .With("Up", "<Gamepad>/dpad/up")
+                .With("Down", "<Gamepad>/dpad/down")
+                .With("Left", "<Gamepad>/dpad/left")
+                .With("Right", "<Gamepad>/dpad/right");
+
+            var scrollInput = CreatePressScrollInput();
+            scrollInput.scrollInput = new XRInputValueReader<Vector2>("Scroll", XRInputValueReader.InputSourceMode.InputAction)
+            {
+                inputAction = action,
+            };
+
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.TryReadValue(out _), Is.False, "Nothing scrolls before a press.");
+
+            Press(gamepad.dpad.up);
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.TryReadValue(out var pressValue), Is.True);
+            Assert.That(pressValue.y * k_ScrollDeltaMultiplier, Is.EqualTo(k_ScrollAmount).Within(k_ScrollTolerance));
+
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.ReadValue(), Is.EqualTo(Vector2.zero), "Holding a press does not repeat the scroll.");
+
+            Release(gamepad.dpad.up);
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.ReadValue(), Is.EqualTo(Vector2.zero), "Releasing a press does not scroll.");
+
+            Press(gamepad.dpad.right);
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.ReadValue().x * k_ScrollDeltaMultiplier, Is.EqualTo(k_ScrollAmount).Within(k_ScrollTolerance), "The next press scrolls again.");
+        }
+
+        [Test]
+        public void PressScrollInputZeroMultiplierScrollsNothing()
+        {
+            var scrollInput = CreatePressScrollInput();
+            scrollInput.scrollInput.manualValue = Vector2.up;
+
+            // The output is divided by the multiplier, so a multiplier of 0 must not divide by zero.
+            scrollInput.ProcessScroll(0f);
+
+            Assert.That(scrollInput.TryReadValue(out var value), Is.False);
+            Assert.That(value, Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void PressScrollInputScrollsAgainAfterReenabling()
+        {
+            var scrollInput = CreatePressScrollInput();
+            scrollInput.scrollInput.manualValue = Vector2.up;
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+
+            scrollInput.enabled = false;
+            Assert.That(scrollInput.ReadValue(), Is.EqualTo(Vector2.zero));
+
+            // Still held after re-enabling counts as a new press.
+            scrollInput.enabled = true;
+            scrollInput.ProcessScroll(k_ScrollDeltaMultiplier);
+            Assert.That(scrollInput.ReadValue(), Is.Not.EqualTo(Vector2.zero));
+        }
+
+        [UnityTest]
+        public IEnumerator PressScrollInputUsesInputModuleMultiplier([Values] bool withInputModule)
+        {
+            var multiplier = UIInputModule.k_DefaultTrackedScrollDeltaMultiplier;
+            if (withInputModule)
+            {
+                var inputModule = new GameObject("EventSystem", typeof(EventSystem), typeof(XRUIInputModule)).GetComponent<XRUIInputModule>();
+                inputModule.trackedScrollDeltaMultiplier = 10f;
+                multiplier = inputModule.trackedScrollDeltaMultiplier;
+                yield return null;
+            }
+
+            var scrollInput = CreatePressScrollInput();
+            scrollInput.scrollInput.manualValue = Vector2.up;
+            yield return null;
+
+            Assert.That(scrollInput.ReadValue().y * multiplier, Is.EqualTo(k_ScrollAmount).Within(k_ScrollTolerance));
+        }
+
+        static PressScrollInput CreatePressScrollInput()
+        {
+            var scrollInput = new GameObject("Press Scroll Input").AddComponent<PressScrollInput>();
+            scrollInput.scrollInput = new XRInputValueReader<Vector2>("Scroll", XRInputValueReader.InputSourceMode.ManualValue);
+            scrollInput.scrollAmount = k_ScrollAmount;
+            return scrollInput;
         }
     }
 }

@@ -262,7 +262,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactables
             /// <summary>Message for non-uniformly scaled parent.</summary>
             public static readonly string nonUniformScaledParentWarning = "When a child GameObject has a non-uniformly scaled parent GameObject and is rotated relative to that parent GameObject, it might appear skewed. To avoid this, use uniform scale in all parent Transforms of this object.";
 
-            /// <summary>Array of type <see cref="GUIContent"/> for the options shown in the popup for <see cref="XRGrabInteractable.attachPointCompatibilityMode"/>.</summary>
+            /// <summary>(Deprecated) Array of type <see cref="GUIContent"/> for the options shown in the popup for <c>XRGrabInteractable.attachPointCompatibilityMode</c>.</summary>
+            [Obsolete("attachPointCompatibilityModeOptions has been deprecated since XRGrabInteractable.attachPointCompatibilityMode has been removed.", true)]
             public static readonly GUIContent[] attachPointCompatibilityModeOptions =
             {
                 EditorGUIUtility.TrTextContent("Default (Recommended)"),

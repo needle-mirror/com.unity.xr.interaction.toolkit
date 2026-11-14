@@ -62,7 +62,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors.Casters
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.raycastUIDocumentTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastUIDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast UI Document Trigger Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the ray cast is set to ignore triggers.");
+            public static readonly GUIContent raycastUIDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast UI Document Trigger Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (UIDocument or PanelRenderer), even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.targetNumCurveSegments"/>.</summary>
             public static readonly GUIContent targetNumCurveSegments = EditorGUIUtility.TrTextContent("Target Num Curve Segments", "Number of segments to sample along the curve.");
             /// <summary><see cref="GUIContent"/> for <see cref="CurveInteractionCaster.hitDetectionType"/>.</summary>

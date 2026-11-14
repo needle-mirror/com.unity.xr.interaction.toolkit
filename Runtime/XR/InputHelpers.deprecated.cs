@@ -11,13 +11,18 @@ namespace UnityEngine.XR.Interaction.Toolkit
 #if UNITY_6000_5_OR_NEWER
     [NoAutoStaticsCleanup]
 #endif
-    [Obsolete("InputHelpers has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.")]
+    [Obsolete(k_InputHelpersDeprecated, true)]
     public static class InputHelpers
     {
+        const string k_InputHelpersDeprecated = "InputHelpers has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.";
+        const string k_IsPressedDeprecated = "IsPressed has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader instead.";
+        const string k_TryReadSingleValueDeprecated = "TryReadSingleValue has been deprecated in version 3.0.0. Use XRInputDeviceValueReader instead.";
+        const string k_TryReadAxis2DValueDeprecated = "TryReadAxis2DValue has been deprecated in version 3.0.0. Use XRInputDeviceValueReader instead.";
+
         /// <summary>
         /// A list of buttons that can be bound to.
         /// </summary>
-        [Obsolete("Button has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.")]
+        [Obsolete("Button has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.", true)]
         public enum Button
         {
             /// <summary>
@@ -129,30 +134,12 @@ namespace UnityEngine.XR.Interaction.Toolkit
             /// Represents a rightwards motion on the secondary touchpad or joystick on a device.
             /// </summary>
             SecondaryAxis2DRight,
-
-            /// <summary>
-            /// A binary measure of whether the index finger is activating the trigger.
-            /// </summary>
-            /// <remarks>
-            /// <c>TriggerPressed</c> has been deprecated. Use <see cref="TriggerButton"/> instead.
-            /// </remarks>
-            [Obsolete("TriggerPressed has been deprecated. Use TriggerButton instead. (UnityUpgradable) -> TriggerButton", true)]
-            TriggerPressed = TriggerButton,
-
-            /// <summary>
-            /// A binary measure of whether the device is being gripped.
-            /// </summary>
-            /// <remarks>
-            /// <c>GripPressed</c> has been deprecated. Use <see cref="GripButton"/> instead.
-            /// </remarks>
-            [Obsolete("GripPressed has been deprecated. Use GripButton instead. (UnityUpgradable) -> GripButton", true)]
-            GripPressed = GripButton,
         }
 
         /// <summary>
         /// A list of 2D axis inputs that can be bound to.
         /// </summary>
-        [Obsolete("Axis2D has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.")]
+        [Obsolete("Axis2D has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader or XRInputDeviceValueReader instead.", true)]
         public enum Axis2D
         {
             /// <summary>
@@ -171,62 +158,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
             SecondaryAxis2D,
         }
 
-        enum ButtonReadType
-        {
-            None = 0,
-            Binary,
-            Axis1D,
-            Axis2DUp,
-            Axis2DDown,
-            Axis2DLeft,
-            Axis2DRight,
-        }
-
-        struct ButtonInfo
-        {
-            public ButtonInfo(string name, ButtonReadType type)
-            {
-                this.name = name;
-                this.type = type;
-            }
-
-            public string name;
-            public ButtonReadType type;
-        }
-
-        static readonly ButtonInfo[] s_ButtonData =
-        {
-            new ButtonInfo("", ButtonReadType.None),
-            new ButtonInfo("MenuButton", ButtonReadType.Binary),
-            new ButtonInfo("Trigger", ButtonReadType.Axis1D),
-            new ButtonInfo("Grip", ButtonReadType.Axis1D),
-            new ButtonInfo("TriggerButton", ButtonReadType.Binary),
-            new ButtonInfo("GripButton", ButtonReadType.Binary),
-            new ButtonInfo("PrimaryButton", ButtonReadType.Binary),
-            new ButtonInfo("PrimaryTouch", ButtonReadType.Binary),
-            new ButtonInfo("SecondaryButton", ButtonReadType.Binary),
-            new ButtonInfo("SecondaryTouch", ButtonReadType.Binary),
-            new ButtonInfo("Primary2DAxisTouch", ButtonReadType.Binary),
-            new ButtonInfo("Primary2DAxisClick", ButtonReadType.Binary),
-            new ButtonInfo("Secondary2DAxisTouch", ButtonReadType.Binary),
-            new ButtonInfo("Secondary2DAxisClick", ButtonReadType.Binary),
-            new ButtonInfo("Primary2DAxis", ButtonReadType.Axis2DUp),
-            new ButtonInfo("Primary2DAxis", ButtonReadType.Axis2DDown),
-            new ButtonInfo("Primary2DAxis", ButtonReadType.Axis2DLeft),
-            new ButtonInfo("Primary2DAxis", ButtonReadType.Axis2DRight),
-            new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DUp),
-            new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DDown),
-            new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DLeft),
-            new ButtonInfo("Secondary2DAxis", ButtonReadType.Axis2DRight),
-        };
-
-        static readonly string[] s_Axis2DNames =
-        {
-            "",
-            "Primary2DAxis",
-            "Secondary2DAxis",
-        };
-
         const float k_DefaultPressThreshold = 0.1f;
 
         /// <summary>
@@ -237,86 +168,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="isPressed"> A boolean that will be true if button is pressed and false if not.</param>
         /// <param name="pressThreshold"> The threshold of what defines a press.</param>
         /// <returns>Returns <see langword="true"/> if device and button are valid. Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("IsPressed has been deprecated in version 3.0.0. Use XRInputDeviceButtonReader instead.")]
+        [Obsolete(k_IsPressedDeprecated, true)]
         public static bool IsPressed(this InputDevice device, Button button, out bool isPressed, float pressThreshold = -1.0f)
         {
-            if ((int)button >= s_ButtonData.Length)
-            {
-                throw new ArgumentException("[InputHelpers.IsPressed] The value of <button> is out of the supported range.");
-            }
-
-            if (!device.isValid)
-            {
-                isPressed = false;
-                return false;
-            }
-
-            var info = s_ButtonData[(int)button];
-            switch (info.type)
-            {
-                case ButtonReadType.Binary:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
-                        {
-                            isPressed = value;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis1D:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
-                        {
-                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                            isPressed = value >= threshold;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DUp:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                            isPressed = value.y >= threshold;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DDown:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                            isPressed = value.y <= -threshold;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DLeft:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                            isPressed = value.x <= -threshold;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DRight:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            var threshold = (pressThreshold >= 0f) ? pressThreshold : k_DefaultPressThreshold;
-                            isPressed = value.x >= threshold;
-                            return true;
-                        }
-                    }
-                    break;
-            }
-
-            isPressed = false;
-            return false;
+            throw new NotSupportedException(k_IsPressedDeprecated);
         }
 
         /// <summary>
@@ -326,81 +181,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="button">The button to read the value.</param>
         /// <param name="singleValue">The button value; it will have the default <see langword="float"/> value (<c>0f</c>) if the button value can't be read.</param>
         /// <returns>Returns <see langword="true"/> if the button value can be read. Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("TryReadSingleValue has been deprecated in version 3.0.0. Use XRInputDeviceValueReader instead.")]
+        [Obsolete(k_TryReadSingleValueDeprecated, true)]
         public static bool TryReadSingleValue(this InputDevice device, Button button, out float singleValue)
         {
-            if ((int)button >= s_ButtonData.Length)
-            {
-                throw new ArgumentException("[InputHelpers.TryReadSingleValue] The value of <button> is out of the supported range.");
-            }
-
-            if (!device.isValid)
-            {
-                singleValue = default;
-                return false;
-            }
-
-            var info = s_ButtonData[(int)button];
-            switch (info.type)
-            {
-                case ButtonReadType.Binary:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<bool>(info.name), out var value))
-                        {
-                            singleValue = value ? 1f : 0f;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis1D:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<float>(info.name), out var value))
-                        {
-                            singleValue = value;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DUp:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            singleValue = value.y;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DDown:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            singleValue = -value.y;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DLeft:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            singleValue = -value.x;
-                            return true;
-                        }
-                    }
-                    break;
-                case ButtonReadType.Axis2DRight:
-                    {
-                        if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(info.name), out var value))
-                        {
-                            singleValue = value.x;
-                            return true;
-                        }
-                    }
-                    break;
-            }
-
-            singleValue = default;
-            return false;
+            throw new NotSupportedException(k_TryReadSingleValueDeprecated);
         }
 
         /// <summary>
@@ -410,26 +194,10 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="axis2D">The 2D axis to read the value.</param>
         /// <param name="value">The 2D axis value; it will have the default <see cref="Vector2"/> value if the 2D axis value can't be read.</param>
         /// <returns>Returns <see langword="true"/> if the 2D axis value can be read. Otherwise, returns <see langword="false"/>.</returns>
-        [Obsolete("TryReadAxis2DValue has been deprecated in version 3.0.0. Use XRInputDeviceValueReader instead.")]
+        [Obsolete(k_TryReadAxis2DValueDeprecated, true)]
         public static bool TryReadAxis2DValue(this InputDevice device, Axis2D axis2D, out Vector2 value)
         {
-            if ((int)axis2D >= s_Axis2DNames.Length)
-            {
-                throw new ArgumentException("[InputHelpers.TryReadAxis2DValue] The value of <axis2D> is out of the supported range.");
-            }
-
-            if (!device.isValid)
-            {
-                value = default;
-                return false;
-            }
-
-            var name = s_Axis2DNames[(int)axis2D];
-            if (device.TryGetFeatureValue(new InputFeatureUsage<Vector2>(name), out value))
-                return true;
-
-            value = default;
-            return false;
+            throw new NotSupportedException(k_TryReadAxis2DValueDeprecated);
         }
     }
 }

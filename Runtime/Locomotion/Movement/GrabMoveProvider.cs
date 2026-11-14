@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -92,11 +91,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
                 m_ControllerTransform = transform;
 
             GatherControllerInteractors();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (m_GrabMoveAction.reference != null || (m_GrabMoveAction.action != null && m_GrabMoveAction.action.bindings.Count > 0))
-                Debug.LogWarning("Grab Move Action has been deprecated. Please configure input action using Grab Move Input instead.", this);
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
@@ -105,9 +99,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             base.OnEnable();
             // Enable and disable directly serialized actions with this behavior's enabled lifecycle.
             m_GrabMoveInput.EnableDirectActionIfModeUsed();
-#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
-            m_GrabMoveAction.EnableDirectAction();
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
@@ -115,9 +106,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         {
             base.OnDisable();
             m_GrabMoveInput.DisableDirectActionIfModeUsed();
-#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
-            m_GrabMoveAction.DisableDirectAction();
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
@@ -152,15 +140,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         public bool IsGrabbing()
         {
             var isPerformed = m_GrabMoveInput.ReadIsPerformed();
-
-#pragma warning disable CS0618 // Using deprecated action to help with backwards compatibility with existing user assets.
-            var deprecatedAction = m_GrabMoveAction.action;
-#pragma warning restore CS0618
-            if (deprecatedAction != null)
-            {
-                isPerformed |= deprecatedAction.IsPressed();
-            }
-
             return isPerformed && (m_EnableMoveWhileSelecting || !ControllerHasSelection());
         }
 

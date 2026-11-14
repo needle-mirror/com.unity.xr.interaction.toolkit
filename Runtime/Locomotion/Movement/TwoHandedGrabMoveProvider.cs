@@ -1,4 +1,3 @@
-using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
@@ -174,11 +173,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
                 m_RightGrabMoveProvider.enableFreeYMovement = enableFreeYMovement;
                 m_RightGrabMoveProvider.enableFreeZMovement = enableFreeZMovement;
                 m_RightGrabMoveProvider.moveFactor = m_MoveFactor;
-
-#pragma warning disable CS0618 // Type or member is obsolete -- should still be set for backwards compatibility
-                m_LeftGrabMoveProvider.useGravity = useGravity;
-                m_RightGrabMoveProvider.useGravity = useGravity;
-#pragma warning restore CS0618 // Type or member is obsolete
             }
         }
 

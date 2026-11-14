@@ -128,7 +128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewTweenTarget(in float3 currentValue, in float3 targetValue, float sqrMaxDistanceAllowed, float deltaTime, float lowerSpeed, float upperSpeed, out float newTweenTarget)
+        internal static void ComputeNewTweenTarget(in float3 currentValue, in float3 targetValue, float sqrMaxDistanceAllowed, float deltaTime, float lowerSpeed, float upperSpeed, out float newTweenTarget)
         {
             var sqrDistFromTarget = math.distancesq(currentValue, targetValue);
             var speedMultiplier = 1f - math.clamp(sqrDistFromTarget / sqrMaxDistanceAllowed, 0f, 1f);
@@ -139,7 +139,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities.Tweenables.SmartTweenable
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static bool IsNewTargetWithinThreshold(in float3 currentValue, in float3 targetValue, float minDistanceAllowed, float maxDistanceAllowed, float timeSinceLastUpdate, float minToMaxDelaySeconds)
+        internal static bool IsNewTargetWithinThreshold(in float3 currentValue, in float3 targetValue, float minDistanceAllowed, float maxDistanceAllowed, float timeSinceLastUpdate, float minToMaxDelaySeconds)
         {
             var newSqrTargetOffset = math.distancesq(currentValue, targetValue);
 

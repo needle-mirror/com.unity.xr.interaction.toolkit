@@ -38,7 +38,7 @@ The `DemoScene` contains a UI Toolkit station and a uGUI station which demonstra
 
 ### UI Toolkit Example
 
-The UI Toolkit station contains prefabs for the `UI Toolkit Scrollview`, the `UI Toolkit Grab UI`, which contains the UI controls, and a `UI Toolkit Button With Event`. The UI documents, which layout each of these world space UI objects, can be found in the `UI Toolkit Documents` folder in the sample. There is a single style sheet called `XRIStyleSheet` which defines the XRI style to the UI documents that leverage it.
+The UI Toolkit station contains prefabs for the `UI Toolkit Scrollview`, the `UI Toolkit Grab UI`, which contains the UI controls, and a `UI Toolkit Button With Event`. The UI documents, which layout each of these world space UI objects, can be found in the `UI Toolkit Documents` folder in the sample. There is a single style sheet called `XRIStyleSheet` which defines the XRI style to the UI documents that leverage it. These prefabs use the `UIDocument` panel component. The same panel setup, including the `Button Event Sample` script, also works with a `PanelRenderer`. Refer to the [UI Toolkit support page](xref:xri-ui-world-space-ui-toolkit-support) for details.
 
 Additionally, the `UI Toolkit Button With Event` prefab contains the `Button Event Sample` script which demonstrates how to bind to a UI Toolkit button click event.
 
@@ -61,7 +61,7 @@ The following script is included to support the prefabs and `DemoScene`.
 
 |**Script**|**Description**|
 |---|---|
-|**`ButtonEventSample`**|Sample script that demonstrates how to bind to a UI Toolkit button click event.|
+|**`ButtonEventSample`**|Sample script that demonstrates how to bind to a UI Toolkit button click event on a `UIDocument` or `PanelRenderer`.|
 
 ## UI Toolkit Panel Settings
 

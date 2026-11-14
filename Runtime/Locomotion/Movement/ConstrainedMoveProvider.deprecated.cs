@@ -9,7 +9,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         /// Defines when gravity begins to take effect.
         /// </summary>
         /// <seealso cref="gravityMode"/>
-        [Obsolete("GravityApplicationMode has been deprecated in XRI 3.0.0 and will be removed in a future version.")]
+        [Obsolete("GravityApplicationMode has been deprecated in XRI 3.0.0 and will be removed in a future version.", true)]
         public enum GravityApplicationMode
         {
             /// <summary>
@@ -32,55 +32,26 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             Immediately,
         }
 
-        [SerializeField]
-        [Tooltip("Controls when gravity begins to take effect.")]
-        [Obsolete("m_GravityApplicationMode has been deprecated in XRI 3.0.0 and will be removed in a future version.")]
-        GravityApplicationMode m_GravityApplicationMode;
         /// <summary>
         /// Controls when gravity begins to take effect.
         /// </summary>
         /// <seealso cref="GravityApplicationMode"/>
-        [Obsolete("gravityMode has been deprecated in XRI 3.0.0 and will be removed in a future version.")]
+        [Obsolete("gravityMode has been deprecated in XRI 3.0.0 and will be removed in a future version.", true)]
         public GravityApplicationMode gravityMode
         {
-            get => m_GravityApplicationMode;
-            set => m_GravityApplicationMode = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls whether gravity applies to constrained axes when a Character Controller is used. Ignored when a Gravity Provider component is found in the scene.")]
-        [Obsolete("Controlling gravity directly in the move provider has been deprecated in XRI 3.1.0, use Gravity Provider instead.")]
-        bool m_UseGravity = true;
         /// <summary>
         /// Controls whether gravity applies to constrained axes when a <see cref="CharacterController"/> is used.
         /// Ignored when a <see cref="GravityProvider"/> component is found in the scene.
         /// </summary>
-        [Obsolete("Controlling gravity directly in the move provider has been deprecated in XRI 3.1.0, use Gravity Provider instead.")]
+        [Obsolete("Controlling gravity directly in the move provider has been deprecated in XRI 3.1.0, use Gravity Provider instead.", true)]
         public bool useGravity
         {
-            get => m_UseGravity;
-            set
-            {
-                m_UseGravity = value;
-
-                if (Application.isPlaying && m_GravityProvider != null)
-                    MigrateUseGravityToGravityProvider();
-            }
-        }
-
-        [Obsolete("Controlling gravity directly in the move provider has been deprecated in XRI 3.1.0, use Gravity Provider instead.")]
-        Vector3 m_GravityDrivenVelocity;
-
-        [Obsolete("Private migration helper.")]
-        void MigrateUseGravityToGravityProvider()
-        {
-            if (m_GravityProvider.useGravity != m_UseGravity)
-            {
-                Debug.LogWarning("Use Gravity is deprecated on this locomotion component while Gravity Provider component is in scene." +
-                    $" Automatically setting Use Gravity to {m_UseGravity} on Gravity Provider." +
-                    " Gravity should be controlled on the Gravity Provider instead.", this);
-                m_GravityProvider.useGravity = m_UseGravity;
-            }
+            get => default;
+            set => _ = value;
         }
     }
 }

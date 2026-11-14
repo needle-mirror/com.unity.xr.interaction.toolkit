@@ -35,8 +35,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Samples.Hands.Editor
         const string k_ShaderGraphPackageName = "com.unity.shadergraph";
 
         static readonly PackageVersion s_MinimumHandsPackageVersion = new PackageVersion("1.6.2");
-        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("1.10.0");
-        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("1.10.0");
+        static readonly PackageVersion s_RecommendedHandsPackageVersion = new PackageVersion("7.0.0-pre.1");
+        static readonly PackageVersion s_TargetInstallHandsPackageVersion = new PackageVersion("7.0.0-pre.1");
 
         static AddRequest s_HandsPackageAddRequest;
         static AddRequest s_ShaderGraphPackageAddRequest;

@@ -800,7 +800,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
 
             // Skip colliders that are already registered with a different interactable.
             // This prevents a parent interactable from claiming colliders that belong to
-            // a child interactable (e.g. a grab interactable with a nested UI Document).
+            // a child interactable (e.g. a grab interactable with a nested UI Toolkit panel).
             if (m_RegisteredInteractionManager != null)
             {
                 m_Colliders.RemoveAll(col =>
@@ -1713,17 +1713,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactables
         {
             // Use the Select input value as the initial interaction strength.
             // For interactors that use motion controller input, this is typically the analog trigger or grip press amount.
-            // Fall back to the default values for selected and hovered interactors in the case when the interactor
-            // is misconfigured and is missing the input wrapper or component reference.
-#pragma warning disable CS0618 // Type or member is obsolete -- Retained for backwards compatibility
-            if (!interactor.forceDeprecatedInput)
-                return interactor.selectInput.ReadValue();
-
-            if (interactor.xrController != null)
-                return interactor.xrController.selectInteractionState.value;
-#pragma warning restore CS0618
-
-            return IsSelected(interactor) ? k_InteractionStrengthSelect : k_InteractionStrengthHover;
+            return interactor.selectInput.ReadValue();
         }
 
         /// <summary>

@@ -8,9 +8,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for a <see cref="DeviceBasedSnapTurnProvider"/>.
     /// </summary>
     [CustomEditor(typeof(DeviceBasedSnapTurnProvider), true), CanEditMultipleObjects]
-    [Obsolete("DeviceBasedSnapTurnProviderEditor has been deprecated in version 3.0.0.")]
+    [Obsolete(k_DeviceBasedSnapTurnProviderEditorDeprecated, true)]
     public class DeviceBasedSnapTurnProviderEditor : BaseInteractionEditor
     {
+        const string k_DeviceBasedSnapTurnProviderEditorDeprecated = "DeviceBasedSnapTurnProviderEditor has been deprecated in version 3.0.0.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <c>LocomotionProvider.system</c>.</summary>
         protected SerializedProperty m_System;
 
@@ -35,9 +37,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <summary>
         /// Contents of GUI elements used by this editor.
         /// </summary>
-        [Obsolete("DeviceBasedSnapTurnProviderEditor.Contents has been deprecated in version 3.0.0.")]
+        [Obsolete(k_ContentsDeprecated, true)]
         protected static class Contents
         {
+            const string k_ContentsDeprecated = "DeviceBasedSnapTurnProviderEditor.Contents has been deprecated in version 3.0.0.";
+
             /// <summary><see cref="GUIContent"/> for <c>LocomotionProvider.system</c>.</summary>
             public static readonly GUIContent system = EditorGUIUtility.TrTextContent("System", "The locomotion system that the snap turn provider will interface with.");
 
@@ -65,17 +69,6 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected void OnEnable()
         {
-            m_System = serializedObject.FindProperty("m_System");
-
-            m_TurnAmount = serializedObject.FindProperty("m_TurnAmount");
-            m_DebounceTime = serializedObject.FindProperty("m_DebounceTime");
-            m_EnableTurnLeftRight = serializedObject.FindProperty("m_EnableTurnLeftRight");
-            m_EnableTurnAround = serializedObject.FindProperty("m_EnableTurnAround");
-            m_DelayTime = serializedObject.FindProperty("m_DelayTime");
-
-            m_TurnUsage = serializedObject.FindProperty("m_TurnUsage");
-            m_Controllers = serializedObject.FindProperty("m_Controllers");
-            m_DeadZone = serializedObject.FindProperty("m_DeadZone");
         }
 
         /// <inheritdoc />
@@ -84,9 +77,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <seealso cref="BaseInteractionEditor.DrawDerivedProperties"/>
         protected override void DrawInspector()
         {
-            DrawBeforeProperties();
-            DrawProperties();
-            DrawDerivedProperties();
+            throw new NotSupportedException(k_DeviceBasedSnapTurnProviderEditorDeprecated);
         }
 
         /// <summary>
@@ -96,7 +87,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawBeforeProperties()
         {
-            DrawScript();
+            throw new NotSupportedException(k_DeviceBasedSnapTurnProviderEditorDeprecated);
         }
 
         /// <summary>
@@ -108,15 +99,7 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// </summary>
         protected virtual void DrawProperties()
         {
-            EditorGUILayout.PropertyField(m_System, Contents.system);
-            EditorGUILayout.PropertyField(m_TurnUsage, Contents.turnUsage);
-            EditorGUILayout.PropertyField(m_Controllers, Contents.controllers);
-            EditorGUILayout.PropertyField(m_TurnAmount, Contents.turnAmount);
-            EditorGUILayout.PropertyField(m_DeadZone, Contents.deadZone);
-            EditorGUILayout.PropertyField(m_EnableTurnLeftRight, Contents.enableTurnLeftRight);
-            EditorGUILayout.PropertyField(m_EnableTurnAround, Contents.enableTurnAround);
-            EditorGUILayout.PropertyField(m_DelayTime, Contents.delayTime);
-            EditorGUILayout.PropertyField(m_DebounceTime, Contents.debounceTime);
+            throw new NotSupportedException(k_DeviceBasedSnapTurnProviderEditorDeprecated);
         }
     }
 }

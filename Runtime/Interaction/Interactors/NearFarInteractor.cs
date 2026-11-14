@@ -272,6 +272,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             set => SetInputProperty(ref m_UIScrollInput, value);
         }
 
+        [SerializeField]
+        [Tooltip("Whether UI scroll input continues with momentum on the scroll view it was aimed at, slowing to a stop at that scroll view's deceleration rate.")]
+        bool m_UIScrollMomentum;
+
+        /// <summary>
+        /// Whether UI scroll input continues with momentum on the scroll view it was aimed at, slowing to a stop at that
+        /// scroll view's deceleration rate. Each scroll view finishes its own momentum scroll, even after this interactor aims elsewhere.
+        /// </summary>
+        /// <seealso cref="Inputs.PressScrollInput"/>
+        public bool uiScrollMomentum
+        {
+            get => m_UIScrollMomentum;
+            set => m_UIScrollMomentum = value;
+        }
+
         /// <inheritdoc />
         Transform IXRRayProvider.rayEndTransform => m_RayEndTransform;
 
@@ -596,7 +611,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                     farInteractionCaster.effectiveCastOrigin.rotation,
                     uiScrollInputValue,
                     isUiSelectInputActive,
-                    shouldReset);
+                    shouldReset,
+                    m_UIScrollMomentum);
             }
         }
 #endif
@@ -864,6 +880,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return;
             }
 
+            model.scrollMomentum = m_UIScrollMomentum;
             if (!uiModelUpdater.UpdateUIModel(ref model, isUiSelectInputActive, uiScrollInputValue))
                 model.Reset(false);
         }

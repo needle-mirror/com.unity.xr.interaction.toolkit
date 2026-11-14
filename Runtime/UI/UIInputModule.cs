@@ -23,6 +23,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
     [DefaultExecutionOrder(XRInteractionUpdateOrder.k_UIInputModule)]
     public abstract partial class UIInputModule : BaseInputModule
     {
+        private protected bool m_BlockWorldSpacePointerInput;
+
         [Header("Configuration")]
         [SerializeField, FormerlySerializedAs("clickSpeed")]
         [Tooltip("The maximum time (in seconds) between two mouse presses for it to be consecutive click.")]
@@ -84,8 +86,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             set => m_TrackedDeviceDragThresholdMultiplier = value;
         }
 
+        internal const float k_DefaultTrackedScrollDeltaMultiplier = 5f;
+
         [SerializeField, Tooltip("Scales the scroll delta in pointer event data, for tracked devices only.")]
-        float m_TrackedScrollDeltaMultiplier = 5f;
+        float m_TrackedScrollDeltaMultiplier = k_DefaultTrackedScrollDeltaMultiplier;
         /// <summary>
         /// Scales the scroll delta in pointer event data, for tracked devices only.
         /// This is a multiplier value that allows you to adjust the scroll speed sent to UI components.
@@ -101,6 +105,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
             get => m_TrackedScrollDeltaMultiplier;
             set => m_TrackedScrollDeltaMultiplier = value;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="trackedScrollDeltaMultiplier"/> of the current <see cref="EventSystem"/> input module,
+        /// or the default multiplier when that input module is not a <see cref="UIInputModule"/>.
+        /// </summary>
+        /// <returns>Returns the tracked scroll delta multiplier that applies to the current scene.</returns>
+        internal static float GetActiveTrackedScrollDeltaMultiplier()
+        {
+            return EventSystem.current != null && EventSystem.current.currentInputModule is UIInputModule inputModule
+                ? inputModule.trackedScrollDeltaMultiplier
+                : k_DefaultTrackedScrollDeltaMultiplier;
         }
 
         [SerializeField, Tooltip("Scales the scroll delta in pointer event data, for non-tracked devices only.")]
@@ -162,6 +178,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         }
 
         Camera m_MainCameraCache;
+
+        /// <summary>
+        /// The momentum scrolls of the uGUI scroll handlers this input module scrolled with UI scroll momentum.
+        /// </summary>
+        internal ScrollMomentum scrollMomentum { get; } = new ScrollMomentum();
 
         [SerializeField]
         [Tooltip("When enabled, additional sorting is run to ensure things closer to the point of interaction are considered first. It is recommended to enable this for XR devices and disable for non-XR devices.")]
@@ -286,6 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (eventSystem.IsActive() && eventSystem.currentInputModule == this && eventSystem == EventSystem.current)
             {
                 DoProcess();
+                scrollMomentum.UpdateMomentum(Time.unscaledDeltaTime);
             }
         }
 
@@ -517,6 +539,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             eventData.pointerCurrentRaycast = PerformRaycast(eventData, false);
 
+            if (m_BlockWorldSpacePointerInput)
+            {
+                var hitObject = eventData.pointerCurrentRaycast.gameObject;
+                if (hitObject != null)
+                {
+                    var canvas = hitObject.GetComponentInParent<Canvas>();
+                    if (canvas == null || canvas.renderMode == RenderMode.WorldSpace)
+                        eventData.pointerCurrentRaycast = default;
+                }
+            }
+
             // Left Mouse Button
             // The left mouse button is 'dominant' and we want to also process hover and scroll events as if the occurred during the left click.
             var buttonState = pointerState.leftButton;
@@ -671,6 +704,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 // handler to be what would receive a click.
 
                 pointerDown?.Invoke(hoverTarget, eventData);
+
+                // A press stops the scroll momentum of the scroll view being pressed, the same way its own inertia stops.
+                scrollMomentum.Stop(hoverTarget);
+
                 var newPressed = ExecuteEvents.ExecuteHierarchy(hoverTarget, eventData, ExecuteEvents.pointerDownHandler);
 
                 // We didn't find a press handler, so we search for a click handler.
@@ -783,15 +820,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             }
         }
 
-        void ProcessScrollWheel(PointerEventData eventData)
+        void ProcessScrollWheel(PointerEventData eventData, bool useScrollMomentum = false)
         {
             var scrollDelta = eventData.scrollDelta;
-            if (!Mathf.Approximately(scrollDelta.sqrMagnitude, 0f))
-            {
-                var scrollHandler = ExecuteEvents.GetEventHandler<IScrollHandler>(eventData.pointerEnter);
-                scroll?.Invoke(scrollHandler, eventData);
-                ExecuteEvents.ExecuteHierarchy(scrollHandler, eventData, ExecuteEvents.scrollHandler);
-            }
+            if (Mathf.Approximately(scrollDelta.sqrMagnitude, 0f))
+                return;
+
+            var scrollHandler = ExecuteEvents.GetEventHandler<IScrollHandler>(eventData.pointerEnter);
+            scroll?.Invoke(scrollHandler, eventData);
+
+            // Momentum delivers the scroll to the handler over later frames instead.
+            if (useScrollMomentum && scrollMomentum.TryAdd(eventData))
+                return;
+
+            ExecuteEvents.ExecuteHierarchy(scrollHandler, eventData, ExecuteEvents.scrollHandler);
         }
 
 #if ENABLE_LEGACY_INPUT_MANAGER && !ENABLE_INPUT_SYSTEM
@@ -877,7 +919,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
                 ProcessPointerButton(deviceState.selectDelta, eventData, deviceState.clickOnDown);
                 ProcessPointerMovement(eventData);
-                ProcessScrollWheel(eventData);
+                ProcessScrollWheel(eventData, deviceState.scrollMomentum);
 
                 // In a VR headset context, the camera can move while the pointer/controller stays put, but this
                 // breaks the standard 2D screen space model. This will ensure that the initial press position used

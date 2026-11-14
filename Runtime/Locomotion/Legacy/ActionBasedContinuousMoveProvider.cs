@@ -1,7 +1,6 @@
 using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -13,67 +12,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="LocomotionProvider"/>
     [AddComponentMenu("XR/Locomotion/Legacy/Continuous Move Provider (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedContinuousMoveProvider)]
-    [Obsolete("ActionBasedContinuousMoveProvider has been deprecated in version 3.0.0. Use ContinuousMoveProvider instead.", false)]
+    [Obsolete(k_ActionBasedContinuousMoveProviderDeprecated, true)]
     public class ActionBasedContinuousMoveProvider : ContinuousMoveProviderBase
     {
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Move data from the left hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_LeftHandMoveAction = new InputActionProperty(new InputAction("Left Hand Move", expectedControlType: "Vector2"));
+        const string k_ActionBasedContinuousMoveProviderDeprecated = "ActionBasedContinuousMoveProvider has been deprecated in version 3.0.0. Use ContinuousMoveProvider instead.";
+
         /// <summary>
         /// The Input System Action that Unity uses to read Move data from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty leftHandMoveAction
         {
-            get => m_LeftHandMoveAction;
-            set => SetInputActionProperty(ref m_LeftHandMoveAction, value);
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Move data from the right hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_RightHandMoveAction = new InputActionProperty(new InputAction("Right Hand Move", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System Action that Unity uses to read Move data from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty rightHandMoveAction
         {
-            get => m_RightHandMoveAction;
-            set => SetInputActionProperty(ref m_RightHandMoveAction, value);
+            get => default;
+            set => _ = value;
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-            m_LeftHandMoveAction.EnableDirectAction();
-            m_RightHandMoveAction.EnableDirectAction();
         }
 
         /// <inheritdoc />
         protected override void OnDisable()
         {
-            base.OnDisable();
-            m_LeftHandMoveAction.DisableDirectAction();
-            m_RightHandMoveAction.DisableDirectAction();
         }
 
         /// <inheritdoc />
         protected override Vector2 ReadInput()
         {
-            var leftHandValue = m_LeftHandMoveAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-            var rightHandValue = m_RightHandMoveAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-
-            return leftHandValue + rightHandValue;
-        }
-
-        void SetInputActionProperty(ref InputActionProperty property, InputActionProperty value)
-        {
-            if (Application.isPlaying)
-                property.DisableDirectAction();
-
-            property = value;
-
-            if (Application.isPlaying && isActiveAndEnabled)
-                property.EnableDirectAction();
+            throw new NotSupportedException(k_ActionBasedContinuousMoveProviderDeprecated);
         }
     }
 }

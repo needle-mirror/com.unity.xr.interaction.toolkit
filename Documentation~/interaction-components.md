@@ -13,7 +13,6 @@ The topic in this section describe the components used to create interactions wi
 | [Interactors](interactor-components.md)             | The interactor components provided by the toolkit. |
 | [Interactables](interactable-components.md)         | The interactable components provided by the toolkit.|
 | [Filters](filter-components.md)                     | The filter components provided by the toolkit.|
-| [AR Interactables](ar-interactable-components.md)   | The AR interactable components provided by the toolkit.|
 | [Affordances](affordance-components.md)             | The affordance components provided by the toolkit.|
 
 ## Additional resources

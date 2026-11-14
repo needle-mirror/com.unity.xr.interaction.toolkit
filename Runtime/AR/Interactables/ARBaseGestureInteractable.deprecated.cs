@@ -33,20 +33,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Base class that manipulates an object via a gesture.
     /// </summary>
-    [Obsolete("ARBaseGestureInteractable has been deprecated.")]
+    [Obsolete("ARBaseGestureInteractable has been deprecated.", true)]
     public class ARBaseGestureInteractable { }
 }
 
 #else
 
-using System.Collections.Generic;
 using Unity.XR.CoreUtils;
-using UnityEngine.Assertions;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -56,13 +53,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #if UNITY_6000_5_OR_NEWER
     [NoAutoStaticsCleanup]
 #endif
-    [Obsolete("ARBaseGestureInteractable has been deprecated.")]
+    [Obsolete(k_ARBaseGestureInteractableDeprecated, true)]
     public abstract class ARBaseGestureInteractable : XRBaseInteractable
     {
+        const string k_ARBaseGestureInteractableDeprecated = "ARBaseGestureInteractable has been deprecated.";
 
-#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
-        [SerializeField]
-        ARSessionOrigin m_ARSessionOrigin;
 #pragma warning restore CS0618
 
         /// <summary>
@@ -70,15 +65,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// that this Interactable will use (such as to get the [Camera](xref:UnityEngine.Camera)
         /// or to transform from Session space). Will find one if <see langword="null"/>.
         /// </summary>
-        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.")]
+        [Obsolete("arSessionOrigin is marked for deprecation and will be removed in a future version. Please use xrOrigin instead.", true)]
         public ARSessionOrigin arSessionOrigin
         {
-            get => m_ARSessionOrigin;
-            set => m_ARSessionOrigin = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        XROrigin m_XROrigin;
 
         /// <summary>
         /// The <see cref="XROrigin"/>
@@ -87,12 +79,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public XROrigin xrOrigin
         {
-            get => m_XROrigin;
-            set => m_XROrigin = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        bool m_ExcludeUITouches = true;
 
         /// <summary>
         /// When <see langword="true"/>, will exclude touches that are over UI.
@@ -101,8 +90,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="EventSystem.IsPointerOverGameObject(int)"/>
         public bool excludeUITouches
         {
-            get => m_ExcludeUITouches;
-            set => m_ExcludeUITouches = value;
+            get => default;
+            set => _ = value;
         }
 
         /// <summary>
@@ -113,69 +102,78 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="DisconnectGestureInteractor"/>
         protected ARGestureInteractor gestureInteractor { get; private set; }
 
-        bool m_IsManipulating;
-
-        /// <summary>
-        /// Temporary, reusable list of registered Interactors.
-        /// </summary>
-        static readonly List<IXRInteractor> s_Interactors = new List<IXRInteractor>();
-
         /// <inheritdoc />
         protected override void Awake()
         {
-            base.Awake();
-            FindXROrigin();
-            FindARSessionOrigin();
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-            FindXROrigin();
-            FindARSessionOrigin();
         }
 
         /// <inheritdoc />
-        public override bool IsHoverableBy(IXRHoverInteractor interactor) => interactor is ARGestureInteractor;
+        public override bool IsHoverableBy(IXRHoverInteractor interactor)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <inheritdoc />
-        public override bool IsSelectableBy(IXRSelectInteractor interactor) => false;
+        public override bool IsSelectableBy(IXRSelectInteractor interactor)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool CanStartManipulationForGesture(DragGesture gesture) => false;
+        protected virtual bool CanStartManipulationForGesture(DragGesture gesture)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool CanStartManipulationForGesture(PinchGesture gesture) => false;
+        protected virtual bool CanStartManipulationForGesture(PinchGesture gesture)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool CanStartManipulationForGesture(TapGesture gesture) => false;
+        protected virtual bool CanStartManipulationForGesture(TapGesture gesture)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool CanStartManipulationForGesture(TwistGesture gesture) => false;
+        protected virtual bool CanStartManipulationForGesture(TwistGesture gesture)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Determines if the manipulation can start for the given gesture.
         /// </summary>
         /// <param name="gesture">The current gesture.</param>
         /// <returns>Returns <see langword="true"/> if the manipulation can start. Otherwise, returns <see langword="false"/>.</returns>
-        protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture) => false;
+        protected virtual bool CanStartManipulationForGesture(TwoFingerDragGesture gesture)
+        {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
+        }
 
         /// <summary>
         /// Unity calls this method automatically when the manipulation starts.
@@ -184,6 +182,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
         protected virtual void OnStartManipulation(DragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -193,6 +192,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
         protected virtual void OnStartManipulation(PinchGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -202,6 +202,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
         protected virtual void OnStartManipulation(TapGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -211,6 +212,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
         protected virtual void OnStartManipulation(TwistGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -220,6 +222,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
         protected virtual void OnStartManipulation(TwoFingerDragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -229,6 +232,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onUpdated"/>
         protected virtual void OnContinueManipulation(DragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -238,6 +242,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onUpdated"/>
         protected virtual void OnContinueManipulation(PinchGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -247,6 +252,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onUpdated"/>
         protected virtual void OnContinueManipulation(TapGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -256,6 +262,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onUpdated"/>
         protected virtual void OnContinueManipulation(TwistGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -265,6 +272,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onUpdated"/>
         protected virtual void OnContinueManipulation(TwoFingerDragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -274,6 +282,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onFinished"/>
         protected virtual void OnEndManipulation(DragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -283,6 +292,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onFinished"/>
         protected virtual void OnEndManipulation(PinchGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -292,6 +302,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onFinished"/>
         protected virtual void OnEndManipulation(TapGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -301,6 +312,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onFinished"/>
         protected virtual void OnEndManipulation(TwistGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -310,6 +322,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="Gesture{T}.onFinished"/>
         protected virtual void OnEndManipulation(TwoFingerDragGesture gesture)
         {
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -321,16 +334,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// to. Otherwise, returns <seealso langword="false"/>.</returns>
         protected virtual bool IsGameObjectSelected()
         {
-            if (gestureInteractor == null || !gestureInteractor.hasSelection)
-                return false;
-
-            foreach (var interactable in gestureInteractor.interactablesSelected)
-            {
-                if (interactable is Component interactableComponent && interactableComponent.gameObject == gameObject)
-                    return true;
-            }
-
-            return false;
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -338,23 +342,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected virtual void ConnectGestureInteractor()
         {
-            if (gestureInteractor == null)
-                return;
-
-            if (gestureInteractor.dragGestureRecognizer != null)
-                gestureInteractor.dragGestureRecognizer.onGestureStarted += OnGestureStarted;
-
-            if (gestureInteractor.pinchGestureRecognizer != null)
-                gestureInteractor.pinchGestureRecognizer.onGestureStarted += OnGestureStarted;
-
-            if (gestureInteractor.tapGestureRecognizer != null)
-                gestureInteractor.tapGestureRecognizer.onGestureStarted += OnGestureStarted;
-
-            if (gestureInteractor.twistGestureRecognizer != null)
-                gestureInteractor.twistGestureRecognizer.onGestureStarted += OnGestureStarted;
-
-            if (gestureInteractor.twoFingerDragGestureRecognizer != null)
-                gestureInteractor.twoFingerDragGestureRecognizer.onGestureStarted += OnGestureStarted;
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <summary>
@@ -362,334 +350,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         protected virtual void DisconnectGestureInteractor()
         {
-            if (gestureInteractor == null)
-                return;
-
-            if (gestureInteractor.dragGestureRecognizer != null)
-                gestureInteractor.dragGestureRecognizer.onGestureStarted -= OnGestureStarted;
-
-            if (gestureInteractor.pinchGestureRecognizer != null)
-                gestureInteractor.pinchGestureRecognizer.onGestureStarted -= OnGestureStarted;
-
-            if (gestureInteractor.tapGestureRecognizer != null)
-                gestureInteractor.tapGestureRecognizer.onGestureStarted -= OnGestureStarted;
-
-            if (gestureInteractor.twistGestureRecognizer != null)
-                gestureInteractor.twistGestureRecognizer.onGestureStarted -= OnGestureStarted;
-
-            if (gestureInteractor.twoFingerDragGestureRecognizer != null)
-                gestureInteractor.twoFingerDragGestureRecognizer.onGestureStarted -= OnGestureStarted;
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnRegistered(InteractableRegisteredEventArgs args)
         {
-            base.OnRegistered(args);
-
-            FindAndConnectGestureInteractor(args.manager);
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnUnregistered(InteractableUnregisteredEventArgs args)
         {
-            base.OnUnregistered(args);
-
-            if (gestureInteractor != null)
-            {
-                DisconnectGestureInteractor();
-                gestureInteractor.unregistered -= OnGestureInteractorUnregistered;
-                gestureInteractor = null;
-            }
-            else
-            {
-                args.manager.interactorRegistered -= OnInteractorRegistered;
-            }
+            throw new NotSupportedException(k_ARBaseGestureInteractableDeprecated);
         }
-
-        void FindAndConnectGestureInteractor(XRInteractionManager manager)
-        {
-            // Find the Gesture Interactor registered to the same Interaction Manager,
-            // warning if there is more than one. To simplify the API, this Interactable
-            // can only listen to one at a time.
-            // If the Gesture Interactor exists, need to handle it being unregistered.
-            // Otherwise, listen on the Interaction Manager until one is registered.
-            gestureInteractor = GetGestureInteractor(manager);
-            if (gestureInteractor != null)
-            {
-                ConnectGestureInteractor();
-                gestureInteractor.unregistered += OnGestureInteractorUnregistered;
-            }
-            else
-            {
-                manager.interactorRegistered += OnInteractorRegistered;
-            }
-        }
-
-        void OnGestureInteractorUnregistered(InteractorUnregisteredEventArgs args)
-        {
-            Assert.AreEqual(gestureInteractor, args.interactorObject as ARGestureInteractor);
-
-            DisconnectGestureInteractor();
-            gestureInteractor.unregistered -= OnGestureInteractorUnregistered;
-            gestureInteractor = null;
-
-            // Try to find another or start listening until one is registered
-            FindAndConnectGestureInteractor(args.manager);
-        }
-
-        void OnInteractorRegistered(InteractorRegisteredEventArgs args)
-        {
-            Assert.IsNull(gestureInteractor);
-
-            if (args.interactorObject is ARGestureInteractor registeredGestureInteractor)
-            {
-                gestureInteractor = registeredGestureInteractor;
-                ConnectGestureInteractor();
-                gestureInteractor.unregistered += OnGestureInteractorUnregistered;
-                args.manager.interactorRegistered -= OnInteractorRegistered;
-            }
-        }
-
-        ARGestureInteractor GetGestureInteractor(XRInteractionManager manager)
-        {
-            ARGestureInteractor result = null;
-            var numRegisteredGestureInteractors = 0;
-
-            manager.GetRegisteredInteractors(s_Interactors);
-            foreach (var interactor in s_Interactors)
-            {
-                if (interactor is ARGestureInteractor registeredGestureInteractor)
-                {
-                    result = registeredGestureInteractor;
-                    ++numRegisteredGestureInteractors;
-                }
-            }
-
-            s_Interactors.Clear();
-
-            if (numRegisteredGestureInteractors > 1)
-            {
-                Debug.LogWarning($"More than one {nameof(ARGestureInteractor)} is registered with {manager}," +
-                    $" but only one can be listened to at a time. Choosing to listen to {result}.", this);
-            }
-
-            return result;
-        }
-
-        void FindXROrigin()
-        {
-            if (m_XROrigin == null)
-                ComponentLocatorUtility<XROrigin>.TryFindComponent(out m_XROrigin);
-        }
-
-        void FindARSessionOrigin()
-        {
-#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
-            if (m_ARSessionOrigin == null)
-                ComponentLocatorUtility<ARSessionOrigin>.TryFindComponent(out m_ARSessionOrigin);
-#pragma warning restore CS0618
-        }
-
-        /// <summary>
-        /// Determines if the manipulation can start for the given gesture.
-        /// </summary>
-        /// <typeparam name="T">The gesture type.</typeparam>
-        /// <param name="gesture">The current gesture.</param>
-        /// <returns>Returns <see langword="true"/> if the manipulation can
-        /// start. Otherwise, returns <see langword="false"/>.</returns>
-        // TODO Consider making this protected virtual and deprecating non-generic methods
-        bool CanStartManipulationForGesture<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    return CanStartManipulationForGesture(dragGesture);
-                case PinchGesture pinchGesture:
-                    return CanStartManipulationForGesture(pinchGesture);
-                case TapGesture tapGesture:
-                    return CanStartManipulationForGesture(tapGesture);
-                case TwistGesture twistGesture:
-                    return CanStartManipulationForGesture(twistGesture);
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    return CanStartManipulationForGesture(twoFingerDragGesture);
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Unity calls this method automatically when the manipulation starts.
-        /// </summary>
-        /// <typeparam name="T">The gesture type.</typeparam>
-        /// <param name="gesture">The current gesture.</param>
-        /// <seealso cref="GestureRecognizer{T}.onGestureStarted"/>
-        // TODO Consider making this protected virtual and deprecating non-generic methods
-        void OnStartManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    OnStartManipulation(dragGesture);
-                    break;
-                case PinchGesture pinchGesture:
-                    OnStartManipulation(pinchGesture);
-                    break;
-                case TapGesture tapGesture:
-                    OnStartManipulation(tapGesture);
-                    break;
-                case TwistGesture twistGesture:
-                    OnStartManipulation(twistGesture);
-                    break;
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    OnStartManipulation(twoFingerDragGesture);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Unity calls this method automatically when the manipulation continues.
-        /// </summary>
-        /// <typeparam name="T">The gesture type.</typeparam>
-        /// <param name="gesture">The current gesture.</param>
-        /// <seealso cref="Gesture{T}.onUpdated"/>
-        // TODO Consider making this protected virtual and deprecating non-generic methods
-        void OnContinueManipulation<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    OnContinueManipulation(dragGesture);
-                    break;
-                case PinchGesture pinchGesture:
-                    OnContinueManipulation(pinchGesture);
-                    break;
-                case TapGesture tapGesture:
-                    OnContinueManipulation(tapGesture);
-                    break;
-                case TwistGesture twistGesture:
-                    OnContinueManipulation(twistGesture);
-                    break;
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    OnContinueManipulation(twoFingerDragGesture);
-                    break;
-            }
-        }
-
-        void OnGestureStarted<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            if (m_IsManipulating)
-                return;
-
-            if (m_ExcludeUITouches && IsGestureBlockedByUI(gesture))
-                return;
-
-            if (CanStartManipulationForGesture(gesture))
-            {
-                m_IsManipulating = true;
-                gesture.onUpdated += OnUpdated;
-                gesture.onFinished += OnFinished;
-                OnStartManipulation(gesture);
-            }
-        }
-
-        void OnUpdated<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            if (!m_IsManipulating)
-                return;
-
-            // Can only transform selected Items.
-            if (!IsGameObjectSelected())
-            {
-                m_IsManipulating = false;
-
-                // Contents of the removed OnEndManipulation<T>(Gesture<T>) were copied here to avoid an IL2CPP runtime crash
-                switch (gesture)
-                {
-                    case DragGesture dragGesture:
-                        OnEndManipulation(dragGesture);
-                        break;
-                    case PinchGesture pinchGesture:
-                        OnEndManipulation(pinchGesture);
-                        break;
-                    case TapGesture tapGesture:
-                        OnEndManipulation(tapGesture);
-                        break;
-                    case TwistGesture twistGesture:
-                        OnEndManipulation(twistGesture);
-                        break;
-                    case TwoFingerDragGesture twoFingerDragGesture:
-                        OnEndManipulation(twoFingerDragGesture);
-                        break;
-                }
-
-                return;
-            }
-
-            OnContinueManipulation(gesture);
-        }
-
-        void OnFinished<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            m_IsManipulating = false;
-
-            // Contents of the removed OnEndManipulation<T>(Gesture<T>) were copied here to avoid an IL2CPP runtime crash
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    OnEndManipulation(dragGesture);
-                    break;
-                case PinchGesture pinchGesture:
-                    OnEndManipulation(pinchGesture);
-                    break;
-                case TapGesture tapGesture:
-                    OnEndManipulation(tapGesture);
-                    break;
-                case TwistGesture twistGesture:
-                    OnEndManipulation(twistGesture);
-                    break;
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    OnEndManipulation(twoFingerDragGesture);
-                    break;
-            }
-        }
-
-        static bool IsTouchPositionBlockedByUI(int fingerId)
-        {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(fingerId);
-        }
-
-        static bool IsGestureBlockedByUI<T>(Gesture<T> gesture) where T : Gesture<T>
-        {
-            switch (gesture)
-            {
-                case DragGesture dragGesture:
-                    return IsTouchPositionBlockedByUI(dragGesture.fingerId);
-                case PinchGesture pinchGesture:
-                    return IsTouchPositionBlockedByUI(pinchGesture.fingerId1) || IsTouchPositionBlockedByUI(pinchGesture.fingerId2);
-                case TapGesture tapGesture:
-                    return IsTouchPositionBlockedByUI(tapGesture.fingerId);
-                case TwistGesture twistGesture:
-                    return IsTouchPositionBlockedByUI(twistGesture.fingerId1) || IsTouchPositionBlockedByUI(twistGesture.fingerId2);
-                case TwoFingerDragGesture twoFingerDragGesture:
-                    return IsTouchPositionBlockedByUI(twoFingerDragGesture.fingerId1) || IsTouchPositionBlockedByUI(twoFingerDragGesture.fingerId2);
-            }
-
-            return false;
-        }
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsHoverableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsHoverableBy(IXRHoverInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsHoverableBy(XRBaseInteractor) has been deprecated. Use IsHoverableBy(IXRHoverInteractor) instead.", true)]
-        public override bool IsHoverableBy(XRBaseInteractor interactor) => default;
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.", true)]
-        public override bool IsSelectableBy(XRBaseInteractor interactor) => default;
     }
 }
 

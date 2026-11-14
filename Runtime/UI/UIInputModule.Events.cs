@@ -170,7 +170,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// The object representing the hovered UI target.
         /// For uGUI (Unity UI), this is the Graphic's GameObject.
-        /// For UI Toolkit, this is the panel host GameObject (e.g. the UIDocument GameObject), or <see langword="null"/> if not available.
+        /// For UI Toolkit, this is the panel host GameObject (e.g. the UIDocument or PanelRenderer GameObject), or <see langword="null"/> if not available.
         /// </summary>
         public GameObject uiObject { get; set; }
 
@@ -188,9 +188,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         /// <summary>
         /// Optional reference to the UIDocument associated with the hovered VisualElement, if available.
-        /// Will be <see langword="null"/> for uGUI (Unity UI) interactions or when no document can be determined.
+        /// Will be <see langword="null"/> for uGUI (Unity UI) interactions, when a <see cref="PanelRenderer"/> is the host, or when no document can be determined.
         /// </summary>
+        /// <remarks>
+        /// Use <see cref="panelComponent"/> instead to handle both <see cref="UIDocument"/> and <see cref="PanelRenderer"/> panels.
+        /// </remarks>
+#if UNITY_6000_5_OR_NEWER
+        [Obsolete("Use panelComponent instead. You can check the type using pattern matching, e.g. if (args.panelComponent is UIDocument uiDocument).", false)]
+#endif
         public UIDocument uiDocument { get; set; }
+
+#if UNITY_6000_5_OR_NEWER
+        /// <summary>
+        /// The panel component hosting the hovered VisualElement, if available.
+        /// This is the <see cref="UIDocument"/> or <see cref="PanelRenderer"/> component.
+        /// Will be <see langword="null"/> for uGUI (Unity UI) interactions.
+        /// </summary>
+        public IPanelComponent panelComponent { get; set; }
+#endif
 #endif
     }
     #endregion

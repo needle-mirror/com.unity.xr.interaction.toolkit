@@ -127,9 +127,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             GestureTouchesUtility.LockFingerId(fingerId);
 
-#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
-#pragma warning restore 618
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, out var hit, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
@@ -140,18 +138,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                         var interactableObject = grabInteractable.gameObject;
                         if (interactableObject != null)
                             targetObject = interactableObject;
-                    }
-                    else
-                    {
-#pragma warning disable 618
-                        var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                        if (baseGestureInteractable != null)
-                        {
-                            var interactableObject = baseGestureInteractable.gameObject;
-                            if (interactableObject != null)
-                                targetObject = interactableObject;
-                        }
-#pragma warning restore 618
                     }
                 }
             }

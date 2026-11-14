@@ -19,3 +19,4 @@ Use the options in the **UI Interaction** section to configure how the interacto
 | **Block UI on Interactable Selection** | Enabling this option will block UI interaction when selecting interactables. |
 | **UI Press Input** | The input used to press or select UI elements. Equivalent to a mouse button. |
 | **UI Scroll Input** | The input to use to scroll UI elements. Equivalent to a mouse scroll wheel. |
+| **UI Scroll Momentum** | Whether each UI scroll glides to a stop instead of jumping. Use with a Press Scroll Input. Default is `false`. Refer to [Scroll UI with XR input](xref:xri-ui-scrolling). |

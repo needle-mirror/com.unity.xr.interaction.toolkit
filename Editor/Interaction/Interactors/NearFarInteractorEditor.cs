@@ -51,6 +51,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="NearFarInteractor.uiScrollInput"/>.</summary>
         protected SerializedProperty m_UIScrollInput;
 
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="NearFarInteractor.uiScrollMomentum"/>.</summary>
+        protected SerializedProperty m_UIScrollMomentum;
+
         /// <inheritdoc />
         protected override bool showDeprecatedProperties => false;
 
@@ -87,6 +90,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent uiPressInput = EditorGUIUtility.TrTextContent("UI Press Input", "Input to use for pressing UI elements. Functions like a mouse button when pointing over UI.");
             /// <summary><see cref="GUIContent"/> for <see cref="NearFarInteractor.uiScrollInput"/>.</summary>
             public static readonly GUIContent uiScrollInput = EditorGUIUtility.TrTextContent("UI Scroll Input", "Input to use for scrolling UI elements. Functions like a mouse scroll wheel when pointing over UI.");
+
+            /// <summary><see cref="GUIContent"/> for <see cref="NearFarInteractor.uiScrollMomentum"/>.</summary>
+            public static readonly GUIContent uiScrollMomentum = EditorGUIUtility.TrTextContent("UI Scroll Momentum", "Whether UI scroll input continues with momentum on the scroll view it was aimed at, slowing to a stop at that scroll view's deceleration rate.");
         }
 
         /// <inheritdoc />
@@ -107,6 +113,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_UIHoverExited = serializedObject.FindProperty("m_UIHoverExited");
             m_UIPressInput = serializedObject.FindProperty("m_UIPressInput");
             m_UIScrollInput = serializedObject.FindProperty("m_UIScrollInput");
+            m_UIScrollMomentum = serializedObject.FindProperty("m_UIScrollMomentum");
         }
 
         /// <inheritdoc />
@@ -204,6 +211,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         {
             EditorGUILayout.PropertyField(m_UIPressInput, Contents.uiPressInput);
             EditorGUILayout.PropertyField(m_UIScrollInput, Contents.uiScrollInput);
+            EditorGUILayout.PropertyField(m_UIScrollMomentum, Contents.uiScrollMomentum);
         }
 
         /// <summary>

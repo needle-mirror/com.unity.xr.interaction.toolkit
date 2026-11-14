@@ -8,10 +8,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Custom editor for an <see cref="ARBaseGestureInteractable"/>.
     /// </summary>
-    [Obsolete("ARBaseGestureInteractable has been deprecated.")]
+    [Obsolete(k_ARBaseGestureInteractableEditorDeprecated, true)]
     [CustomEditor(typeof(ARBaseGestureInteractable), true), CanEditMultipleObjects]
     public class ARBaseGestureInteractableEditor : XRBaseInteractableEditor
     {
+        const string k_ARBaseGestureInteractableEditorDeprecated = "ARBaseGestureInteractable has been deprecated.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARBaseGestureInteractable.xrOrigin"/>.</summary>
         protected SerializedProperty m_XROrigin;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARBaseGestureInteractable.arSessionOrigin"/>.</summary>
@@ -38,32 +40,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_XROrigin = serializedObject.FindProperty("m_XROrigin");
-            m_ARSessionOrigin = serializedObject.FindProperty("m_ARSessionOrigin");
-            m_ExcludeUITouches = serializedObject.FindProperty("m_ExcludeUITouches");
         }
 
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            base.DrawProperties();
-
-#if AR_FOUNDATION_5_0_OR_NEWER
-            EditorGUILayout.PropertyField(m_XROrigin, BaseGestureContents.xrOrigin);
-            using (new EditorGUI.IndentLevelScope())
-            {
-                if (m_ARSessionOrigin.objectReferenceValue != null)
-                    EditorGUILayout.HelpBox(BaseGestureContents.arSessionOriginDeprecated.text, MessageType.Warning);
-
-                EditorGUILayout.PropertyField(m_ARSessionOrigin, BaseGestureContents.arSessionOrigin);
-            }
-#else
-            EditorGUILayout.PropertyField(m_ARSessionOrigin, BaseGestureContents.arSessionOrigin);
-#endif
-
-            EditorGUILayout.PropertyField(m_ExcludeUITouches, BaseGestureContents.excludeUITouches);
+            throw new NotSupportedException(k_ARBaseGestureInteractableEditorDeprecated);
         }
     }
 }

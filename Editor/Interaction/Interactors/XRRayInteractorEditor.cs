@@ -95,6 +95,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         protected SerializedProperty m_UIPressInput;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiScrollInput"/>.</summary>
         protected SerializedProperty m_UIScrollInput;
+        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.uiScrollMomentum"/>.</summary>
+        protected SerializedProperty m_UIScrollMomentum;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.translateManipulationInput"/>.</summary>
         protected SerializedProperty m_TranslateManipulationInput;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRRayInteractor.rotateManipulationInput"/>.</summary>
@@ -140,7 +142,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastSnapVolumeInteraction"/>.</summary>
             public static readonly GUIContent raycastSnapVolumeInteraction = EditorGUIUtility.TrTextContent("Raycast Snap Volume Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.raycastUIDocumentTriggerInteraction"/>.</summary>
-            public static readonly GUIContent raycastUIDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast UI Document Trigger Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the ray cast is set to ignore triggers.");
+            public static readonly GUIContent raycastUIDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("Raycast UI Document Trigger Interaction", "Whether ray cast should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (UIDocument or PanelRenderer), even if the ray cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hitClosestOnly"/>.</summary>
             public static readonly GUIContent hitClosestOnly = EditorGUIUtility.TrTextContent("Hit Closest Only", "Consider only the closest Interactable as a valid target for interaction. Enable this to make only the closest Interactable receive hover events.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.hoverToSelect"/>.</summary>
@@ -206,6 +208,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent uiPressInput = EditorGUIUtility.TrTextContent("UI Press Input", "Input to use for pressing UI elements. Functions like a mouse button when pointing over UI.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.uiScrollInput"/>.</summary>
             public static readonly GUIContent uiScrollInput = EditorGUIUtility.TrTextContent("UI Scroll Input", "Input to use for scrolling UI elements. Functions like a mouse scroll wheel when pointing over UI.");
+            /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.uiScrollMomentum"/>.</summary>
+            public static readonly GUIContent uiScrollMomentum = EditorGUIUtility.TrTextContent("UI Scroll Momentum", "Whether UI scroll input continues with momentum on the scroll view it was aimed at, slowing to a stop at that scroll view's deceleration rate.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.translateManipulationInput"/>.</summary>
             public static readonly GUIContent translateManipulationInput = EditorGUIUtility.TrTextContent("Translate Input", "Input to use for translating the attach point closer or further away from the interactor. This effectively moves the selected grab interactable along the ray.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateManipulationInput"/>.</summary>
@@ -230,15 +234,15 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             public static readonly GUIContent occludeARHitsWith2DObjects = EditorGUIUtility.TrTextContent("Occlude AR Hits With 2D Objects", "If enabled, AR Raycasts will be occluded by 2D world space objects.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.manipulateAttachTransform"/>.</summary>
-            [Obsolete("allowAnchorControl has been renamed in version 3.0.0. Use manipulateAttachTransform instead.")]
+            [Obsolete("allowAnchorControl has been renamed in version 3.0.0. Use manipulateAttachTransform instead.", true)]
             public static readonly GUIContent allowAnchorControl = manipulateAttachTransform;
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateReferenceFrame"/>.</summary>
-            [Obsolete("anchorRotateReferenceFrame has been renamed in version 3.0.0. Use rotateReferenceFrame instead.")]
+            [Obsolete("anchorRotateReferenceFrame has been renamed in version 3.0.0. Use rotateReferenceFrame instead.", true)]
             public static readonly GUIContent anchorRotateReferenceFrame = rotateReferenceFrame;
 
             /// <summary><see cref="GUIContent"/> for <see cref="XRRayInteractor.rotateMode"/>.</summary>
-            [Obsolete("anchorRotationMode has been renamed in version 3.0.0. Use rotateMode instead.")]
+            [Obsolete("anchorRotationMode has been renamed in version 3.0.0. Use rotateMode instead.", true)]
             public static readonly GUIContent anchorRotationMode = rotateMode;
         }
 
@@ -291,6 +295,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
 
             m_UIPressInput = serializedObject.FindProperty("m_UIPressInput");
             m_UIScrollInput = serializedObject.FindProperty("m_UIScrollInput");
+            m_UIScrollMomentum = serializedObject.FindProperty("m_UIScrollMomentum");
             m_TranslateManipulationInput = serializedObject.FindProperty("m_TranslateManipulationInput");
             m_RotateManipulationInput = serializedObject.FindProperty("m_RotateManipulationInput");
             m_DirectionalManipulationInput = serializedObject.FindProperty("m_DirectionalManipulationInput");
@@ -303,12 +308,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_EnableARRaycasting = serializedObject.FindProperty("m_EnableARRaycasting");
             m_OccludeARHitsWith3DObjects = serializedObject.FindProperty("m_OccludeARHitsWith3DObjects");
             m_OccludeARHitsWith2DObjects = serializedObject.FindProperty("m_OccludeARHitsWith2DObjects");
-
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            m_AllowAnchorControl = m_ManipulateAttachTransform;
-            m_AnchorRotateReferenceFrame = m_RotateReferenceFrame;
-            m_AnchorRotationMode = m_RotateMode;
-#pragma warning restore CS0618
 
             // Set default expanded for some foldouts
             const string initializedKey = "XRI." + nameof(XRRayInteractorEditor) + ".Initialized";
@@ -548,6 +547,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         {
             EditorGUILayout.PropertyField(m_UIPressInput, Contents.uiPressInput);
             EditorGUILayout.PropertyField(m_UIScrollInput, Contents.uiScrollInput);
+            EditorGUILayout.PropertyField(m_UIScrollMomentum, Contents.uiScrollMomentum);
         }
 
         /// <summary>

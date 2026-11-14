@@ -274,7 +274,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static float FastCalculateRadiusOffset(in float3 initialScale, in float3 targetScale, in float3 initialBoundsSize, float innerRadius)
+        internal static float FastCalculateRadiusOffset(in float3 initialScale, in float3 targetScale, in float3 initialBoundsSize, float innerRadius)
         {
             var maxInitialBoundsParam = math.max(math.max(initialBoundsSize.x, initialBoundsSize.y), initialBoundsSize.z);
 
@@ -294,7 +294,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void FastComputeNewTrackedPose(in float3 interactorAttachPos, in quaternion interactorAttachRot,
+        internal static void FastComputeNewTrackedPose(in float3 interactorAttachPos, in quaternion interactorAttachRot,
             in float3 positionOffset, in quaternion interactableRot, in quaternion interactableAttachRot,
             out float3 targetPos, out quaternion targetRot)
         {
@@ -307,7 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static bool IsWithinRadius(in float3 a, in float3 b, float radius)
+        internal static bool IsWithinRadius(in float3 a, in float3 b, float radius)
         {
             return math.lengthsq(a - b) < (radius * radius);
         }
@@ -315,7 +315,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void CalculateScaleToFit(in float3 boundsSize, in float3 fixedSize, in float3 initialScale, float epsilon, out float3 newScale)
+        internal static void CalculateScaleToFit(in float3 boundsSize, in float3 fixedSize, in float3 initialScale, float epsilon, out float3 newScale)
         {
             // Find the ratio of the current size to the target size
             float sizeRatioX = boundsSize.x / (fixedSize.x + epsilon);

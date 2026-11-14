@@ -10,7 +10,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 {
     /// <summary>
     /// Utility for filtering trigger colliders from physics query results based on
-    /// snap volume and UI document settings.
+    /// snap volume and UI Toolkit panel settings.
     /// </summary>
     internal static class TriggerColliderFilterUtility
     {
@@ -18,7 +18,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// Determines whether a trigger collider should be removed from query results.
         /// </summary>
         /// <remarks>
-        /// This method is only called for non-null trigger colliders. UI Document detection
+        /// This method is only called for non-null trigger colliders. UI Toolkit panel detection
         /// is only available when UI Toolkit is installed on Unity 6.2 or higher.
         /// </remarks>
         static bool ShouldRemoveTriggerCollider(
@@ -34,7 +34,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
             var matchesUIDocument = testUIDocuments &&
-                XRUIToolkitHandler.HasUIDocument(triggerCollider);
+                XRUIToolkitHandler.HasPanelComponent(triggerCollider);
 #else
             var matchesUIDocument = false;
 #endif
@@ -55,7 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="count">Number of valid entries in <paramref name="colliders"/>.</param>
         /// <param name="baseQueryIncludesTriggers">Whether the base physics query is configured to include trigger colliders.</param>
         /// <param name="allowSnapVolumeTriggers">Whether snap volume trigger colliders should be allowed through the filter.</param>
-        /// <param name="allowUIDocumentTriggers">Whether UI Document trigger colliders should be allowed through the filter.</param>
+        /// <param name="allowUIDocumentTriggers">Whether UI Toolkit panel trigger colliders should be allowed through the filter.</param>
         /// <returns>The number of colliders remaining after filtering.</returns>
         /// <remarks>
         /// When <paramref name="baseQueryIncludesTriggers"/> is <see langword="true"/>, triggers are already present in the results,
@@ -115,7 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Utilities
         /// <param name="count">Number of valid entries in <paramref name="raycastHits"/>.</param>
         /// <param name="baseQueryIncludesTriggers">Whether the base physics query is configured to include trigger colliders.</param>
         /// <param name="allowSnapVolumeTriggers">Whether snap volume trigger colliders should be allowed through the filter.</param>
-        /// <param name="allowUIDocumentTriggers">Whether UI Document trigger colliders should be allowed through the filter.</param>
+        /// <param name="allowUIDocumentTriggers">Whether UI Toolkit panel trigger colliders should be allowed through the filter.</param>
         /// <returns>The number of hits remaining after filtering.</returns>
         /// <remarks>
         /// When <paramref name="baseQueryIncludesTriggers"/> is <see langword="true"/>, triggers are already present in the results,

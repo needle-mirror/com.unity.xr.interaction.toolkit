@@ -1,7 +1,6 @@
 using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.XR.Interaction.Toolkit.Inputs;
 
 namespace UnityEngine.XR.Interaction.Toolkit
 {
@@ -11,67 +10,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     [AddComponentMenu("XR/Locomotion/Legacy/Snap Turn Provider (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedSnapTurnProvider)]
-    [Obsolete("ActionBasedSnapTurnProvider has been deprecated in version 3.0.0. Use SnapTurnProvider instead.")]
+    [Obsolete(k_ActionBasedSnapTurnProviderDeprecated, true)]
     public class ActionBasedSnapTurnProvider : SnapTurnProviderBase
     {
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Snap Turn data from the left hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_LeftHandSnapTurnAction = new InputActionProperty(new InputAction("Left Hand Snap Turn", expectedControlType: "Vector2"));
+        const string k_ActionBasedSnapTurnProviderDeprecated = "ActionBasedSnapTurnProvider has been deprecated in version 3.0.0. Use SnapTurnProvider instead.";
+
         /// <summary>
         /// The Input System Action that Unity uses to read Snap Turn data sent from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty leftHandSnapTurnAction
         {
-            get => m_LeftHandSnapTurnAction;
-            set => SetInputActionProperty(ref m_LeftHandSnapTurnAction, value);
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Snap Turn data from the right hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_RightHandSnapTurnAction = new InputActionProperty(new InputAction("Right Hand Snap Turn", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System Action that Unity uses to read Snap Turn data sent from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty rightHandSnapTurnAction
         {
-            get => m_RightHandSnapTurnAction;
-            set => SetInputActionProperty(ref m_RightHandSnapTurnAction, value);
+            get => default;
+            set => _ = value;
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-            m_LeftHandSnapTurnAction.EnableDirectAction();
-            m_RightHandSnapTurnAction.EnableDirectAction();
         }
 
         /// <inheritdoc />
         protected override void OnDisable()
         {
-            base.OnDisable();
-            m_LeftHandSnapTurnAction.DisableDirectAction();
-            m_RightHandSnapTurnAction.DisableDirectAction();
         }
 
         /// <inheritdoc />
         protected override Vector2 ReadInput()
         {
-            var leftHandValue = m_LeftHandSnapTurnAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-            var rightHandValue = m_RightHandSnapTurnAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-
-            return leftHandValue + rightHandValue;
-        }
-
-        void SetInputActionProperty(ref InputActionProperty property, InputActionProperty value)
-        {
-            if (Application.isPlaying)
-                property.DisableDirectAction();
-
-            property = value;
-
-            if (Application.isPlaying && isActiveAndEnabled)
-                property.EnableDirectAction();
+            throw new NotSupportedException(k_ActionBasedSnapTurnProviderDeprecated);
         }
     }
 }

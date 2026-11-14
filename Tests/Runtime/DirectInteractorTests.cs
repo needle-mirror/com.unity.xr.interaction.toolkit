@@ -83,6 +83,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
             controllerRecorder.visitEachFrame = true;
             yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(0.1f);
             yield return null;
 
             Assert.That(directInteractor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -106,6 +107,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
             yield return null;
 
             Assert.That(directInteractor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -225,6 +228,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             // Wait for Physics update for trigger collision
             yield return new WaitForFixedUpdate();
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             // directInteractor1 grabs the interactable
             Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { directInteractor1 }), "In first frame, controller 1 should grab the interactable.");
@@ -234,6 +239,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             // Wait for the proper interaction that signifies the handoff
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             // directInteractor2 grabs the interactable from directInteractor1
             Assert.That(interactable.interactorsSelecting, Is.EqualTo(new[] { directInteractor2 }), "In second frame, controller 2 should grab the interactable.");

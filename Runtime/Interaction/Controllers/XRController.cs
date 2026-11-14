@@ -1,7 +1,6 @@
 using System;
 #if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
 using UnityEngine.Experimental.XR.Interaction;
-using UnityEngine.SpatialTracking;
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -21,235 +20,135 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="ActionBasedController"/>
     [AddComponentMenu("/XR Controller (Device-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_XRController)]
-    [Obsolete("XRController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.")]
+    [Obsolete(k_XRControllerDeprecated, true)]
     public class XRController : XRBaseController
     {
-        [SerializeField]
-        XRNode m_ControllerNode = XRNode.RightHand;
-
-        XRNode m_InputDeviceControllerNode;
+        const string k_XRControllerDeprecated = "XRController has been deprecated in version 3.0.0. Its functionality has been distributed into different components.";
 
         /// <summary>
         /// The <see cref="XRNode"/> for this controller.
         /// </summary>
         public XRNode controllerNode
         {
-            get => m_ControllerNode;
-            set => m_ControllerNode = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_SelectUsage = InputHelpers.Button.Grip;
 
         /// <summary>
         /// The input to use for detecting a select.
         /// </summary>
         public InputHelpers.Button selectUsage
         {
-            get => m_SelectUsage;
-            set => m_SelectUsage = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_ActivateUsage = InputHelpers.Button.Trigger;
 
         /// <summary>
         /// The input to use for detecting activation.
         /// </summary>
         public InputHelpers.Button activateUsage
         {
-            get => m_ActivateUsage;
-            set => m_ActivateUsage = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_UIPressUsage = InputHelpers.Button.Trigger;
 
         /// <summary>
         /// The input to use for detecting a UI press.
         /// </summary>
         public InputHelpers.Button uiPressUsage
         {
-            get => m_UIPressUsage;
-            set => m_UIPressUsage = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        float m_AxisToPressThreshold = 0.1f;
 
         /// <summary>
         /// The amount that a user needs to press an axis in order to trigger an interaction event.
         /// </summary>
         public float axisToPressThreshold
         {
-            get => m_AxisToPressThreshold;
-            set => m_AxisToPressThreshold = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_RotateAnchorLeft = InputHelpers.Button.PrimaryAxis2DLeft;
 
         /// <summary>
         /// The input to use to rotate an anchor to the Left.
         /// </summary>
         public InputHelpers.Button rotateObjectLeft
         {
-            get => m_RotateAnchorLeft;
-            set => m_RotateAnchorLeft = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_RotateAnchorRight = InputHelpers.Button.PrimaryAxis2DRight;
 
         /// <summary>
         /// The input to use to rotate an anchor to the Right.
         /// </summary>
         public InputHelpers.Button rotateObjectRight
         {
-            get => m_RotateAnchorRight;
-            set => m_RotateAnchorRight = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_MoveObjectIn = InputHelpers.Button.PrimaryAxis2DUp;
 
         /// <summary>
         /// The input that will be used to translate the anchor away from the interactor (into the screen / away from the player).
         /// </summary>
         public InputHelpers.Button moveObjectIn
         {
-            get => m_MoveObjectIn;
-            set => m_MoveObjectIn = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Button m_MoveObjectOut = InputHelpers.Button.PrimaryAxis2DDown;
 
         /// <summary>
         /// The input that will be used to translate the anchor towards the interactor (out of the screen / towards the player).
         /// </summary>
         public InputHelpers.Button moveObjectOut
         {
-            get => m_MoveObjectOut;
-            set => m_MoveObjectOut = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        InputHelpers.Axis2D m_DirectionalAnchorRotation = InputHelpers.Axis2D.PrimaryAxis2D;
 
         /// <summary>
         /// The input to use to compute a directional angle to rotate the interactor's attach point to match it.
         /// </summary>
         public InputHelpers.Axis2D directionalAnchorRotation
         {
-            get => m_DirectionalAnchorRotation;
-            set => m_DirectionalAnchorRotation = value;
+            get => default;
+            set => _ = value;
         }
 
 #if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
-        [SerializeField]
-        BasePoseProvider m_PoseProvider;
 
         /// <summary>
         /// Pose provider used to provide tracking data separate from the <see cref="controllerNode"/>.
         /// </summary>
         public BasePoseProvider poseProvider
         {
-            get => m_PoseProvider;
-            set => m_PoseProvider = value;
+            get => default;
+            set => _ = value;
         }
-#else
-        // Try to maintain the serialized reference if the XR Legacy Input Helpers package is not installed
-        [SerializeField]
-        MonoBehaviour m_PoseProvider;
-#endif
 
-        InputDevice m_InputDevice;
+#else
+#endif
         /// <summary>
         /// (Read Only) The <see cref="InputDevice"/> Unity uses to read data from.
         /// </summary>
-        public InputDevice inputDevice
-        {
-            get
-            {
-                if (m_InputDeviceControllerNode != m_ControllerNode || !m_InputDevice.isValid)
-                {
-                    m_InputDevice = InputDevices.GetDeviceAtXRNode(m_ControllerNode);
-                    m_InputDeviceControllerNode = m_ControllerNode;
-                }
-                return m_InputDevice;
-            }
-        }
+        public InputDevice inputDevice => default;
 
         /// <inheritdoc />
         protected override void Awake()
         {
-            base.Awake();
-#if !XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
-            if (m_PoseProvider != null)
-            {
-                Debug.LogWarning("Pose Provider requires the XR Legacy Input Helpers (com.unity.xr.legacyinputhelpers) package to be installed to use.", this);
-            }
-#endif
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
 
         /// <inheritdoc />
         protected override void UpdateTrackingInput(XRControllerState controllerState)
         {
-            base.UpdateTrackingInput(controllerState);
-            if (controllerState == null)
-                return;
-
-            controllerState.isTracked = inputDevice.TryGetFeatureValue(CommonUsages.isTracked, out var isTracked) && isTracked;
-            controllerState.inputTrackingState = InputTrackingState.None;
-#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
-            if (m_PoseProvider != null)
-            {
-                var retFlags = m_PoseProvider.GetPoseFromProvider(out var poseProviderPose);
-                if ((retFlags & PoseDataFlags.Position) != 0)
-                {
-                    controllerState.position = poseProviderPose.position;
-                    controllerState.inputTrackingState |= InputTrackingState.Position;
-                }
-                if ((retFlags & PoseDataFlags.Rotation) != 0)
-                {
-                    controllerState.rotation = poseProviderPose.rotation;
-                    controllerState.inputTrackingState |= InputTrackingState.Rotation;
-                }
-            }
-            else
-#endif
-            {
-                if (inputDevice.TryGetFeatureValue(CommonUsages.trackingState, out var trackingState))
-                {
-                    controllerState.inputTrackingState = trackingState;
-
-                    if ((trackingState & InputTrackingState.Position) != 0 &&
-                        inputDevice.TryGetFeatureValue(CommonUsages.devicePosition, out var devicePosition))
-                    {
-                        controllerState.position = devicePosition;
-                    }
-
-                    if ((trackingState & InputTrackingState.Rotation) != 0 &&
-                        inputDevice.TryGetFeatureValue(CommonUsages.deviceRotation, out var deviceRotation))
-                    {
-                        controllerState.rotation = deviceRotation;
-                    }
-                }
-            }
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
 
         /// <inheritdoc />
         protected override void UpdateInput(XRControllerState controllerState)
         {
-            base.UpdateInput(controllerState);
-            if (controllerState == null)
-                return;
-
-            controllerState.ResetFrameDependentStates();
-            controllerState.selectInteractionState.SetFrameState(IsPressed(m_SelectUsage), ReadValue(m_SelectUsage));
-            controllerState.activateInteractionState.SetFrameState(IsPressed(m_ActivateUsage), ReadValue(m_ActivateUsage));
-            controllerState.uiPressInteractionState.SetFrameState(IsPressed(m_UIPressUsage), ReadValue(m_UIPressUsage));
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
 
         /// <summary>
@@ -259,8 +158,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns <see langword="true"/> when the button is considered pressed. Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool IsPressed(InputHelpers.Button button)
         {
-            inputDevice.IsPressed(button, out var pressed, m_AxisToPressThreshold);
-            return pressed;
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
 
         /// <summary>
@@ -270,19 +168,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the button value.</returns>
         protected virtual float ReadValue(InputHelpers.Button button)
         {
-            inputDevice.TryReadSingleValue(button, out var value);
-            return value;
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
 
         /// <inheritdoc />
         public override bool SendHapticImpulse(float amplitude, float duration)
         {
-            if (inputDevice.TryGetHapticCapabilities(out var capabilities) &&
-                capabilities.supportsImpulse)
-            {
-                return inputDevice.SendHapticImpulse(0u, amplitude, duration);
-            }
-            return false;
+            throw new NotSupportedException(k_XRControllerDeprecated);
         }
     }
 }

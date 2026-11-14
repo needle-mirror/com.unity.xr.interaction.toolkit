@@ -1,4 +1,5 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
+using System;
 using System.Collections.Generic;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
@@ -20,7 +21,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
     /// <seealso cref="XRRayInteractor"/>
     [AddComponentMenu("XR/Transformers/AR Transformer", 11)]
     [HelpURL(XRHelpURLConstants.k_ARTransformer)]
-    public class ARTransformer : XRBaseGrabTransformer, IXRDropTransformer
+    public partial class ARTransformer : XRBaseGrabTransformer, IXRDropTransformer
     {
         /// <summary>
         /// Threshold to compare lerp amount outside 0 or 1 where the lerp is short-circuited to the normalized target value.
@@ -79,29 +80,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
         /// <summary>
         /// Enabling this will filter interactable manipulation down to only planes that match any of the allowed plane classifications.
         /// </summary>
-        /// <seealso cref="planeClassificationsList"/>
         /// <seealso cref="planeClassifications"/>
         public bool enablePlaneClassificationFilter
         {
             get => m_EnablePlaneClassificationFilter;
             set => m_EnablePlaneClassificationFilter = value;
         }
-
-#pragma warning disable 618
-        [SerializeField]
-        List<PlaneClassification> m_PlaneClassificationsList;
-
-        /// <summary>
-        /// The classifications a plane needs to match one of to allow interactable manipulation with.
-        /// Only used if <see cref="enablePlaneClassificationFilter"/> is enabled.
-        /// </summary>
-        /// <seealso cref="enablePlaneClassificationFilter"/>
-        public List<PlaneClassification> planeClassificationsList
-        {
-            get => m_PlaneClassificationsList;
-            set => m_PlaneClassificationsList = value;
-        }
-#pragma warning restore 618
 
 #if AR_FOUNDATION_6_0_OR_NEWER || PACKAGE_DOCS_GENERATION
         [SerializeField]
@@ -252,11 +236,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
             base.Start();
 
 #if AR_FOUNDATION_6_0_OR_NEWER
+#pragma warning disable 618 // Migrate the deprecated plane classifications list
             if (m_PlaneClassificationsList.Count > 0)
             {
                 Debug.LogWarning("Migrating plane classifications from list to PlaneClassifications enum.", this);
                 MigratePlaneClassifications();
             }
+#pragma warning restore 618
 #endif
         }
 
@@ -367,11 +353,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
             return (m_PlaneClassifications & plane.classifications) != 0;
 #else
+#pragma warning disable 618 // Use the deprecated plane classifications list before AR Foundation 6.0
             for (int i = 0; i < m_PlaneClassificationsList.Count; ++i)
             {
                 if (plane.classification == m_PlaneClassificationsList[i])
                     return true;
             }
+#pragma warning restore 618
 
             return false;
 #endif
@@ -667,23 +655,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 enabled = false;
             }
         }
-
-#if AR_FOUNDATION_6_0_OR_NEWER
-        internal void MigratePlaneClassifications()
-        {
-#pragma warning disable 618
-            if (m_PlaneClassificationsList.Count > 0)
-            {
-                foreach (var classification in m_PlaneClassificationsList)
-                {
-                    m_PlaneClassifications |= classification.ConvertToPlaneClassifications();
-                }
-
-                m_PlaneClassificationsList.Clear();
-            }
-#pragma warning restore 618
-        }
-#endif
     }
 }
 #endif

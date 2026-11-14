@@ -42,9 +42,6 @@ The XR ray interactor has many properties that you can set to modify how the int
 | [Input Configuration](#input-config) | Specify input bindings for the select and activate actions. Click the triangle icon to expand the section. |
 | [Interactor Filters](#interactor-filters) | Identifies any filters this interactor uses to winnow detected interactables. You can create  filter classes to provide custom logic to limit which interactables an interactor can interact with. Filtering occurs after the interactor has performed a raycast to detect eligible interactables.|
 | [Interactor Events](#interactor-events) | The events dispatched by this interactor. You can add event handlers in other components in the scene or prefab and they are invoked when the event occurs. |
-| (Deprecated) [Audio Events](xref:xri-simple-audio-feedback)  | Assign an audio clip to play when an interactor event occurs. Replaced by the [Simple Audio Feedback](xref:xri-simple-audio-feedback) component, which provides more control over how a clip is played.|
-| (Deprecated) [Haptic Events](xref:xri-simple-haptic-feedback) | Assign a haptic impulse to play when an interactor event occurs. Replaced by the [Simple Haptic Feedback](xref:xri-simple-haptic-feedback) component, which provides more options for defining a haptic impulse.|
-| (Deprecated) [XR Controller Configuration](#legacy-configuration) | Provides compatibility with the deprecated action- or device-based [XR Controller](https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@2.6/manual/xr-controller-action-based.html) components. The properties in this section are intended to aid migration of scenes created with version 2.6 or earlier versions of the toolkit. |
 
 ## UI Interaction properties {#ui-interaction}
 
@@ -77,18 +74,6 @@ The XR ray interactor has many properties that you can set to modify how the int
 ## Interactor Events {#interactor-events}
 
 [!INCLUDE [interactor-events](snippets/interactor-events.md)]
-
-## Audio Events (deprecated)
-
-[!INCLUDE [interactor-audio-events](snippets/interactor-audio-events.md)]
-
-## Haptic Events (deprecated)
-
-[!INCLUDE [interactor-haptic-events](snippets/interactor-haptic-events.md)]
-
-## XR Controller Configuration (deprecated) {#legacy-configuration}
-
-[!INCLUDE [interactor-controller-config](snippets/interactor-controller-config.md)]
 
 ## Supporting XR Interactable Snap Volume {#support-snap-volume}
 

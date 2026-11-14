@@ -15,17 +15,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     [Serializable]
     public class SimulatedHandExpression : ISerializationCallbackReceiver
     {
-#if XR_HANDS_1_8_OR_NEWER
         /// <summary>
         /// The sequence type of the capture sequence. A single-frame sequence type denotes a hand expression with a
         /// singular frame while a multi-frame type is a hand expression spanning multiple frames.
         /// </summary>
+#if XR_HANDS_1_8_OR_NEWER || PACKAGE_DOCS_GENERATION
         /// <seealso cref="SimulatedHandExpression.captureSequence"/>
-#else
-        /// <summary>
-        /// The sequence type of the capture sequence. A single-frame sequence type denotes a hand expression with a
-        /// singular frame while a multi-frame type is a hand expression spanning multiple frames.
-        /// </summary>
 #endif
         public enum SequenceType
         {
@@ -63,7 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_ToggleInput = value;
         }
 
-#if XR_HANDS_1_8_OR_NEWER
+#if XR_HANDS_1_8_OR_NEWER || PACKAGE_DOCS_GENERATION
         [SerializeField]
         [Tooltip("The captured sequence of poses and common gesture data that represent the hand expression" +
         "to be simulated when toggled by an input action.")]
@@ -97,7 +92,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_SequenceType = value;
         }
 
-#if XR_HANDS_1_8_OR_NEWER
+#if XR_HANDS_1_8_OR_NEWER || PACKAGE_DOCS_GENERATION
         [SerializeField]
         [Tooltip("The singular frame to be played in the case of a single-frame sequence type.")]
         int m_SingleFrameIndex;
@@ -181,25 +176,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 #endif
 
-#pragma warning disable CS0618
-#if XR_HANDS_1_8_OR_NEWER
-        [HideInInspector]
-#endif
-        [SerializeField]
-        [Tooltip("The captured hand expression to simulate when the input action is performed.")]
-        HandExpressionCapture m_Capture;
-#pragma warning restore CS0618
-
-        /// <summary>
-        /// The captured expression to simulate when the input action is performed.
-        /// </summary>
-        [Obsolete("HandExpressionCapture has been marked for deprecation and will be functionally replaced by XRHandCaptureSequence in the XR Hands package.")]
-        internal HandExpressionCapture capture
-        {
-            get => m_Capture;
-            set => m_Capture = value;
-        }
-
         [SerializeField]
         [Tooltip("Whether or not this expression appears in the quick action list in the simulator.")]
         bool m_IsQuickAction;
@@ -226,9 +202,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         }
 
         /// <summary>
-        /// Sprite icon for the simulated hand expression.
+        /// (Deprecated) Sprite icon for the simulated hand expression.
         /// </summary>
-        public Sprite icon => m_Capture.icon;
+        /// <remarks>
+        /// <c>icon</c> has been deprecated. The icon was sourced from the deprecated <see cref="HandExpressionCapture"/>, which is no longer supported.
+        /// </remarks>
+        [Obsolete("icon has been deprecated. The icon was sourced from the deprecated HandExpressionCapture, which is no longer supported.", true)]
+        public Sprite icon => default;
 
         /// <inheritdoc/>
         void ISerializationCallbackReceiver.OnBeforeSerialize()

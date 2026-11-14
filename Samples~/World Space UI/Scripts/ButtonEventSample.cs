@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 namespace UnityEngine.XR.Interaction.Toolkit.Samples.WorldSpaceUI
 {
     /// <summary>
-    /// Sample class that demonstrates how to bind to a UI Toolkit button click event.
+    /// Sample class that demonstrates how to bind to a UI Toolkit button click event
+    /// on a <c>UIDocument</c> or <c>PanelRenderer</c> panel.
     /// </summary>
     public class ButtonEventSample : MonoBehaviour
     {
@@ -22,79 +23,73 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.WorldSpaceUI
             set => m_OnButtonClicked = value;
         }
 
-        const string k_LabelName = "DebugLabel";
-        const string k_EventButtonName = "EventButton";
 #if UIELEMENTS_MODULE_AVAILABLE
         UIDocument m_UIDocument;
+        bool m_HasUIDocument;
+#if UNITY_6000_5_OR_NEWER
+        PanelRenderer m_PanelRenderer;
+#endif
+        VisualElement m_Root;
         Button m_Button;
         Label m_Label;
-        VisualElement m_Root;
-#endif
 
-        private void OnEnable()
+        void Awake()
         {
-#if UIELEMENTS_MODULE_AVAILABLE
-            m_UIDocument = GetComponent<UIDocument>();
-            BindElements();
+            m_HasUIDocument = TryGetComponent(out m_UIDocument);
+#if UNITY_6000_5_OR_NEWER
+            m_PanelRenderer = GetComponent<PanelRenderer>();
 #endif
         }
 
-        private void OnDisable()
+        void OnEnable()
         {
-#if UIELEMENTS_MODULE_AVAILABLE
-            UnbindElements();
+#if UNITY_6000_5_OR_NEWER
+            // A PanelRenderer calls back now if its UI is loaded, and again every time its UI reloads.
+            if (m_PanelRenderer != null)
+                m_PanelRenderer.RegisterUIReloadCallback(OnUIReload);
 #endif
         }
 
-#if UIELEMENTS_MODULE_AVAILABLE
-        private void Update()
+        void OnDisable()
         {
-            // When the UIDocument component is disabled and re-enabled independently of
-            // this GameObject, the visual tree is recreated but OnEnable does not fire on
-            // this script. Detect the change by checking if rootVisualElement has changed.
-            if (m_UIDocument != null && m_UIDocument.enabled &&
-                m_UIDocument.rootVisualElement != null && m_UIDocument.rootVisualElement != m_Root)
-                BindElements();
+#if UNITY_6000_5_OR_NEWER
+            if (m_PanelRenderer != null)
+                m_PanelRenderer.UnregisterUIReloadCallback(OnUIReload);
+#endif
+
+            Bind(null);
         }
 
-        void BindElements()
+        void Update()
         {
-            UnbindElements();
-
-            if (m_UIDocument == null)
-                return;
-
-            m_Root = m_UIDocument.rootVisualElement;
-            if (m_Root == null)
-                return;
-
-            m_Button = m_Root.Q<Button>(k_EventButtonName);
-            m_Label = m_Root.Q<Label>(k_LabelName);
-
-            if (m_Button != null)
-                m_Button.clicked += HandleButtonClicked;
+            // A UIDocument has no callback, and recreates its UI when re-enabled, so bind whenever its root changes.
+            if (m_HasUIDocument && m_UIDocument != null && m_UIDocument.rootVisualElement != m_Root)
+                Bind(m_UIDocument.rootVisualElement);
         }
 
-        void UnbindElements()
+#if UNITY_6000_5_OR_NEWER
+        void OnUIReload(PanelRenderer panelRenderer, VisualElement root, int version) => Bind(root);
+#endif
+
+        void Bind(VisualElement root)
         {
             if (m_Button != null)
-                m_Button.clicked -= HandleButtonClicked;
+                m_Button.clicked -= OnButtonClicked;
 
-            m_Button = null;
-            m_Label = null;
-            m_Root = null;
+            m_Root = root;
+            m_Button = root?.Q<Button>("EventButton");
+            m_Label = root?.Q<Label>("DebugLabel");
+
+            if (m_Button != null)
+                m_Button.clicked += OnButtonClicked;
         }
-#endif
 
-        private void HandleButtonClicked()
+        void OnButtonClicked()
         {
-            if (m_OnButtonClicked != null)
-                m_OnButtonClicked.Invoke();
-
-#if UIELEMENTS_MODULE_AVAILABLE
+            m_OnButtonClicked.Invoke();
             if (m_Label != null)
                 m_Label.text = "Button clicked at: " + Time.time;
-#endif
         }
+#endif
     }
 }

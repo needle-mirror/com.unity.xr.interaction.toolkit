@@ -1,7 +1,6 @@
 using System;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-using UnityEngine.XR.Interaction.Toolkit.Inputs;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -14,67 +13,43 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// <seealso cref="ActionBasedSnapTurnProvider"/>
     [AddComponentMenu("XR/Locomotion/Legacy/Continuous Turn Provider (Action-based)", 11)]
     [HelpURL(XRHelpURLConstants.k_ActionBasedContinuousTurnProvider)]
-    [Obsolete("ActionBasedContinuousTurnProvider has been deprecated in version 3.0.0. Use ContinuousTurnProvider instead.")]
+    [Obsolete(k_ActionBasedContinuousTurnProviderDeprecated, true)]
     public class ActionBasedContinuousTurnProvider : ContinuousTurnProviderBase
     {
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Turn data from the left hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_LeftHandTurnAction = new InputActionProperty(new InputAction("Left Hand Turn", expectedControlType: "Vector2"));
+        const string k_ActionBasedContinuousTurnProviderDeprecated = "ActionBasedContinuousTurnProvider has been deprecated in version 3.0.0. Use ContinuousTurnProvider instead.";
+
         /// <summary>
         /// The Input System Action that Unity uses to read Turn data from the left hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty leftHandTurnAction
         {
-            get => m_LeftHandTurnAction;
-            set => SetInputActionProperty(ref m_LeftHandTurnAction, value);
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("The Input System Action that will be used to read Turn data from the right hand controller. Must be a Value Vector2 Control.")]
-        InputActionProperty m_RightHandTurnAction = new InputActionProperty(new InputAction("Right Hand Turn", expectedControlType: "Vector2"));
         /// <summary>
         /// The Input System Action that Unity uses to read Turn data from the right hand controller. Must be a <see cref="InputActionType.Value"/> <see cref="Vector2Control"/> Control.
         /// </summary>
         public InputActionProperty rightHandTurnAction
         {
-            get => m_RightHandTurnAction;
-            set => SetInputActionProperty(ref m_RightHandTurnAction, value);
+            get => default;
+            set => _ = value;
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-            m_LeftHandTurnAction.EnableDirectAction();
-            m_RightHandTurnAction.EnableDirectAction();
         }
 
         /// <inheritdoc />
         protected override void OnDisable()
         {
-            base.OnDisable();
-            m_LeftHandTurnAction.DisableDirectAction();
-            m_RightHandTurnAction.DisableDirectAction();
         }
 
         /// <inheritdoc />
         protected override Vector2 ReadInput()
         {
-            var leftHandValue = m_LeftHandTurnAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-            var rightHandValue = m_RightHandTurnAction.action?.ReadValue<Vector2>() ?? Vector2.zero;
-
-            return leftHandValue + rightHandValue;
-        }
-
-        void SetInputActionProperty(ref InputActionProperty property, InputActionProperty value)
-        {
-            if (Application.isPlaying)
-                property.DisableDirectAction();
-
-            property = value;
-
-            if (Application.isPlaying && isActiveAndEnabled)
-                property.EnableDirectAction();
+            throw new NotSupportedException(k_ActionBasedContinuousTurnProviderDeprecated);
         }
     }
 }

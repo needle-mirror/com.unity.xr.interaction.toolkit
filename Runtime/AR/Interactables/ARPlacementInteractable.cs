@@ -22,7 +22,6 @@
 // Modifications copyright © 2020 Unity Technologies ApS
 
 using System;
-using Unity.XR.CoreUtils;
 #if UNITY_6000_5_OR_NEWER
 using Unity.Scripting.LifecycleManagement;
 #endif
@@ -35,16 +34,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// <see cref="UnityEvent"/> that responds to changes of hover and selection by this interactor.
     /// </summary>
-    [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.")]
+    [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.", true)]
     public class ARPlacementInteractable { }
 }
 
 #else
 
-using System.Collections.Generic;
 using UnityEngine.Events;
-using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.ARSubsystems;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -52,17 +48,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <see cref="UnityEvent"/> that is invoked when the user places an object.
     /// </summary>
     [Serializable]
-    [Obsolete("ARObjectPlacementEvent is deprecated since the ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger.")]
+    [Obsolete(k_ARObjectPlacementEventDeprecated, true)]
     public class ARObjectPlacementEvent : UnityEvent<ARObjectPlacementEventArgs>
     {
+        const string k_ARObjectPlacementEventDeprecated = "ARObjectPlacementEvent is deprecated since the ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger.";
     }
 
     /// <summary>
     /// Event data associated with the event when the user places an object.
     /// </summary>
-    [Obsolete("ARObjectPlacementEventArgs is deprecated since the ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger.")]
+    [Obsolete(k_ARObjectPlacementEventArgsDeprecated, true)]
     public class ARObjectPlacementEventArgs
     {
+        const string k_ARObjectPlacementEventArgsDeprecated = "ARObjectPlacementEventArgs is deprecated since the ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger.";
+
         /// <summary>
         /// The Interactable that placed the object.
         /// </summary>
@@ -78,9 +77,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// (Deprecated) <see cref="UnityEvent"/> that is invoked when an object is placed.
     /// Use <see cref="ARObjectPlacementEvent" /> instead.
     /// </summary>
-    [Serializable, Obsolete("ARObjectPlacedEvent has been deprecated. Use ARObjectPlacementEvent instead.")]
+    [Serializable, Obsolete(k_ARObjectPlacedEventDeprecated, true)]
     public class ARObjectPlacedEvent : UnityEvent<ARPlacementInteractable, GameObject>
     {
+        const string k_ARObjectPlacedEventDeprecated = "ARObjectPlacedEvent has been deprecated. Use ARObjectPlacementEvent instead.";
     }
 
     /// <summary>
@@ -91,25 +91,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 #endif
     [AddComponentMenu("XR/AR/Deprecated/AR Placement Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARPlacementInteractable)]
-    [Obsolete("ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.")]
+    [Obsolete(k_ARPlacementInteractableDeprecated, true)]
     public class ARPlacementInteractable : ARBaseGestureInteractable
     {
-        [SerializeField]
-        [Tooltip("A GameObject to place when a ray cast from a user touch hits a plane.")]
-        GameObject m_PlacementPrefab;
+        const string k_ARPlacementInteractableDeprecated = "ARPlacementInteractable has been replaced by the ObjectSpawner and the ARInteractorSpawnTrigger. These can be found in the general and AR XRI Starter Assets.";
 
         /// <summary>
         /// A <see cref="GameObject"/> to place when a ray cast from a user touch hits a plane.
         /// </summary>
         public GameObject placementPrefab
         {
-            get => m_PlacementPrefab;
-            set => m_PlacementPrefab = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        [Tooltip("The LayerMask that Unity uses during an additional ray cast when a user touch does not hit any AR trackable planes.")]
-        LayerMask m_FallbackLayerMask;
 
         /// <summary>
         /// The <see cref="LayerMask"/> that Unity uses during an additional ray cast
@@ -117,25 +111,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </summary>
         public LayerMask fallbackLayerMask
         {
-            get => m_FallbackLayerMask;
-            set => m_FallbackLayerMask = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField]
-        ARObjectPlacementEvent m_ObjectPlaced = new ARObjectPlacementEvent();
 
         /// <summary>
         /// Gets or sets the event that is called when this Interactable places a new <see cref="GameObject"/> in the world.
         /// </summary>
         public ARObjectPlacementEvent objectPlaced
         {
-            get => m_ObjectPlaced;
-            set => m_ObjectPlaced = value;
+            get => default;
+            set => _ = value;
         }
-
-#pragma warning disable 618
-        [SerializeField]
-        ARObjectPlacedEvent m_OnObjectPlaced = new ARObjectPlacedEvent();
 
         /// <summary>
         /// Gets or sets the event that is called when this Interactable places a new <see cref="GameObject"/> in the world.
@@ -143,17 +130,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <remarks>
         /// <c>onObjectPlaced</c> has been deprecated. Use <see cref="objectPlaced"/> with updated signature instead.
         /// </remarks>
-        [Obsolete("onObjectPlaced has been deprecated. Use objectPlaced with updated signature instead.")]
+        [Obsolete("onObjectPlaced has been deprecated. Use objectPlaced with updated signature instead.", true)]
         public ARObjectPlacedEvent onObjectPlaced
         {
-            get => m_OnObjectPlaced;
-            set => m_OnObjectPlaced = value;
+            get => default;
+            set => _ = value;
         }
-#pragma warning restore 618
-
-        readonly ARObjectPlacementEventArgs m_ObjectPlacementEventArgs = new ARObjectPlacementEventArgs();
-
-        static readonly List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
         /// <summary>
         /// Gets the pose for the object to be placed from a ray cast hit triggered by a <see cref="TapGesture"/>.
@@ -164,32 +146,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// Otherwise, returns <see langword="false"/>.</returns>
         protected virtual bool TryGetPlacementPose(TapGesture gesture, out Pose pose)
         {
-            // Raycast against the location the player touched to search for planes.
-            var hit = xrOrigin != null
-                ? GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, xrOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask)
-#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
-                : arSessionOrigin != null && GestureTransformationUtility.Raycast(gesture.startPosition, s_Hits, arSessionOrigin, TrackableType.PlaneWithinPolygon, m_FallbackLayerMask);
-#pragma warning restore 618
-            if (hit)
-            {
-                pose = s_Hits[0].pose;
-
-                // Use hit pose and camera pose to check if hit test is from the
-                // back of the plane, if it is, no need to create the anchor.
-                // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-                var camera = xrOrigin != null
-                    ? xrOrigin.Camera
-#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
-                    : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
-#pragma warning restore 618
-                if (camera == null)
-                    return false;
-
-                return Vector3.Dot(camera.transform.position - pose.position, pose.rotation * Vector3.up) >= 0f;
-            }
-
-            pose = default;
-            return false;
+            throw new NotSupportedException(k_ARPlacementInteractableDeprecated);
         }
 
         /// <summary>
@@ -200,23 +157,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <seealso cref="placementPrefab"/>
         protected virtual GameObject PlaceObject(Pose pose)
         {
-            var placementObject = Instantiate(m_PlacementPrefab, pose.position, pose.rotation);
-
-            // Create anchor to track reference point and set it as the parent of placementObject.
-            var anchor = new GameObject("PlacementAnchor").transform;
-            anchor.SetWorldPose(pose);
-            placementObject.transform.parent = anchor;
-
-            // Use Trackables object in scene to use as parent
-            var trackablesParent = xrOrigin != null
-                ? xrOrigin.TrackablesParent
-#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
-                : (arSessionOrigin != null ? arSessionOrigin.trackablesParent : null);
-#pragma warning restore 618
-            if (trackablesParent != null)
-                anchor.parent = trackablesParent;
-
-            return placementObject;
+            throw new NotSupportedException(k_ARPlacementInteractableDeprecated);
         }
 
         /// <summary>
@@ -225,37 +166,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <param name="args">Event data containing a reference to the instantiated placement object.</param>
         protected virtual void OnObjectPlaced(ARObjectPlacementEventArgs args)
         {
-            m_ObjectPlaced?.Invoke(args);
-            m_OnObjectPlaced?.Invoke(args.placementInteractable, args.placementObject);
+            throw new NotSupportedException(k_ARPlacementInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(TapGesture gesture)
         {
-            return gesture.targetObject == null;
+            throw new NotSupportedException(k_ARPlacementInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnEndManipulation(TapGesture gesture)
         {
-            base.OnEndManipulation(gesture);
-
-            if (gesture.isCanceled)
-                return;
-
-#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
-            if (xrOrigin == null && arSessionOrigin == null)
-                return;
-#pragma warning restore 618
-
-            if (TryGetPlacementPose(gesture, out var pose))
-            {
-                var placementObject = PlaceObject(pose);
-
-                m_ObjectPlacementEventArgs.placementInteractable = this;
-                m_ObjectPlacementEventArgs.placementObject = placementObject;
-                OnObjectPlaced(m_ObjectPlacementEventArgs);
-            }
+            throw new NotSupportedException(k_ARPlacementInteractableDeprecated);
         }
     }
 }

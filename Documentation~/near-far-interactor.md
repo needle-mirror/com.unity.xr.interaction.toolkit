@@ -89,6 +89,7 @@ Check the **Enable Far Casting** option to configure the interactor to interact 
 | **Block UI On Interactable Selection**    | Blocks UI interaction when an interactable is selected. Default is `true`.|
 | **UI Press Input**                        | Defines the input used for pressing UI elements, functioning like a mouse button when pointing over UI. Implemented as an `XRInputButtonReader`.|
 | **UI Scroll Input**                       | Defines the input used for scrolling UI elements, functioning like a mouse scroll wheel when pointing over UI. Implemented as an `XRInputValueReader<Vector2>`.|
+| **UI Scroll Momentum**                    | Whether each UI scroll glides to a stop instead of jumping. Use with a Press Scroll Input. Default is `false`. Refer to [Scroll UI with XR input](xref:xri-ui-scrolling).|
 
 ## Selection Configuration {#selection-config}
 

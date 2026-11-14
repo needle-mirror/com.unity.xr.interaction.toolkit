@@ -1,4 +1,4 @@
-#if XR_HANDS_1_8_OR_NEWER
+#if XR_HANDS_1_8_OR_NEWER || PACKAGE_DOCS_GENERATION
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 

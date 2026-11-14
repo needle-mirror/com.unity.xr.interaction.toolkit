@@ -1,4 +1,3 @@
-using UnityEngine.Assertions;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -88,20 +87,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
-        protected void Start()
-        {
-            if (m_GravityProvider != null)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
-                if (!m_UseGravity)
-                    MigrateUseGravityToGravityProvider();
-#pragma warning restore CS0618
-            }
-        }
-
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
         protected void Update()
         {
             m_IsMovingXROrigin = false;
@@ -112,21 +97,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             var translationInWorldSpace = ComputeDesiredMove(out var attemptingMove);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            switch (m_GravityApplicationMode)
-            {
-                case GravityApplicationMode.Immediately:
-                    MoveRig(translationInWorldSpace);
-                    break;
-                case GravityApplicationMode.AttemptingMove:
-                    if (attemptingMove || m_GravityDrivenVelocity != Vector3.zero)
-                        MoveRig(translationInWorldSpace);
-                    break;
-                default:
-                    Assert.IsTrue(false, $"{nameof(m_GravityApplicationMode)}={m_GravityApplicationMode} outside expected range.");
-                    break;
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
+            if (attemptingMove)
+                MoveRig(translationInWorldSpace);
 
             if (!m_IsMovingXROrigin)
                 TryEndLocomotion();
@@ -141,10 +113,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
         /// <summary>
         /// Creates a locomotion event to move the rig by <paramref name="translationInWorldSpace"/>,
-        /// and optionally restricts movement along each axis and applies gravity.
+        /// and optionally restricts movement along each axis.
         /// </summary>
         /// <param name="translationInWorldSpace">The translation amount in world space to move the rig
-        /// (before restricting movement along each axis and applying gravity).</param>
+        /// (before restricting movement along each axis).</param>
         protected virtual void MoveRig(Vector3 translationInWorldSpace)
         {
             FindCharacterController();
@@ -156,29 +128,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
                 motion.y = 0f;
             if (!m_EnableFreeZMovement)
                 motion.z = 0f;
-
-            // Step vertical velocity from gravity, but only if gravity is not being controlled by Gravity Provider
-            if (m_GravityProvider == null && m_CharacterController != null && m_CharacterController.enabled)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (!m_UseGravity || m_CharacterController.isGrounded)
-                {
-                    m_GravityDrivenVelocity = Vector3.zero;
-                }
-                else
-                {
-                    m_GravityDrivenVelocity += Physics.gravity * Time.deltaTime;
-                    if (m_EnableFreeXMovement)
-                        m_GravityDrivenVelocity.x = 0f;
-                    if (m_EnableFreeYMovement)
-                        m_GravityDrivenVelocity.y = 0f;
-                    if (m_EnableFreeZMovement)
-                        m_GravityDrivenVelocity.z = 0f;
-                }
-
-                motion += m_GravityDrivenVelocity * Time.deltaTime;
-#pragma warning restore CS0618 // Type or member is obsolete
-            }
 
             TryStartLocomotionImmediately();
             if (locomotionState != LocomotionState.Moving)

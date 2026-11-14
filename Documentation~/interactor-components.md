@@ -15,7 +15,6 @@ The interactor components provided by the toolkit.
 | [XR Ray Interactor](xr-ray-interactor.md)                              | Interacts with interactables at a distance when the user points at them. |
 | [XR Gaze Interactor](xr-gaze-interactor.md) | Interacts with gaze-enabled interactables via eye tracking. (Can fallback to use head tracking for devices that don't support eye tracking.)|
 | [XR Socket Interactor](xr-socket-interactor.md)                        | A specialized interactor that only interacts with interactables close to it. |
-| [AR Gesture Interactor](ar-gesture-interactor.md)                      | (Deprecated) Interacts with `ARGestureInteractable` objects through mobile device touchscreen gesture input.|
 
 Helper components that modify interactor visuals or behavior.
 

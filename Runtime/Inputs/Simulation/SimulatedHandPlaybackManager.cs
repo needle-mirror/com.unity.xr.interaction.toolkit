@@ -27,7 +27,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         internal struct HandPlaybackData
         {
-#if XR_HANDS_1_8_OR_NEWER
+#if XR_HANDS_1_8_OR_NEWER || PACKAGE_DOCS_GENERATION
             /// <summary>
             /// The handedness of the playback.
             /// </summary>
@@ -249,7 +249,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                         }
                         else
                         {
-                            //Iterating through the inbetween key frames.
+                            //Iterating through the in between key frames.
                             playbackData.nextStoppingFrameKey = handExpression.inBetweenKeyFrameIndexList[playbackData.inBetweenPlaybackIndex];
                             playbackData.inBetweenPlaybackIndex++;
                         }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -16,6 +15,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
     [TestFixture]
     class ImageTests
     {
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
+
         // Texture optimization constraints
         const int k_MaxTextureResolution = 4096;
         const float k_MaxTextureFileSizeMB = 2f;
@@ -245,20 +246,26 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             {
                 bool isUI = textureInfo.Path.Contains(k_UIImageIdentifier);
                 bool isMaskOrAlpha = textureInfo.Path.Contains(k_MaskIdentifier) || textureInfo.Path.Contains(k_AlphaIdentifier);
+                bool isCursor = textureInfo.Importer.textureType == TextureImporterType.Cursor;
 
                 if (isUI && textureInfo.Importer.mipmapEnabled)
                 {
                     issues.Add($"{textureInfo.DisplayName}: UI texture has unnecessary mipmaps enabled");
                 }
 
-                if (textureInfo.Importer.textureCompression == TextureImporterCompression.Uncompressed && !isMaskOrAlpha)
+                if (!isCursor && textureInfo.Importer.textureCompression == TextureImporterCompression.Uncompressed && !isMaskOrAlpha)
                 {
                     issues.Add($"{textureInfo.DisplayName}: uses uncompressed format (consider compression)");
                 }
 
-                if (textureInfo.Importer.isReadable)
+                if (!isCursor && textureInfo.Importer.isReadable)
                 {
                     issues.Add($"{textureInfo.DisplayName}: has Read/Write enabled (doubles memory usage)");
+                }
+
+                if (isCursor && !textureInfo.Importer.isReadable)
+                {
+                    issues.Add($"{textureInfo.DisplayName}: is a cursor and must have Read/Write enabled to work properly");
                 }
             }
 
@@ -338,7 +345,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             var searchPaths = new List<string>();
 
             // Find package source path
-            var packageInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly());
+            // Look up by name rather than FindForAssembly, which returns null for package assemblies
+            // compiled by the MSBuild compilation pipeline on editors without UUM-152905.
+            var packageInfo = PackageManager.PackageInfo.FindForPackageName(k_PackageName);
             if (packageInfo != null)
             {
                 string packagePath = $"Packages/{packageInfo.name}";
@@ -393,7 +402,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             var result = new List<TextureInfo>();
 
             // Get the physical path to the package on disk
-            var packageInfo = PackageManager.PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly());
+            // Look up by name rather than FindForAssembly, which returns null for package assemblies
+            // compiled by the MSBuild compilation pipeline on editors without UUM-152905.
+            var packageInfo = PackageManager.PackageInfo.FindForPackageName(k_PackageName);
             if (packageInfo == null || string.IsNullOrEmpty(packageInfo.resolvedPath))
             {
                 Debug.LogWarning($"Could not resolve package path for {k_SamplesFolderName} search");

@@ -26,7 +26,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// (Deprecated) Use <see cref="ScaleOverTime"/> instead.
         /// </summary>
-        [Obsolete("Input has been renamed in version 3.0.0. Use ScaleOverTime instead. (UnityUpgradable) -> ScaleOverTime")]
+        [Obsolete("Input has been renamed in version 3.0.0. Use ScaleOverTime instead. (UnityUpgradable) -> ScaleOverTime", true)]
         Input = ScaleOverTime,
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <summary>
         /// (Deprecated) Use <see cref="DistanceDelta"/> instead.
         /// </summary>
-        [Obsolete("Distance has been renamed in version 3.0.0. Use DistanceDelta instead. (UnityUpgradable) -> DistanceDelta")]
+        [Obsolete("Distance has been renamed in version 3.0.0. Use DistanceDelta instead. (UnityUpgradable) -> DistanceDelta", true)]
         Distance = DistanceDelta,
     }
 

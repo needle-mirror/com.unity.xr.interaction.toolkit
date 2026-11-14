@@ -130,7 +130,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
         bool m_IsMovingXROrigin;
 
-        Vector3 m_GravityDrivenVelocity;
         Vector3 m_InAirVelocity;
 
         /// <inheritdoc />
@@ -152,7 +151,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             m_LeftHandMoveInput.EnableDirectActionIfModeUsed();
             m_RightHandMoveInput.EnableDirectActionIfModeUsed();
 
-            m_GravityDrivenVelocity = Vector3.zero;
             m_InAirVelocity = Vector3.zero;
         }
 
@@ -162,20 +160,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             base.OnDisable();
             m_LeftHandMoveInput.DisableDirectActionIfModeUsed();
             m_RightHandMoveInput.DisableDirectActionIfModeUsed();
-        }
-
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void Start()
-        {
-            if (m_GravityProvider != null)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete -- Assist with migration when this component wants gravity disabled
-                if (!m_UseGravity)
-                    MigrateUseGravityToGravityProvider();
-#pragma warning restore CS0618
-            }
         }
 
         /// <inheritdoc />
@@ -215,7 +199,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
             var input = ReadInput();
             var translationInWorldSpace = ComputeDesiredMove(input);
 
-            if (input != Vector2.zero || m_GravityDrivenVelocity != Vector3.zero || m_InAirVelocity != Vector3.zero)
+            if (input != Vector2.zero || m_InAirVelocity != Vector3.zero)
                 MoveRig(translationInWorldSpace);
 
             if (!m_IsMovingXROrigin)
@@ -320,19 +304,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
 
             var motion = translationInWorldSpace;
 
-            // Step vertical velocity from gravity, but only if gravity is not being controlled by Gravity Provider
-            if (m_GravityProvider == null && m_CharacterController != null && m_CharacterController.enabled)
-            {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (m_CharacterController.isGrounded || !m_UseGravity || m_EnableFly)
-                    m_GravityDrivenVelocity = Vector3.zero;
-                else
-                    m_GravityDrivenVelocity += Physics.gravity * Time.deltaTime;
-
-                motion += m_GravityDrivenVelocity * Time.deltaTime;
-#pragma warning restore CS0618 // Type or member is obsolete
-            }
-
             TryStartLocomotionImmediately();
             if (locomotionState != LocomotionState.Moving)
                 return;
@@ -360,7 +331,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement
                 m_AttemptedGetCharacterController = true;
             }
         }
-
 
         /// <inheritdoc/>
         public bool TryLockGravity(GravityOverride gravityOverride)

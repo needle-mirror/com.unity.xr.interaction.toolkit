@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
@@ -92,30 +91,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation
             /// Teleportation occurs on deactivate.
             /// </summary>
             OnDeactivated,
-
-            /// <summary>
-            /// (Deprecated) OnSelectExit has been deprecated. Use OnSelectExited instead.
-            /// </summary>
-            [Obsolete("OnSelectExit has been deprecated. Use OnSelectExited instead. (UnityUpgradable) -> OnSelectExited", true)]
-            OnSelectExit = OnSelectExited,
-
-            /// <summary>
-            /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
-            /// </summary>
-            [Obsolete("OnSelectEnter has been deprecated. Use OnSelectEntered instead. (UnityUpgradable) -> OnSelectEntered", true)]
-            OnSelectEnter = OnSelectEntered,
-
-            /// <summary>
-            /// (Deprecated) OnSelectEnter has been deprecated. Use OnSelectEntered instead.
-            /// </summary>
-            [Obsolete("OnActivate has been deprecated. Use OnActivated instead. (UnityUpgradable) -> OnActivated", true)]
-            OnActivate = OnActivated,
-
-            /// <summary>
-            /// (Deprecated) OnDeactivate has been deprecated. Use OnDeactivated instead.
-            /// </summary>
-            [Obsolete("OnDeactivate has been deprecated. Use OnDeactivated instead. (UnityUpgradable) -> OnDeactivated", true)]
-            OnDeactivate = OnDeactivated,
         }
 
         const float k_DefaultNormalToleranceDegrees = 30f;

@@ -32,7 +32,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// </summary>
     static partial class XRHelpURLConstants
     {
-        const string k_CurrentDocsVersion = "3.7";
+        const string k_CurrentDocsVersion = "7.0";
         const string k_BaseApi = "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@" + k_CurrentDocsVersion + "/api/";
         const string k_HtmlFileSuffix = ".html";
 
@@ -251,6 +251,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const string k_XRInputModalityManager = k_BaseApi + k_BaseNamespace + k_InputsNamespace + nameof(XRInputModalityManager) + k_HtmlFileSuffix;
 
         /// <summary>
+        /// Scripting API URL for <see cref="PressScrollInput"/>.
+        /// </summary>
+        public const string k_PressScrollInput = k_BaseApi + k_BaseNamespace + k_InputsNamespace + nameof(PressScrollInput) + k_HtmlFileSuffix;
+
+        /// <summary>
         /// Scripting API URL for <see cref="XRTransformStabilizer"/>.
         /// </summary>
         public const string k_XRTransformStabilizer = k_BaseApi + k_BaseNamespace + k_InputsNamespace + nameof(XRTransformStabilizer) + k_HtmlFileSuffix;
@@ -299,6 +304,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// Scripting API URL for <see cref="SnapTurnProvider"/>.
         /// </summary>
         public const string k_SnapTurnProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_TurningNamespace + nameof(SnapTurnProvider) + k_HtmlFileSuffix;
+
+        /// <summary>
+        /// Scripting API URL for <see cref="StepMoveProvider"/>.
+        /// </summary>
+        public const string k_StepMoveProvider = k_BaseApi + k_BaseNamespace + k_LocomotionNamespace + k_MovementNamespace + nameof(StepMoveProvider) + k_HtmlFileSuffix;
 
         /// <summary>
         /// Scripting API URL for <see cref="UnderCameraBodyPositionEvaluator"/>.

@@ -276,7 +276,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizeTransform(in float3 startPos, in quaternion startRot, in float3 targetPos, in quaternion targetRot, float deltaTime, float positionStabilization, float angleStabilization, out float3 resultPos, out quaternion resultRot)
+        internal static void StabilizeTransform(in float3 startPos, in quaternion startRot, in float3 targetPos, in quaternion targetRot, float deltaTime, float positionStabilization, float angleStabilization, out float3 resultPos, out quaternion resultRot)
         {
             // Calculate the stabilized position
             if (positionStabilization > 0f)
@@ -307,7 +307,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizePosition(in float3 startPos, in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
+        internal static void StabilizePosition(in float3 startPos, in float3 targetPos, float deltaTime, float positionStabilization, out float3 resultPos)
         {
             if (positionStabilization > 0f)
             {
@@ -327,7 +327,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void StabilizeOptimalRotation(in quaternion startRot, in quaternion targetRot, in quaternion alternateStartRot, float deltaTime, float angleStabilization, float alternateStabilization, float scaleFactor, out quaternion resultRot)
+        internal static void StabilizeOptimalRotation(in quaternion startRot, in quaternion targetRot, in quaternion alternateStartRot, float deltaTime, float angleStabilization, float alternateStabilization, float scaleFactor, out quaternion resultRot)
         {
             if (angleStabilization > 0f)
             {
@@ -367,7 +367,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static float CalculateStabilizedLerp(float distance, float timeSlice)
+        internal static float CalculateStabilizedLerp(float distance, float timeSlice)
         {
             // The original angle stabilization code just used distance directly
             // This feels great in VR but is frame-dependent on experiences running at 90 fps
@@ -417,7 +417,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void CalculateRotationParams(in float3 currentPosition, in float3 resultPosition, in float3 forward, in float3 up, in float3 rayEnd, float invScale, float angleStabilization,
+        internal static void CalculateRotationParams(in float3 currentPosition, in float3 resultPosition, in float3 forward, in float3 up, in float3 rayEnd, float invScale, float angleStabilization,
             out quaternion antiRotation, out float scaleFactor, out float targetAngleScale)
         {
             var rayLength = math.length(rayEnd - currentPosition);

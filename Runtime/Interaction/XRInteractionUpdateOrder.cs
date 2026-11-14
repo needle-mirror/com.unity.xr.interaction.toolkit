@@ -28,6 +28,11 @@ namespace UnityEngine.XR.Interaction.Toolkit
         public const int k_XRInputDeviceButtonReader = -31000;
 
         /// <summary>
+        /// Order when instances of type <see cref="PressScrollInput"/> are updated.
+        /// </summary>
+        public const int k_PressScrollInput = -31000;
+
+        /// <summary>
         /// Order when instances of type <see cref="ScreenSpaceRayPoseDriver"/> are updated.
         /// </summary>
         public const int k_ScreenSpaceRayPoseDriver = -31000;

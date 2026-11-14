@@ -23,8 +23,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
         protected SerializedProperty m_EnableFreeYMovement;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ConstrainedMoveProvider.enableFreeZMovement"/>.</summary>
         protected SerializedProperty m_EnableFreeZMovement;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ConstrainedMoveProvider.useGravity"/>.</summary>
-        protected SerializedProperty m_UseGravity;
 
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="GrabMoveProvider.controllerTransform"/>.</summary>
         protected SerializedProperty m_ControllerTransform;
@@ -34,12 +32,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
         protected SerializedProperty m_MoveFactor;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="GrabMoveProvider.grabMoveInput"/>.</summary>
         protected SerializedProperty m_GrabMoveInput;
-
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="GrabMoveProvider.grabMoveAction"/>.</summary>
-        protected SerializedProperty m_GrabMoveAction;
-
-        SerializedProperty m_SingletonActionBindings;
-        SerializedProperty m_Reference;
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -57,8 +49,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
             public static readonly GUIContent enableFreeYMovement = EditorGUIUtility.TrTextContent("Enable Free Y Movement", "Controls whether to enable unconstrained movement along the y-axis.");
             /// <summary><see cref="GUIContent"/> for <see cref="ConstrainedMoveProvider.enableFreeZMovement"/>.</summary>
             public static readonly GUIContent enableFreeZMovement = EditorGUIUtility.TrTextContent("Enable Free Z Movement", "Controls whether to enable unconstrained movement along the z-axis.");
-            /// <summary><see cref="GUIContent"/> for <see cref="ConstrainedMoveProvider.useGravity"/>.</summary>
-            public static readonly GUIContent useGravity = EditorGUIUtility.TrTextContent("Use Gravity", "Controls whether gravity applies to constrained axes when a Character Controller is used. Ignored when a Gravity Provider component is found in the scene.");
 
             /// <summary><see cref="GUIContent"/> for <see cref="GrabMoveProvider.controllerTransform"/>.</summary>
             public static readonly GUIContent controllerTransform = EditorGUIUtility.TrTextContent("Controller Transform", "The controller Transform that will drive grab movement with its local position. Will use this GameObject's Transform if not set.");
@@ -68,12 +58,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
             public static readonly GUIContent moveFactor = EditorGUIUtility.TrTextContent("Move Factor", "The ratio of actual movement distance to controller movement distance.");
             /// <summary><see cref="GUIContent"/> for <see cref="GrabMoveProvider.grabMoveInput"/>.</summary>
             public static readonly GUIContent grabMoveInput = EditorGUIUtility.TrTextContent("Grab Move Input", "Input data that will be used to perform grab movement while held.");
-
-            /// <summary><see cref="GUIContent"/> for <see cref="GrabMoveProvider.grabMoveAction"/>.</summary>
-            public static readonly GUIContent grabMoveAction = EditorGUIUtility.TrTextContent("Grab Move Action", "(Deprecated) The Input System Action that will be used to perform grab movement while held. Must be a Button Control.");
-
-            /// <summary>The help box message when deprecated input action property is being used.</summary>
-            public static readonly GUIContent deprecatedInputInUse = EditorGUIUtility.TrTextContent("Deprecated input property is being used. This property will be removed in a future version. Please convert this to use the newer Grab Move Input.");
         }
 
         /// <summary>
@@ -87,19 +71,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
             m_EnableFreeXMovement = serializedObject.FindProperty("m_EnableFreeXMovement");
             m_EnableFreeYMovement = serializedObject.FindProperty("m_EnableFreeYMovement");
             m_EnableFreeZMovement = serializedObject.FindProperty("m_EnableFreeZMovement");
-            m_UseGravity = serializedObject.FindProperty("m_UseGravity");
-#pragma warning disable CS0618 // Type or member is obsolete
-            m_GravityApplicationMode = serializedObject.FindProperty("m_GravityApplicationMode");
-#pragma warning restore CS0618 // Type or member is obsolete
 
             m_ControllerTransform = serializedObject.FindProperty("m_ControllerTransform");
             m_EnableMoveWhileSelecting = serializedObject.FindProperty("m_EnableMoveWhileSelecting");
             m_MoveFactor = serializedObject.FindProperty("m_MoveFactor");
             m_GrabMoveInput = serializedObject.FindProperty("m_GrabMoveInput");
-
-            m_GrabMoveAction = serializedObject.FindProperty("m_GrabMoveAction");
-            m_SingletonActionBindings = m_GrabMoveAction.FindPropertyRelative("m_Action.m_SingletonActionBindings");
-            m_Reference = m_GrabMoveAction.FindPropertyRelative("m_Reference");
         }
 
         /// <inheritdoc />
@@ -138,30 +114,11 @@ namespace UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement
             EditorGUILayout.PropertyField(m_EnableFreeXMovement, Contents.enableFreeXMovement);
             EditorGUILayout.PropertyField(m_EnableFreeYMovement, Contents.enableFreeYMovement);
             EditorGUILayout.PropertyField(m_EnableFreeZMovement, Contents.enableFreeZMovement);
-            EditorGUILayout.PropertyField(m_UseGravity, Contents.useGravity);
-#pragma warning disable CS0618 // Type or member is obsolete
-            EditorGUILayout.PropertyField(m_GravityApplicationMode, Contents.gravityMode);
-#pragma warning restore CS0618 // Type or member is obsolete
 
             EditorGUILayout.PropertyField(m_ControllerTransform, Contents.controllerTransform);
             EditorGUILayout.PropertyField(m_EnableMoveWhileSelecting, Contents.enableMoveWhileSelecting);
             EditorGUILayout.PropertyField(m_MoveFactor, Contents.moveFactor);
             EditorGUILayout.PropertyField(m_GrabMoveInput, Contents.grabMoveInput);
-
-            if (IsDeprecatedInputInUse())
-            {
-                EditorGUILayout.PropertyField(m_GrabMoveAction, Contents.grabMoveAction);
-                EditorGUILayout.HelpBox(Contents.deprecatedInputInUse.text, MessageType.Warning);
-            }
-        }
-
-        /// <summary>
-        /// Returns whether the deprecated input action property is in use.
-        /// </summary>
-        /// <returns>Returns <see langword="true"/> if the deprecated input action property is in use and needs to be migrated.</returns>
-        protected virtual bool IsDeprecatedInputInUse()
-        {
-            return m_Reference.objectReferenceValue != null || m_SingletonActionBindings.arraySize > 0;
         }
     }
 }

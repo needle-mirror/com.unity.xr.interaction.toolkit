@@ -31,7 +31,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Controls the selection of an object via a Tap gesture.
     /// </summary>
-    [Obsolete("ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.")]
+    [Obsolete("ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.", true)]
     public class ARSelectionInteractable { }
 }
 
@@ -44,68 +44,48 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     [AddComponentMenu("XR/AR/Deprecated/AR Selection Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARSelectionInteractable)]
-    [Obsolete("ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.")]
+    [Obsolete(k_ARSelectionInteractableDeprecated, true)]
     public class ARSelectionInteractable : ARBaseGestureInteractable
     {
-        /// <inheritdoc />
-        /// <remarks>
-        /// <c>IsSelectableBy(XRBaseInteractor)</c> has been deprecated. Use <see cref="IsSelectableBy(IXRSelectInteractor)"/> instead.
-        /// </remarks>
-        [Obsolete("IsSelectableBy(XRBaseInteractor) has been deprecated. Use IsSelectableBy(IXRSelectInteractor) instead.", true)]
-        public override bool IsSelectableBy(XRBaseInteractor interactor) => default;
+        const string k_ARSelectionInteractableDeprecated = "ARSelectionInteractable has been deprecated. To achieve the same results use the interactable's focus state instead.";
 
-        [SerializeField, Tooltip("The visualization GameObject that will become active when the object is selected.")]
-        GameObject m_SelectionVisualization;
         /// <summary>
         /// The visualization <see cref="GameObject"/> that will become active when the object is selected.
         /// </summary>
         public GameObject selectionVisualization
         {
-            get => m_SelectionVisualization;
-            set => m_SelectionVisualization = value;
+            get => default;
+            set => _ = value;
         }
 
-        bool m_GestureSelected;
+        /// <inheritdoc />
+        public override bool IsSelectableBy(IXRSelectInteractor interactor)
+        {
+            throw new NotSupportedException(k_ARSelectionInteractableDeprecated);
+        }
 
         /// <inheritdoc />
-        public override bool IsSelectableBy(IXRSelectInteractor interactor) => interactor is ARGestureInteractor && m_GestureSelected;
-
-        /// <inheritdoc />
-        protected override bool CanStartManipulationForGesture(TapGesture gesture) => true;
+        protected override bool CanStartManipulationForGesture(TapGesture gesture)
+        {
+            throw new NotSupportedException(k_ARSelectionInteractableDeprecated);
+        }
 
         /// <inheritdoc />
         protected override void OnEndManipulation(TapGesture gesture)
         {
-            base.OnEndManipulation(gesture);
-
-            if (gesture.isCanceled)
-                return;
-            if (gestureInteractor == null)
-                return;
-
-            if (gesture.targetObject == gameObject)
-            {
-                // Toggle selection
-                m_GestureSelected = !m_GestureSelected;
-            }
-            else
-                m_GestureSelected = false;
+            throw new NotSupportedException(k_ARSelectionInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnSelectEntering(SelectEnterEventArgs args)
         {
-            base.OnSelectEntering(args);
-            if (m_SelectionVisualization != null)
-                m_SelectionVisualization.SetActive(true);
+            throw new NotSupportedException(k_ARSelectionInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override void OnSelectExiting(SelectExitEventArgs args)
         {
-            base.OnSelectExiting(args);
-            if (m_SelectionVisualization != null)
-                m_SelectionVisualization.SetActive(false);
+            throw new NotSupportedException(k_ARSelectionInteractableDeprecated);
         }
     }
 }

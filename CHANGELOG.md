@@ -10,6 +10,78 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- Headers should be listed in this order: Added, Changed, Deprecated, Removed, Fixed, Security -->
 
+## [7.0.0-pre.1] - 2026-11-14
+
+### Added
+
+- Added gaze aim to the Hands Interaction Demo sample, so users can target objects and UI by looking at them and pinching to select. The `GazePinchRayDriver` component aims the far ray of a Near-Far Interactor with gaze, and the `ToggleGazeAim` component on the `XR Origin Hands (XR Rig)` prefab switches between gaze aim and hand aim, off by default.
+- Added eye tracking permission requests for Meta Quest and Android XR to the Permissions Manager in `HandsDemoScene`, disabled by default.
+- Added `eyeTrackingDeviceFound`, `IsGazeTracked`, and `eyeTrackingDeviceFoundChanged` to `GazeInputManager` in the Starter Assets sample.
+- Added `StepMoveProvider`, a locomotion provider that moves the XR Origin in fixed distance steps.
+- Added a Microgesture Teleport Mode section to the `TeleportHandGesture` script in the Hands Interaction Demo sample. On the right hand, a microgesture thumb tap enters teleport mode and a second tap teleports. While in this mode, swiping left or right snap turns and swiping forward or backward steps. Configured the `XR Origin Hands (XR Rig)` prefab to use it.
+- Added `Microgesture Teleport Mode`, `Microgesture Snap Turn`, and `Microgesture Step` input actions to the `XRI Right Locomotion` action map in the `XRI Default Input Actions` asset in the Starter Assets sample.
+- Added `PressScrollInput` component that takes a single press, such as a hand tracking microgesture swipe or a button press, and converts it into one UI scroll of a fixed distance in the pressed direction.
+- Added **UI Scroll Momentum** (`NearFarInteractor.uiScrollMomentum` and `XRRayInteractor.uiScrollMomentum`), which makes UI scroll input continue on the scroll view it was aimed at and slow to a stop at that scroll view's deceleration rate. Off by default.
+- Added a `Microgesture Scroll` action to the `XRI Left Interaction` and `XRI Right Interaction` action maps in the `XRI Default Input Actions` asset in the Starter Assets sample.
+- Added microgesture UI scrolling to the `XR Origin Hands (XR Rig)` prefab in the Hands Interaction Demo sample.
+- Added `PanelRenderer` support for world-space UI Toolkit panels when using poke, ray, and near-far interaction.
+- Added `panelComponent` property to `UIHoverEventArgs` for identifying the panel host (`UIDocument` or `PanelRenderer`) during hover events.
+
+### Changed
+
+- Changed the package version from 3.7.1 to 7.0.0-pre.1 to align the package major version with Unity 7.
+- Changed the minimum Unity version from 6000.0 to 7000.0.
+- Changed the minimum uGUI version from 2.0.0 to 7.0.0.
+- Changed recommended version of [XR Hands package](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) (com.unity.xr.hands) to 7.0.0-pre.1 or newer to support Meta Hand Tracking Aim driving aim pose input controls in `<XRHandDevice>`.
+- Changed the input actions in the `XRI Default Input Actions` asset in the Starter Assets sample to remove bindings to `<MetaAimHand>` in Hand Aim Position, Hand Aim Rotation, and Hand Aim Tracking State actions since the remaining `<XRHandDevice>` bindings are now sufficient as of com.unity.xr.hands version 7.0.0-pre.1.
+- Changed interactors to always read input from their input reader properties (such as `selectInput` and `activateInput`). Input is no longer read from an obsolete XR Controller component, and the obsolete audio and haptic event settings on interactors are no longer migrated to `SimpleAudioFeedback` and `SimpleHapticFeedback` components at runtime.
+- Changed `ContinuousMoveProvider`, `GrabMoveProvider`, and `TwoHandedGrabMoveProvider` to no longer apply gravity themselves when no `GravityProvider` is in the scene. Add a `GravityProvider` component to apply gravity during locomotion. Refer to [Gravity Provider](xref:gravity-provider).
+- Changed locomotion providers to require a `LocomotionMediator`. The obsolete `LocomotionSystem` is no longer located as a fallback.
+- Changed the AR gesture recognizers to only create gestures from Input System Enhanced Touch input. Input Manager touch input is no longer supported.
+- Changed the XR Interaction Simulator to no longer look for an obsolete `SimulatedHandExpressionManager` in the scene.
+- Changed `GazeInputManager` in the Starter Assets sample to also detect eye tracking devices that disconnect.
+- Changed the sample descriptions in the Package Manager to link the XR Hands package wherever a sample needs one of its samples, and to fix a typo and stray spaces.
+- Changed the `ButtonEventSample` script in the World Space UI sample to support `PanelRenderer` panels in addition to `UIDocument`.
+- All samples have been updated to only support the Universal Render Pipeline and have been reserialized for Unity 7000.0.
+
+### Deprecated
+
+- Deprecated `UIHoverEventArgs.uiDocument`. Use `UIHoverEventArgs.panelComponent` instead, which is set for both `UIDocument` and `PanelRenderer` panels.
+- Deprecated the following APIs because the `PlaneClassification` enum they use is now obsolete in AR Foundation. Use [`ARTransformer.planeClassifications`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.planeClassifications) instead. Existing values in the deprecated list still migrate to `planeClassifications` automatically at runtime, or with the **Migrate to Plane Classifications** button in the Inspector.
+  - [`ARTransformer.planeClassificationsList`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.planeClassificationsList)
+  - `ARTransformerEditor.m_PlaneClassificationsList`
+  - `ARTransformerEditor.Contents.planeClassificationsList`
+  - `ARTransformerEditor.Contents.planeClassificationWarning`
+- The following APIs, which were previously deprecated with a warning, will now cause compiler errors when referenced:
+  - [`GestureRecognizer.arSessionOrigin`](xref:UnityEngine.XR.Interaction.Toolkit.AR.GestureRecognizer`1.arSessionOrigin)
+
+### Removed
+
+- Removed the implementations of all obsolete APIs that previously reported a compiler warning. These APIs now report a compiler error instead. Where an obsolete API is still used, for example from a precompiled assembly, properties return default values and methods throw a `NotSupportedException`. The Affordance System and its related APIs, such as the tweenable variables, are unchanged. The affected APIs include the following components and their associated editors:
+  - XR Controller (Action-based), XR Controller (Device-based), `XRBaseController`, XR Screen Space Controller, and `XRBaseControllerInteractor`.
+  - Locomotion System, Character Controller Driver, and the Action-based and Device-based Continuous Move, Continuous Turn, and Snap Turn Providers.
+  - AR Gesture Interactor and the AR Placement, Selection, Translation, Scale, Rotation, and Annotation Interactables, along with `ARBaseGestureInteractable` and `GestureTransformationUtility`.
+  - XR Device Simulator, `XRDeviceSimulatorLoader`, `SimulatedHandExpressionManager`, `HandExpressionCapture`, and `HandExpressionDataExtractor`.
+  - `InputHelpers`.
+  - `SimulatedHandExpression.icon`, which was sourced from the obsolete `HandExpressionCapture`.
+
+  Refer to [What's new in version 7.0](xref:xri-whats-new-7-0).
+- Removed the **Audio Events**, **Haptic Events**, and **XR Controller Configuration** sections from the interactor Inspectors. Use the [Simple Audio Feedback](xref:xri-simple-audio-feedback) and [Simple Haptic Feedback](xref:xri-simple-haptic-feedback) components instead.
+- Removed the **Use Gravity** and **Gravity Application Mode** settings from `ContinuousMoveProvider`, `GrabMoveProvider`, and `TwoHandedGrabMoveProvider`. Use a `GravityProvider` component instead.
+- Removed obsolete APIs that previously reported a compiler error, including `XRRig`, `XRLegacyGrabTransformer`, `XRInteractableEvent`, `XRInteractorEvent`, and the members that used `XRBaseInteractor` and `XRBaseInteractable` in place of the interaction interfaces.
+- Removed the XR Device Simulator sample. Use the XR Interaction Simulator sample instead.
+- Removed the **Use Classic XR Device Simulator** setting from the XR Interaction Simulator project settings.
+- Removed the legacy hand expression capture assets from the XR Interaction Simulator sample.
+- Removed the `MaterialPipelineHandler` script, its `MaterialPipelineHandler` assets, and the `BiRP_Fresnel` shader from the samples, since the samples no longer support the Built-in Render Pipeline.
+
+### Fixed
+
+- Fixed two-handed scaling not working on [`XRGeneralGrabTransformer`](xref:UnityEngine.XR.Interaction.Toolkit.Transformers.XRGeneralGrabTransformer) when **Two Handed Rotation Mode** is set to **First Hand Only**. The handle bar between interactors is now correctly computed for scaling even when rotation uses only the first hand. ([UUM-139788](https://issuetracker.unity.com/issues/26016/gameobject-scale-does-not-change-when-manipulated-with-two-xr-controllers-while-two-handed-rotation-mode-is-set-to-first-hand-only-in-xr-general-grab-transformer-component))
+- Fixed XR Interaction Simulator not being able to interact with screen space UI when point and click mode is active. The simulator now filters pointer input to screen space canvases only instead of disabling mouse and touch input entirely on the `XRUIInputModule`. ([UUM-151367](https://issuetracker.unity.com/issues/24518/cannot-select-buttons-using-simulator-in-ar-mobile-template))
+- Fixed `UAC2017` compiler warnings in newer versions of the Unity Editor caused by `[BurstCompile]` static methods being private. These methods are now `internal` so Burst can generate direct calls for them.
+- Fixed warnings related to using two materials on the built-in Plane mesh which only supports a single material. This occurred in both the Hands Interaction Demo sample scene and the XR Mouse Interaction Demo sample scene. ([UUM-150741](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-150741))
+- Fixed `MetaSystemGestureDetector` in the Hands Interaction Demo sample to filter the aim flags to keep the behavior between runtimes, such as Android XR and Meta, more consistent. The Menu Pressed action no longer triggers when pre-pinching before turning your palm around to face you, and it no longer triggers on the dominant hand used to open the launcher/universal menu. The System Gesture Started and Ended events now trigger consistently and correctly when using accessibility or input gesture navigation settings to swap the palm pinch gesture between left and right hands.
+
 ## [3.7.0] - 2026-10-16
 
 ### Added
@@ -1216,7 +1288,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added new Affordance System. This introduces the XRI Affordance state provider, which connects to an XR Interactable to determine new affordance states, which then power Affordance Receivers to animate tweens using Affordance Theme scriptable Objects. This can be used for audio, ui, material and other kinds of animation tweens, reactive to interaction state changes, all powered by the Job System.
-- Added an option to **Edit** &gt; **Project Settings** &gt; **XR Interaction Toolkit** to automatically instantiate the prefab in the [XR Device Simulator](xref:xri-xr-device-simulator-overview) sample.
+- Added an option to **Edit** &gt; **Project Settings** &gt; **XR Interaction Toolkit** to automatically instantiate the prefab in the XR Device Simulator sample.
 - Added XR Interaction Group component, which allows only one member Interactor or Group within the Group to be interacting at a time.
 - Added the option **Disable Visuals When Blocked In Group** to XR Base Interactor, which controls whether to disable the Interactor's visuals when the Interactor is part of an Interaction Group and is unable to interact due to active interaction by another Interactor in the Group. This option is enabled by default.
 - Added an XR Interaction Group to each hand in the `XR Origin Preconfigured` prefab in the `Starter Assets` sample. Each Group prioritizes Direct interaction over Ray interaction.

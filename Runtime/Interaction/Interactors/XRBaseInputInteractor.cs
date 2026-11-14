@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.XR.Interaction.Toolkit.Feedback;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -359,9 +358,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         readonly LogicalInputState m_LogicalSelectState = new LogicalInputState();
         readonly LogicalInputState m_LogicalActivateState = new LogicalInputState();
 
-        SimpleAudioFeedback m_AudioFeedback;
-        SimpleHapticFeedback m_HapticFeedback;
-
         AudioSource m_AudioSource;
         HapticImpulsePlayer m_HapticImpulsePlayer;
 
@@ -374,37 +370,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             buttonReaders.Add(m_SelectInput);
             buttonReaders.Add(m_ActivateInput);
-
-#pragma warning disable CS0618 // Type or member is obsolete -- Find reference for backwards compatibility
-            xrController = gameObject.GetComponentInParent<XRBaseController>(true);
-
-            if (m_HideControllerOnSelect && m_Controller == null)
-                Debug.LogWarning("Hide Controller On Select is deprecated and being used by this interactor. It is only functional if a deprecated XR Controller component is added to this GameObject or a parent GameObject. Use the Select Entered and Select Exited events to hide the controller instead.", this);
-#pragma warning restore CS0618
-
-            // Migrate deprecated Audio Events
-            if (m_PlayAudioClipOnSelectEntered && m_AudioClipForOnSelectEntered != null ||
-                m_PlayAudioClipOnSelectExited && m_AudioClipForOnSelectExited != null ||
-                m_PlayAudioClipOnSelectCanceled && m_AudioClipForOnSelectCanceled != null ||
-                m_PlayAudioClipOnHoverEntered && m_AudioClipForOnHoverEntered != null ||
-                m_PlayAudioClipOnHoverExited && m_AudioClipForOnHoverExited != null ||
-                m_PlayAudioClipOnHoverCanceled && m_AudioClipForOnHoverCanceled != null)
-            {
-                Debug.LogWarning($"Audio Events are deprecated and being used by this interactor. Use the {nameof(SimpleAudioFeedback)} component instead.", this);
-                GetOrCreateAndMigrateAudioFeedback();
-            }
-
-            // Migrate deprecated Haptic Events
-            if (m_PlayHapticsOnSelectEntered ||
-                m_PlayHapticsOnSelectExited ||
-                m_PlayHapticsOnSelectCanceled ||
-                m_PlayHapticsOnHoverEntered ||
-                m_PlayHapticsOnHoverExited ||
-                m_PlayHapticsOnHoverCanceled)
-            {
-                Debug.LogWarning($"Haptic Events are deprecated and being used by this interactor. Use the {nameof(SimpleHapticFeedback)} component instead.", this);
-                GetOrCreateAndMigrateHapticFeedback();
-            }
         }
 
         /// <inheritdoc />
@@ -413,9 +378,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnEnable();
             buttonReaders.ForEach(reader => reader?.EnableDirectActionIfModeUsed());
             valueReaders.ForEach(reader => reader?.EnableDirectActionIfModeUsed());
-
-            // Warn if using deprecated input path and the input readers are set up to be used since they would actually be ignored
-            WarnMixedInputConfiguration();
         }
 
         /// <inheritdoc />
@@ -433,24 +395,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
 
             if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic)
             {
-#pragma warning disable CS0618 // Type or member is obsolete -- Use deprecated input path for backwards compatibility
-                if (forceDeprecatedInput)
-                {
-                    if (m_Controller != null)
-                    {
-                        var selectInteractionState = m_Controller.selectInteractionState;
-                        m_LogicalSelectState.UpdateInput(selectInteractionState.active, selectInteractionState.activatedThisFrame, selectInteractionState.deactivatedThisFrame, hasSelection);
-
-                        var activateInteractionState = m_Controller.activateInteractionState;
-                        m_LogicalActivateState.UpdateInput(activateInteractionState.active, activateInteractionState.activatedThisFrame, activateInteractionState.deactivatedThisFrame, hasSelection);
-                    }
-                }
-#pragma warning restore CS0618
-                else
-                {
-                    m_LogicalSelectState.UpdateInput(m_SelectInput.ReadIsPerformed(), m_SelectInput.ReadWasPerformedThisFrame(), m_SelectInput.ReadWasCompletedThisFrame(), hasSelection);
-                    m_LogicalActivateState.UpdateInput(m_ActivateInput.ReadIsPerformed(), m_ActivateInput.ReadWasPerformedThisFrame(), m_ActivateInput.ReadWasCompletedThisFrame(), hasSelection);
-                }
+                m_LogicalSelectState.UpdateInput(m_SelectInput.ReadIsPerformed(), m_SelectInput.ReadWasPerformedThisFrame(), m_SelectInput.ReadWasCompletedThisFrame(), hasSelection);
+                m_LogicalActivateState.UpdateInput(m_ActivateInput.ReadIsPerformed(), m_ActivateInput.ReadWasPerformedThisFrame(), m_ActivateInput.ReadWasCompletedThisFrame(), hasSelection);
             }
         }
 
@@ -579,11 +525,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
             base.OnSelectEntering(args);
 
             m_LogicalSelectState.UpdateHasSelection(true);
-
-#pragma warning disable CS0618 // Type or member is obsolete -- Update controller for backwards compatibility
-            if (m_HideControllerOnSelect && m_Controller != null)
-                m_Controller.hideControllerModel = true;
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc />
@@ -596,11 +537,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
                 return;
 
             m_LogicalSelectState.UpdateHasSelection(false);
-
-#pragma warning disable CS0618 // Type or member is obsolete -- Update controller for backwards compatibility
-            if (m_HideControllerOnSelect && m_Controller != null)
-                m_Controller.hideControllerModel = false;
-#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -609,7 +545,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         /// <param name="amplitude">Amplitude (from 0.0 to 1.0) to play impulse at.</param>
         /// <param name="duration">Duration (in seconds) to play haptic impulse.</param>
         /// <returns>Returns <see langword="true"/> if successful. Otherwise, returns <see langword="false"/>.</returns>
-        /// <seealso cref="XRBaseController.SendHapticImpulse"/>
         public bool SendHapticImpulse(float amplitude, float duration)
         {
             if (m_HapticImpulsePlayer == null)
@@ -645,70 +580,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors
         void GetOrCreateHapticImpulsePlayer()
         {
             m_HapticImpulsePlayer = HapticImpulsePlayer.GetOrCreateInHierarchy(gameObject);
-        }
-
-        void GetOrCreateAndMigrateAudioFeedback()
-        {
-            if (m_AudioFeedback != null)
-                return;
-
-            // Do not migrate values if the component is already present
-            if (!TryGetComponent(out m_AudioFeedback))
-            {
-                m_AudioFeedback = gameObject.AddComponent<SimpleAudioFeedback>();
-                m_AudioFeedback.playSelectEntered = m_PlayAudioClipOnSelectEntered;
-                m_AudioFeedback.selectEnteredClip = m_AudioClipForOnSelectEntered;
-                m_AudioFeedback.playSelectExited = m_PlayAudioClipOnSelectExited;
-                m_AudioFeedback.selectExitedClip = m_AudioClipForOnSelectExited;
-                m_AudioFeedback.playSelectCanceled = m_PlayAudioClipOnSelectCanceled;
-                m_AudioFeedback.selectCanceledClip = m_AudioClipForOnSelectCanceled;
-                m_AudioFeedback.playHoverEntered = m_PlayAudioClipOnHoverEntered;
-                m_AudioFeedback.hoverEnteredClip = m_AudioClipForOnHoverEntered;
-                m_AudioFeedback.playHoverExited = m_PlayAudioClipOnHoverExited;
-                m_AudioFeedback.hoverExitedClip = m_AudioClipForOnHoverExited;
-                m_AudioFeedback.playHoverCanceled = m_PlayAudioClipOnHoverCanceled;
-                m_AudioFeedback.hoverCanceledClip = m_AudioClipForOnHoverCanceled;
-                m_AudioFeedback.allowHoverAudioWhileSelecting = m_AllowHoverAudioWhileSelecting;
-                m_AudioFeedback.SetInteractorSource(this);
-            }
-        }
-
-        void GetOrCreateAndMigrateHapticFeedback()
-        {
-            if (m_HapticFeedback != null)
-                return;
-
-            // Do not migrate values if the component is already present
-            if (!TryGetComponent(out m_HapticFeedback))
-            {
-                m_HapticFeedback = gameObject.AddComponent<SimpleHapticFeedback>();
-                m_HapticFeedback.playSelectEntered = m_PlayHapticsOnSelectEntered;
-                m_HapticFeedback.selectEnteredData ??= new HapticImpulseData();
-                m_HapticFeedback.selectEnteredData.amplitude = m_HapticSelectEnterIntensity;
-                m_HapticFeedback.selectEnteredData.duration = m_HapticSelectEnterDuration;
-                m_HapticFeedback.playSelectExited = m_PlayHapticsOnSelectExited;
-                m_HapticFeedback.selectExitedData ??= new HapticImpulseData();
-                m_HapticFeedback.selectExitedData.amplitude = m_HapticSelectExitIntensity;
-                m_HapticFeedback.selectExitedData.duration = m_HapticSelectExitDuration;
-                m_HapticFeedback.playSelectCanceled = m_PlayHapticsOnSelectCanceled;
-                m_HapticFeedback.selectCanceledData ??= new HapticImpulseData();
-                m_HapticFeedback.selectCanceledData.amplitude = m_HapticSelectCancelIntensity;
-                m_HapticFeedback.selectCanceledData.duration = m_HapticSelectCancelDuration;
-                m_HapticFeedback.playHoverEntered = m_PlayHapticsOnHoverEntered;
-                m_HapticFeedback.hoverEnteredData ??= new HapticImpulseData();
-                m_HapticFeedback.hoverEnteredData.amplitude = m_HapticHoverEnterIntensity;
-                m_HapticFeedback.hoverEnteredData.duration = m_HapticHoverEnterDuration;
-                m_HapticFeedback.playHoverExited = m_PlayHapticsOnHoverExited;
-                m_HapticFeedback.hoverExitedData ??= new HapticImpulseData();
-                m_HapticFeedback.hoverExitedData.amplitude = m_HapticHoverExitIntensity;
-                m_HapticFeedback.hoverExitedData.duration = m_HapticHoverExitDuration;
-                m_HapticFeedback.playHoverCanceled = m_PlayHapticsOnHoverCanceled;
-                m_HapticFeedback.hoverCanceledData ??= new HapticImpulseData();
-                m_HapticFeedback.hoverCanceledData.amplitude = m_HapticHoverCancelIntensity;
-                m_HapticFeedback.hoverCanceledData.duration = m_HapticHoverCancelDuration;
-                m_HapticFeedback.allowHoverHapticsWhileSelecting = m_AllowHoverHapticsWhileSelecting;
-                m_HapticFeedback.SetInteractorSource(this);
-            }
         }
     }
 }

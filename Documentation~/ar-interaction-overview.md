@@ -51,6 +51,9 @@ In order to have interactables like XR Grab Interactable adhere to the AR enviro
 
 ![AR Transformer component](images/ar-transformer.png)
 
+> [!NOTE]
+> The `planeClassificationsList` property of the AR Transformer is deprecated because the `PlaneClassification` enum it uses is obsolete in AR Foundation. Use the **Plane Classifications** property (`planeClassifications`) instead. If a component still has values in the deprecated list, the AR Transformer migrates them to **Plane Classifications** when it starts. You can also select **Migrate to Plane Classifications** in the Inspector to migrate them in the Editor.
+
 ## AR Starter Assets
 
 A configured scene for touchscreen AR is available in the [AR Starter Assets](samples-ar-starter-assets.md) sample which is installable through the Samples tab under the XR Interaction Toolkit package in the Package Manager window.

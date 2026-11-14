@@ -62,7 +62,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.snapVolumeInteraction"/>.</summary>
             public static readonly GUIContent snapVolumeInteraction = EditorGUIUtility.TrTextContent("Snap Volume Interaction", "Whether physics cast should include or ignore hits on trigger colliders that are snap volume colliders, even if the physics cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.uiDocumentTriggerInteraction"/>.</summary>
-            public static readonly GUIContent uiDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("UI Document Trigger Interaction", "Whether physics cast should include or ignore hits on trigger colliders that are UI Toolkit UI Document colliders, even if the physics cast is set to ignore triggers.");
+            public static readonly GUIContent uiDocumentTriggerInteraction = EditorGUIUtility.TrTextContent("UI Document Trigger Interaction", "Whether physics cast should include or ignore hits on trigger colliders that are UI Toolkit panel colliders (UIDocument or PanelRenderer), even if the physics cast is set to ignore triggers.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.requirePokeFilter"/>.</summary>
             public static readonly GUIContent requirePokeFilter = EditorGUIUtility.TrTextContent("Require Poke Filter", "Denotes whether or not valid targets will only include objects with a poke filter.");
             /// <summary><see cref="GUIContent"/> for <see cref="XRPokeInteractor.enableUIInteraction"/>.</summary>

@@ -102,6 +102,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// <seealso cref="InputSystem.EnhancedTouch.Touch"/>
     readonly struct CommonTouch
     {
+        const string k_GetTouchDeprecated = "GetTouch() is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use GetEnhancedTouch() instead.";
+
 #if !XRI_LEGACY_INPUT_DISABLED
         public float deltaTime => m_IsEnhancedTouch ? (float)(m_EnhancedTouch.time - m_EnhancedTouch.startTime) : m_Touch.deltaTime;
         public int tapCount => m_IsEnhancedTouch ? m_EnhancedTouch.tapCount : m_Touch.tapCount;
@@ -141,11 +143,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <remarks>
         /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
         /// </remarks>
-        [Obsolete("GetTouch() is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use GetEnhancedTouch() instead.")]
-        public Touch GetTouch() =>
-            !m_IsEnhancedTouch
-                ? m_Touch
-                : throw new InvalidOperationException($"Cannot convert to {typeof(Touch).FullName} since this was sourced from the Input System package.");
+        [Obsolete(k_GetTouchDeprecated, true)]
+        public Touch GetTouch()
+        {
+            throw new NotSupportedException(k_GetTouchDeprecated);
+        }
 #else
         public float deltaTime => (float)(m_EnhancedTouch.time - m_EnhancedTouch.startTime);
         public int tapCount => m_EnhancedTouch.tapCount;
@@ -321,21 +323,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// </remarks>
         /// <param name="screenPos">The screen position to perform the ray cast from.</param>
         /// <param name="sessionOrigin">The <see cref="XROrigin"/> whose Camera is used for ray casting.</param>
-        /// <param name="arSessionOrigin">The fallback <see cref="ARSessionOrigin"/> whose Camera is used for ray casting.</param>
         /// <param name="result">When this method returns, contains the <see cref="RaycastHit"/> result.</param>
         /// <param name="layerMask">The layer mask used for limiting raycast targets.</param>
         /// <param name="triggerInteraction">The type of interaction with trigger colliders via raycast.</param>
         /// <returns>Returns <see langword="true"/> if an object was hit. Otherwise, returns <see langword="false"/>.</returns>
-#pragma warning disable CS0618 // ARSessionOrigin is deprecated in 5.0, but kept to support older AR Foundation versions
-        public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, ARSessionOrigin arSessionOrigin, out RaycastHit result, LayerMask layerMask = default, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
-#pragma warning restore CS0618
+        public static bool RaycastFromCamera(Vector2 screenPos, XROrigin sessionOrigin, out RaycastHit result, LayerMask layerMask = default, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
         {
-            // The ARSessionOrigin parameter will eventually be removed. This class is internal so no need for overloaded.
-            var camera = sessionOrigin != null
-                ? sessionOrigin.Camera
-#pragma warning disable CS0618 // ARSessionOrigin will eventually be removed, but until then use the oldest access method
-                : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
-#pragma warning restore CS0618
+            var camera = sessionOrigin != null ? sessionOrigin.Camera : Camera.main;
             if (camera == null)
             {
                 result = default;

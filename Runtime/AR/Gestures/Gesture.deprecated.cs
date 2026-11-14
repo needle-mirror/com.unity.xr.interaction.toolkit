@@ -18,33 +18,16 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright © 2026 Unity Technologies
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
-
-using System;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     public abstract partial class Gesture<T> where T : Gesture<T>
     {
 #pragma warning disable IDE1006 // Naming Styles
-        /// <inheritdoc cref="isCanceled"/>
-        [Obsolete("WasCancelled has been deprecated. Use isCanceled instead.", true)]
-        public bool WasCancelled => isCanceled;
 
-        /// <inheritdoc cref="targetObject"/>
-        [Obsolete("TargetObject has been deprecated. Use targetObject instead.", true)]
-        public GameObject TargetObject
-        {
-            get => targetObject;
-            protected set => targetObject = value;
-        }
-
-        /// <inheritdoc cref="recognizer"/>
-        [Obsolete("m_Recognizer has been deprecated. Use recognizer instead.", true)]
-        // ReSharper disable once InconsistentNaming -- Deprecated
-        protected internal GestureRecognizer<T> m_Recognizer => recognizer;
 #pragma warning restore IDE1006 // Naming Styles
     }
 }

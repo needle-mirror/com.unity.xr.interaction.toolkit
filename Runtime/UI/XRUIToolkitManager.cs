@@ -1,9 +1,14 @@
-#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#if UIELEMENTS_MODULE_PRESENT
+#if UNITY_6000_2_OR_NEWER
 #define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
+#if UNITY_6000_5_OR_NEWER
+#define UITOOLKIT_PANEL_RENDERER_ENABLED
+#endif
 #if UNITY_7000_0_a8_OR_NEWER
 #define UITOOLKIT_COLLIDER_EVENTS
 #endif
-#endif
+#endif // UIELEMENTS_MODULE_PRESENT
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -32,6 +37,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
             XRUIToolkitHandler.uiToolkitSupportEnabled = true;
+            XRUIToolkitHandler.activeScrollMomentum = m_ScrollMomentum;
 
             XRInteractionManager.activeInteractionManagersChanged += OnActiveManagerChanged;
 
@@ -49,6 +55,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
             XRUIToolkitHandler.uiToolkitSupportEnabled = false;
+            if (XRUIToolkitHandler.activeScrollMomentum == m_ScrollMomentum)
+                XRUIToolkitHandler.activeScrollMomentum = null;
+
+            m_ScrollMomentum.Clear();
 
             XRInteractionManager.activeInteractionManagersChanged -= OnActiveManagerChanged;
 
@@ -57,11 +67,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 UnsubscribeFromManager(manager);
             }
 
-#if !UITOOLKIT_COLLIDER_EVENTS
             // Clear the monitored interactables only.
-            // The m_UIDocumentInteractables is kept for re-registration without TryGetComponent.
+            // The m_PanelInteractables is kept for re-registration without TryGetComponent.
             m_MonitoredInteractables.Clear();
-#endif
 #endif
         }
 
@@ -71,15 +79,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         protected void OnDestroy()
         {
 #if UITOOLKIT_COLLIDER_EVENTS
-            foreach (var interactable in m_UIDocumentInteractables)
+            foreach (var interactable in m_PanelInteractables)
             {
-                if (interactable != null && interactable.TryGetComponent<UIDocument>(out var uiDocument))
-                    uiDocument.worldSpaceColliderChanged -= OnWorldSpaceColliderChanged;
+                if (interactable != null && interactable.TryGetComponent<IPanelComponent>(out var panelComponent))
+                    UnsubscribeFromColliderEvents(panelComponent);
             }
 #endif
         }
 
 #if UITOOLKIT_WORLDSPACE_ENABLED
+        /// <summary>
+        /// The momentum scrolls of the UI Toolkit scroll views that interactors scrolled with UI scroll momentum.
+        /// </summary>
+        readonly ScrollMomentum m_ScrollMomentum = new ScrollMomentum();
+
         /// <summary>
         /// Flag to indicate the cache should be pruned so that it doesn't infinitely grow in size.
         /// Set upon certain events rather than polling for destruction every frame.
@@ -87,12 +100,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         bool m_Prune;
 
         /// <summary>
-        /// Permanent cache of confirmed UITK panels with dynamic colliders. Survives
-        /// unregister and manager disable. Only removed on interactable destroy.
+        /// Permanent cache of confirmed UITK panel interactables (<see cref="UIDocument"/> or <see cref="PanelRenderer"/>)
+        /// with dynamic colliders. Survives unregister and manager disable. Only removed on interactable destroy.
         /// </summary>
-        readonly HashSet<XRBaseInteractable> m_UIDocumentInteractables = new HashSet<XRBaseInteractable>();
+        readonly HashSet<XRBaseInteractable> m_PanelInteractables = new HashSet<XRBaseInteractable>();
 
-#if !UITOOLKIT_COLLIDER_EVENTS
         /// <summary>
         /// Currently registered UITK panels. Polled each frame for collider changes.
         /// Stays through collider create/destroy cycles. Removed on interactable unregister.
@@ -101,7 +113,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
         // Scratch list for safe removal during iteration.
         readonly List<XRBaseInteractable> m_PendingToRemove = new List<XRBaseInteractable>();
-#endif
 
         // Scratch list for getting registered interactables.
         readonly List<IXRInteractable> m_ScratchInteractables = new List<IXRInteractable>();
@@ -111,19 +122,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         protected void Update()
         {
-#if !UITOOLKIT_COLLIDER_EVENTS
             if (m_MonitoredInteractables.Count > 0)
                 ValidateMonitoredInteractables();
-#endif
 
             if (m_Prune)
             {
                 PruneDestroyedCacheEntries();
                 m_Prune = false;
             }
+
+            m_ScrollMomentum.UpdateMomentum(Time.unscaledDeltaTime);
         }
 
-#if !UITOOLKIT_COLLIDER_EVENTS
         /// <summary>
         /// Polls monitored interactables for collider changes. Cleans up destroyed
         /// interactables from both sets.
@@ -149,10 +159,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             foreach (var interactable in m_PendingToRemove)
             {
                 m_MonitoredInteractables.Remove(interactable);
-                m_UIDocumentInteractables.Remove(interactable);
+                m_PanelInteractables.Remove(interactable);
             }
         }
-#endif
 
         /// <summary>
         /// Removes destroyed interactables from the cache to prevent accumulating
@@ -160,8 +169,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         void PruneDestroyedCacheEntries()
         {
-            if (m_UIDocumentInteractables.Count > 0)
-                m_UIDocumentInteractables.RemoveWhere(i => i == null);
+            if (m_PanelInteractables.Count > 0)
+                m_PanelInteractables.RemoveWhere(i => i == null);
         }
 
         void OnActiveManagerChanged(XRInteractionManager manager, ComponentLifecyclePhase phase)
@@ -179,18 +188,18 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             manager.interactableRegistered += OnInteractableRegistered;
             manager.interactableUnregistered += OnInteractableUnregistered;
 
-            // Scan all registered interactables. Cached panels are re-added to monitoring
+            // Scan all registered interactables. Cached panels that should be monitored are re-added to monitoring
             // since the monitored set was cleared on disable or by interactable unregistration.
             manager.GetRegisteredInteractables(m_ScratchInteractables);
             foreach (var interactable in m_ScratchInteractables)
             {
                 if (interactable is XRBaseInteractable baseInteractable)
                 {
-                    if (m_UIDocumentInteractables.Contains(baseInteractable))
+                    if (m_PanelInteractables.Contains(baseInteractable))
                     {
-#if !UITOOLKIT_COLLIDER_EVENTS
-                        m_MonitoredInteractables.Add(baseInteractable);
-#endif
+                        if (ShouldMonitor(baseInteractable))
+                            m_MonitoredInteractables.Add(baseInteractable);
+
                         TryRegisterCollider(baseInteractable);
                     }
                     else
@@ -214,11 +223,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             if (args.interactableObject is XRBaseInteractable interactable)
             {
                 // Fast path: already confirmed as a UITK panel from a previous registration.
-                if (m_UIDocumentInteractables.Contains(interactable))
+                if (m_PanelInteractables.Contains(interactable))
                 {
-#if !UITOOLKIT_COLLIDER_EVENTS
-                    m_MonitoredInteractables.Add(interactable);
-#endif
+                    if (ShouldMonitor(interactable))
+                        m_MonitoredInteractables.Add(interactable);
+
                     TryRegisterCollider(interactable);
                     return;
                 }
@@ -239,27 +248,34 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// </summary>
         void OnInteractableUnregistered(InteractableUnregisteredEventArgs args)
         {
-#if !UITOOLKIT_COLLIDER_EVENTS
             if (args.interactableObject is XRBaseInteractable interactable)
                 m_MonitoredInteractables.Remove(interactable);
-#endif
         }
 
         /// <summary>
-        /// Checks if an interactable has a UIDocument with dynamic collider creation.
-        /// If confirmed, adds to the permanent cache and active monitoring set.
+        /// Checks if an interactable has a panel component (<see cref="UIDocument"/> or <see cref="PanelRenderer"/>)
+        /// with dynamic collider creation. If confirmed, adds to the permanent cache and active monitoring set.
         /// </summary>
         void RegisterInteractableForMonitoring(XRBaseInteractable interactable)
         {
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            if (!interactable.TryGetComponent<IPanelComponent>(out var panelComponent))
+                return;
+
+            if (panelComponent.panelSettings != null && panelComponent.panelSettings.colliderUpdateMode == ColliderUpdateMode.Keep)
+                return;
+#else
             if (!interactable.TryGetComponent<UIDocument>(out var uiDocument))
                 return;
 
             if (uiDocument.panelSettings != null && uiDocument.panelSettings.colliderUpdateMode == ColliderUpdateMode.Keep)
                 return;
+#endif
 
-            m_UIDocumentInteractables.Add(interactable);
+            m_PanelInteractables.Add(interactable);
 #if UITOOLKIT_COLLIDER_EVENTS
-            uiDocument.worldSpaceColliderChanged += OnWorldSpaceColliderChanged;
+            if (!TrySubscribeToColliderEvents(panelComponent))
+                m_MonitoredInteractables.Add(interactable);
 #else
             m_MonitoredInteractables.Add(interactable);
 #endif
@@ -270,7 +286,41 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
 #if UITOOLKIT_COLLIDER_EVENTS
         /// <summary>
-        /// Handles UIDocument collider creation and destruction events.
+        /// Whether the panel component type raises <c>worldSpaceColliderChanged</c>.
+        /// Keep in sync with the types handled by <see cref="TrySubscribeToColliderEvents"/>.
+        /// </summary>
+        static bool HasColliderEvents(IPanelComponent panelComponent) =>
+            panelComponent is UIDocument || panelComponent is PanelRenderer;
+
+        /// <summary>
+        /// Attempts to subscribe to <c>worldSpaceColliderChanged</c> on the concrete panel component type.
+        /// </summary>
+        /// <returns><see langword="true"/> if the event subscription was successful, <see langword="false"/> if the panel component type is not recognized.</returns>
+        bool TrySubscribeToColliderEvents(IPanelComponent panelComponent)
+        {
+            if (panelComponent is UIDocument uiDocument)
+                uiDocument.worldSpaceColliderChanged += OnWorldSpaceColliderChanged;
+            else if (panelComponent is PanelRenderer panelRenderer)
+                panelRenderer.worldSpaceColliderChanged += OnWorldSpaceColliderChanged;
+            else
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Unsubscribes from <c>worldSpaceColliderChanged</c> on the concrete panel component type.
+        /// </summary>
+        void UnsubscribeFromColliderEvents(IPanelComponent panelComponent)
+        {
+            if (panelComponent is UIDocument uiDocument)
+                uiDocument.worldSpaceColliderChanged -= OnWorldSpaceColliderChanged;
+            else if (panelComponent is PanelRenderer panelRenderer)
+                panelRenderer.worldSpaceColliderChanged -= OnWorldSpaceColliderChanged;
+        }
+
+        /// <summary>
+        /// Handles panel component collider creation and destruction events.
         /// </summary>
         void OnWorldSpaceColliderChanged(Collider col, bool created)
         {
@@ -309,6 +359,24 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
 
             return false;
         }
+
+        /// <summary>
+        /// Whether a cached UITK panel should be monitored (polled each frame for collider changes)
+        /// rather than relying on collider events.
+        /// </summary>
+        static bool ShouldMonitor(XRBaseInteractable interactable)
+        {
+#if UITOOLKIT_COLLIDER_EVENTS
+            return interactable.TryGetComponent<IPanelComponent>(out var panelComponent) && !HasColliderEvents(panelComponent);
+#else
+            return true;
+#endif
+        }
+
+        /// <summary>
+        /// Whether the interactable is currently polled each frame for collider changes. Used by tests.
+        /// </summary>
+        internal bool IsMonitored(XRBaseInteractable interactable) => m_MonitoredInteractables.Contains(interactable);
 #endif
     }
 }

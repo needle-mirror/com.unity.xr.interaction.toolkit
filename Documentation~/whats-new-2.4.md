@@ -27,7 +27,7 @@ Updated the [Hands Interaction Demo](samples-hands-interaction-demo.md) with new
 
 #### Hand Tracking for Device Simulator
 
-The [XR Device Simulator](xr-device-simulator-overview.md) has received another big update with the added support for simulating Hand Tracking. This comes with a number of standard, pre-defined poses that can be used to test hand-based interactions from inside the editor.
+The XR Device Simulator has received another big update with the added support for simulating Hand Tracking. This comes with a number of standard, pre-defined poses that can be used to test hand-based interactions from inside the editor.
 
 ### Climb Locomotion Provider
 

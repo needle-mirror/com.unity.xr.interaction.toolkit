@@ -21,10 +21,7 @@ using Unity.Scripting.LifecycleManagement;
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
-#endif
 
-#if XR_HANDS_1_8_OR_NEWER
-using UnityEngine.XR.Hands.Capture.Playback;
 #endif
 
 #if XR_SIMULATION_AVAILABLE
@@ -181,21 +178,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_DeviceLifecycleManager = value;
         }
 
-#pragma warning disable CS0618
-        SimulatedHandExpressionManager m_HandExpressionManager;
-#pragma warning restore CS0618
-
         /// <summary>
         /// The corresponding manager for this simulator that handles the hand expressions.
         /// </summary>
         /// <remarks>
         /// If this value is not set, the simulator will find a hand expression manager in the scene.
         /// </remarks>
-        [Obsolete("SimulatedHandExpressionManager has been marked for deprecation and will be replaced with SimulatedHandPlaybackManager in future versions.")]
+        [Obsolete("SimulatedHandExpressionManager has been marked for deprecation and will be replaced with SimulatedHandPlaybackManager in future versions.", true)]
         public SimulatedHandExpressionManager handExpressionManager
         {
-            get => m_HandExpressionManager;
-            set => m_HandExpressionManager = value;
+            get => default;
+            set => _ = value;
         }
 
         [SerializeField]
@@ -1052,61 +1045,54 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             set => m_PointAndClickHandExpression = value;
         }
 
-        TargetedDevices m_RequestedTargetedDeviceInput;
-        bool m_TargetedDeviceInputRequested;
-
         /// <summary>
         /// The currently active/targeted devices in the interaction simulator.
         /// </summary>
         /// <remarks>
         /// Values set through this property are buffered and applied at the start of the next frame.
         /// </remarks>
-        [Obsolete("targetedDeviceInput has been deprecated in XRI 3.6.0. Use currentState.targetedDeviceInput instead.")]
+        [Obsolete("targetedDeviceInput has been deprecated in XRI 3.6.0. Use currentState.targetedDeviceInput instead.", true)]
         public TargetedDevices targetedDeviceInput
         {
-            get => m_TargetedDeviceInputRequested ? m_RequestedTargetedDeviceInput : m_CurrentState.targetedDeviceInput;
-            set
-            {
-                m_RequestedTargetedDeviceInput = value;
-                m_TargetedDeviceInputRequested = true;
-            }
+            get => default;
+            set => _ = value;
         }
 
         /// <summary>
         /// The controller input mode which the controller should currently simulate.
         /// </summary>
-        [Obsolete("controllerInputMode has been deprecated in XRI 3.6.0. Use currentState.currentControllerInputMode instead.")]
-        public ControllerInputMode controllerInputMode => m_CurrentState.currentControllerInputMode;
+        [Obsolete("controllerInputMode has been deprecated in XRI 3.6.0. Use currentState.currentControllerInputMode instead.", true)]
+        public ControllerInputMode controllerInputMode => default;
 
         /// <summary>
         /// The left controller input mode which the controller should currently simulate.
         /// </summary>
-        [Obsolete("leftControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.leftControllerInputMode instead.")]
-        public ControllerInputMode leftControllerInputMode => m_CurrentState.leftControllerInputMode;
+        [Obsolete("leftControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.leftControllerInputMode instead.", true)]
+        public ControllerInputMode leftControllerInputMode => default;
 
         /// <summary>
         /// The right controller input mode which the controller should currently simulate.
         /// </summary>
-        [Obsolete("rightControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.rightControllerInputMode instead.")]
-        public ControllerInputMode rightControllerInputMode => m_CurrentState.rightControllerInputMode;
+        [Obsolete("rightControllerInputMode has been deprecated in XRI 3.6.0. Use currentState.rightControllerInputMode instead.", true)]
+        public ControllerInputMode rightControllerInputMode => default;
 
         /// <summary>
         /// The hand expression which the simulated hands should currently simulate.
         /// </summary>
-        [Obsolete("currentHandExpression has been deprecated in XRI 3.6.0. Use currentState.currentHandExpression instead.")]
-        public SimulatedHandExpression currentHandExpression => m_CurrentState.currentHandExpression;
+        [Obsolete("currentHandExpression has been deprecated in XRI 3.6.0. Use currentState.currentHandExpression instead.", true)]
+        public SimulatedHandExpression currentHandExpression => default;
 
         /// <summary>
         /// The left hand expression which the simulated hands should currently simulate.
         /// </summary>
-        [Obsolete("leftCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.leftHandExpression instead.")]
-        public SimulatedHandExpression leftCurrentHandExpression => m_CurrentState.leftHandExpression;
+        [Obsolete("leftCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.leftHandExpression instead.", true)]
+        public SimulatedHandExpression leftCurrentHandExpression => default;
 
         /// <summary>
         /// The right hand expression which the simulated hands should currently simulate.
         /// </summary>
-        [Obsolete("rightCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.rightHandExpression instead.")]
-        public SimulatedHandExpression rightCurrentHandExpression => m_CurrentState.rightHandExpression;
+        [Obsolete("rightCurrentHandExpression has been deprecated in XRI 3.6.0. Use currentState.rightHandExpression instead.", true)]
+        public SimulatedHandExpression rightCurrentHandExpression => default;
 
         bool m_PointAndClickActive;
 
@@ -1150,51 +1136,51 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// <summary>
         /// Whether the simulator is manipulating the Left device (controller or hand).
         /// </summary>
-        [Obsolete("manipulatingLeftDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftDevice instead.")]
-        public bool manipulatingLeftDevice => m_CurrentState.manipulatingLeftDevice;
+        [Obsolete("manipulatingLeftDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftDevice instead.", true)]
+        public bool manipulatingLeftDevice => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right device (controller or hand).
         /// </summary>
-        [Obsolete("manipulatingRightDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightDevice instead.")]
-        public bool manipulatingRightDevice => m_CurrentState.manipulatingRightDevice;
+        [Obsolete("manipulatingRightDevice has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightDevice instead.", true)]
+        public bool manipulatingRightDevice => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the Left Controller.
         /// </summary>
-        [Obsolete("manipulatingLeftController has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftController instead.")]
-        public bool manipulatingLeftController => m_CurrentState.manipulatingLeftController;
+        [Obsolete("manipulatingLeftController has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftController instead.", true)]
+        public bool manipulatingLeftController => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Controller.
         /// </summary>
-        [Obsolete("manipulatingRightController has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightController instead.")]
-        public bool manipulatingRightController => m_CurrentState.manipulatingRightController;
+        [Obsolete("manipulatingRightController has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightController instead.", true)]
+        public bool manipulatingRightController => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the Left Hand.
         /// </summary>
-        [Obsolete("manipulatingLeftHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftHand instead.")]
-        public bool manipulatingLeftHand => m_CurrentState.manipulatingLeftHand;
+        [Obsolete("manipulatingLeftHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingLeftHand instead.", true)]
+        public bool manipulatingLeftHand => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the Right Hand.
         /// </summary>
-        [Obsolete("manipulatingRightHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightHand instead.")]
-        public bool manipulatingRightHand => m_CurrentState.manipulatingRightHand;
+        [Obsolete("manipulatingRightHand has been deprecated in XRI 3.6.0. Use currentState.manipulatingRightHand instead.", true)]
+        public bool manipulatingRightHand => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the HMD.
         /// </summary>
-        [Obsolete("manipulatingHMD has been deprecated in XRI 3.6.0. Use currentState.manipulatingHMD instead.")]
-        public bool manipulatingHMD => m_CurrentState.manipulatingHMD;
+        [Obsolete("manipulatingHMD has been deprecated in XRI 3.6.0. Use currentState.manipulatingHMD instead.", true)]
+        public bool manipulatingHMD => default;
 
         /// <summary>
         /// Whether the simulator is manipulating the HMD, Left Controller, and Right Controller as if the whole player was turning their torso,
         /// similar to a typical FPS style.
         /// </summary>
-        [Obsolete("manipulatingFPS has been deprecated in XRI 3.6.0. Use currentState.manipulatingFPS instead.")]
-        public bool manipulatingFPS => m_CurrentState.manipulatingFPS;
+        [Obsolete("manipulatingFPS has been deprecated in XRI 3.6.0. Use currentState.manipulatingFPS instead.", true)]
+        public bool manipulatingFPS => default;
 
         /// <summary>
         /// The runtime instance of the XR Interaction Simulator.
@@ -1285,9 +1271,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_PerformingRightPointAndClickTriggerInteraction;
         bool m_PerformingLeftQuickAction;
         bool m_PerformingRightQuickAction;
-        bool m_OriginalInputModuleMouseValue;
-        bool m_OriginalInputModuleTouchValue;
-        bool m_OriginalInputModuleValuesCaptured;
         bool m_InputModuleChangeLogged;
         bool m_CanUsePointAndClickControllers;
         bool m_CanUsePointAndClickHands;
@@ -1326,15 +1309,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
             if (m_DeviceLifecycleManager == null)
                 m_DeviceLifecycleManager = XRSimulatorUtility.FindCreateSimulatedDeviceLifecycleManager(gameObject);
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (ComponentLocatorUtility<SimulatedHandExpressionManager>.TryFindComponent(out m_HandExpressionManager) &&
-                !ComponentLocatorUtility<SimulatedHandPlaybackManager>.TryFindComponent(out m_HandPlaybackManager))
-            {
-                Debug.LogWarning("There seems to be a SimulatedHandExpressionManager in the scene but no SimulatedHandPlaybackManager." +
-                    "Ensure that the XR Interaction Simulator sample package is up to date to support hand playback.");
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
 
             if (m_HandPlaybackManager == null)
                 m_HandPlaybackManager = XRSimulatorUtility.FindCreateSimulatedHandPlaybackManager(gameObject);
@@ -1420,6 +1394,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// </summary>
         protected virtual void OnDisable()
         {
+            RestoreInputModuleInput();
             SceneManager.sceneLoaded -= OnSceneLoaded;
 
 #if XR_HANDS_1_1_OR_NEWER
@@ -1598,12 +1573,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         {
 #if ENABLE_VR || UNITY_GAMECORE
             m_PreviousState.CopyFrom(m_CurrentState);
-
-            if (m_TargetedDeviceInputRequested)
-            {
-                m_CurrentState.targetedDeviceInput = m_RequestedTargetedDeviceInput;
-                m_TargetedDeviceInputRequested = false;
-            }
 
             m_CurrentState.deviceMode = m_DeviceLifecycleManager.deviceMode;
 #endif
@@ -1990,7 +1959,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 m_RightHandExpressionIndex = index;
                 ToggleHandExpression(false, true);
             }
-
         }
 
         void ProcessHandExpressionPlayback()
@@ -2775,34 +2743,23 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 
         void DisableInputModuleInput()
         {
-            // Skip capturing and setting values if already disabled.
-            if ((m_UIInputModule != null || FindUIInputModule()) && (m_UIInputModule.enableMouseInput || m_UIInputModule.enableTouchInput))
+            if (m_UIInputModule != null || FindUIInputModule())
             {
-                if (!m_OriginalInputModuleValuesCaptured)
+                if (!m_InputModuleChangeLogged)
                 {
-                    if (!m_InputModuleChangeLogged)
-                    {
-                        Debug.Log("To avoid interfering with point and click interactions, XRUIInputModule mouse and touch input will be disabled while the simulated devices are active.", this);
-                        m_InputModuleChangeLogged = true;
-                    }
-
-                    m_OriginalInputModuleMouseValue = m_UIInputModule.enableMouseInput;
-                    m_OriginalInputModuleTouchValue = m_UIInputModule.enableTouchInput;
-                    m_OriginalInputModuleValuesCaptured = true;
+                    Debug.Log("To avoid interfering with point and click interactions, XRUIInputModule pointer input will be limited to screen space UI while the simulated devices are active.", this);
+                    m_InputModuleChangeLogged = true;
                 }
 
-                m_UIInputModule.enableMouseInput = false;
-                m_UIInputModule.enableTouchInput = false;
+                m_UIInputModule.blockWorldSpacePointerInput = true;
             }
         }
 
         void RestoreInputModuleInput()
         {
-            if (m_OriginalInputModuleValuesCaptured && (m_UIInputModule != null || FindUIInputModule()))
+            if (m_UIInputModule != null || FindUIInputModule())
             {
-                m_UIInputModule.enableMouseInput = m_OriginalInputModuleMouseValue;
-                m_UIInputModule.enableTouchInput = m_OriginalInputModuleTouchValue;
-                m_OriginalInputModuleValuesCaptured = false;
+                m_UIInputModule.blockWorldSpacePointerInput = false;
             }
         }
 

@@ -18,9 +18,7 @@ using UnityEngine.XR.Interaction.Toolkit.Utilities.Internal;
 using UnityEngine.XR.Interaction.Toolkit.Utilities.Registration;
 #if UNITY_6000_5_OR_NEWER
 using Unity.Scripting.LifecycleManagement;
-#endif
-#if AR_FOUNDATION_PRESENT
-using UnityEngine.XR.Interaction.Toolkit.AR;
+
 #endif
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -1352,22 +1350,13 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             // Warn if the same Collider is already used by another registered Interactable
             // since the lookup will only return the earliest registered rather than a list of all.
-            // The warning is suppressed in the case of gesture interactables since it's common
-            // to compose multiple on the same GameObject.
             var registered = false;
             if (!m_ColliderToInteractableMap.TryGetValue(interactableCollider, out var associatedInteractable))
             {
                 m_ColliderToInteractableMap.Add(interactableCollider, interactable);
                 registered = true;
             }
-#if AR_FOUNDATION_PRESENT
-#pragma warning disable 618
-            else if (associatedInteractable != interactable &&
-                     !(interactable is ARBaseGestureInteractable && associatedInteractable is ARBaseGestureInteractable))
-#pragma warning restore 618
-#else
             else if (associatedInteractable != interactable)
-#endif
             {
                 Debug.LogWarning("A collider used by an Interactable object is already registered with another Interactable object." +
                     $" The {interactableCollider} will remain associated with {associatedInteractable}, which was registered before {interactable}." +

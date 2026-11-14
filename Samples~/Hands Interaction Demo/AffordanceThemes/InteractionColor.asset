@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Comments: 'For each state in the list, there are 2 values (Start and End).
 
-    Default
-    => End value is chosen | Hovering => Blend between [Start,End] with input
+    Default => End value is chosen | Hovering => Blend between [Start,End] with input
 
-    Select
-    => Value can be animated between [Start,End] for click anim.'
+    Select => Value can be animated between [Start,End] for click anim.'
   m_ReadOnly: 1
   m_Value:
     m_StateAnimationCurve:

@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Assertions;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 
 namespace UnityEngine.XR.Interaction.Toolkit
@@ -8,14 +7,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
     /// Locomotion provider that allows the user to smoothly move their rig continuously over time.
     /// </summary>
     /// <seealso cref="LocomotionProvider"/>
-    [Obsolete("The ContinuousMoveProviderBase has been deprecated in XRI 3.0.0 and will be removed in a future version of XRI. Please use ContinuousMoveProvider instead.", false)]
+    [Obsolete(k_ContinuousMoveProviderBaseDeprecated, true)]
     public abstract class ContinuousMoveProviderBase : LocomotionProvider
     {
+        const string k_ContinuousMoveProviderBaseDeprecated = "The ContinuousMoveProviderBase has been deprecated in XRI 3.0.0 and will be removed in a future version of XRI. Please use ContinuousMoveProvider instead.";
+
         /// <summary>
         /// Defines when gravity begins to take effect.
         /// </summary>
         /// <seealso cref="gravityApplicationMode"/>
-        [Obsolete("GravityApplicationMode has been deprecated in XRI 3.0.0 and will be removed in a future version of XRI. Please use LocomotionMediator with a GravityProvider.", false)]
+        [Obsolete("GravityApplicationMode has been deprecated in XRI 3.0.0 and will be removed in a future version of XRI. Please use LocomotionMediator with a GravityProvider.", true)]
         public enum GravityApplicationMode
         {
             /// <summary>
@@ -38,134 +39,67 @@ namespace UnityEngine.XR.Interaction.Toolkit
             Immediately,
         }
 
-        [SerializeField]
-        [Tooltip("The speed, in units per second, to move forward.")]
-        float m_MoveSpeed = 1f;
         /// <summary>
         /// The speed, in units per second, to move forward.
         /// </summary>
         public float moveSpeed
         {
-            get => m_MoveSpeed;
-            set => m_MoveSpeed = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls whether to enable strafing (sideways movement).")]
-        bool m_EnableStrafe = true;
         /// <summary>
         /// Controls whether to enable strafing (sideways movement).
         /// </summary>
         public bool enableStrafe
         {
-            get => m_EnableStrafe;
-            set => m_EnableStrafe = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls whether to enable flying (unconstrained movement). This overrides the use of gravity.")]
-        bool m_EnableFly;
         /// <summary>
         /// Controls whether to enable flying (unconstrained movement). This overrides <see cref="useGravity"/>.
         /// </summary>
         public bool enableFly
         {
-            get => m_EnableFly;
-            set => m_EnableFly = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls whether gravity affects this provider when a Character Controller is used and flying is disabled.")]
-        bool m_UseGravity = true;
         /// <summary>
         /// Controls whether gravity affects this provider when a <see cref="CharacterController"/> is used.
         /// This only applies when <see cref="enableFly"/> is <see langword="false"/>.
         /// </summary>
         public bool useGravity
         {
-            get => m_UseGravity;
-            set => m_UseGravity = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("Controls when gravity begins to take effect.")]
-        GravityApplicationMode m_GravityApplicationMode;
         /// <summary>
         /// Controls when gravity begins to take effect.
         /// </summary>
         /// <seealso cref="GravityApplicationMode"/>
         public GravityApplicationMode gravityApplicationMode
         {
-            get => m_GravityApplicationMode;
-            set => m_GravityApplicationMode = value;
+            get => default;
+            set => _ = value;
         }
 
-        [SerializeField]
-        [Tooltip("The source Transform to define the forward direction.")]
-        Transform m_ForwardSource;
         /// <summary>
         /// The source <see cref="Transform"/> that defines the forward direction.
         /// </summary>
         public Transform forwardSource
         {
-            get => m_ForwardSource;
-            set => m_ForwardSource = value;
+            get => default;
+            set => _ = value;
         }
-
-        CharacterController m_CharacterController;
-
-        bool m_AttemptedGetCharacterController;
-
-        bool m_IsMovingXROrigin;
-
-        Vector3 m_VerticalVelocity;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void Update()
         {
-            m_IsMovingXROrigin = false;
-
-            var xrOrigin = system.xrOrigin?.Origin;
-            if (xrOrigin == null)
-                return;
-
-            var input = ReadInput();
-            var translationInWorldSpace = ComputeDesiredMove(input);
-
-            switch (m_GravityApplicationMode)
-            {
-                case GravityApplicationMode.Immediately:
-                    MoveRig(translationInWorldSpace);
-                    break;
-                case GravityApplicationMode.AttemptingMove:
-                    if (input != Vector2.zero || m_VerticalVelocity != Vector3.zero)
-                        MoveRig(translationInWorldSpace);
-                    break;
-                default:
-                    Assert.IsTrue(false, $"{nameof(m_GravityApplicationMode)}={m_GravityApplicationMode} outside expected range.");
-                    break;
-            }
-
-            switch (locomotionPhase)
-            {
-                case LocomotionPhase.Idle:
-                case LocomotionPhase.Started:
-                    if (m_IsMovingXROrigin)
-                        locomotionPhase = LocomotionPhase.Moving;
-                    break;
-                case LocomotionPhase.Moving:
-                    if (!m_IsMovingXROrigin)
-                        locomotionPhase = LocomotionPhase.Done;
-                    break;
-                case LocomotionPhase.Done:
-                    locomotionPhase = m_IsMovingXROrigin ? LocomotionPhase.Moving : LocomotionPhase.Idle;
-                    break;
-                default:
-                    Assert.IsTrue(false, $"Unhandled {nameof(LocomotionPhase)}={locomotionPhase}");
-                    break;
-            }
         }
 
         /// <summary>
@@ -181,52 +115,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <returns>Returns the translation amount in world space to move the rig.</returns>
         protected virtual Vector3 ComputeDesiredMove(Vector2 input)
         {
-            if (input == Vector2.zero)
-                return Vector3.zero;
-
-            var xrOrigin = system.xrOrigin;
-            if (xrOrigin == null)
-                return Vector3.zero;
-
-            // Assumes that the input axes are in the range [-1, 1].
-            // Clamps the magnitude of the input direction to prevent faster speed when moving diagonally,
-            // while still allowing for analog input to move slower (which would be lost if simply normalizing).
-            var inputMove = Vector3.ClampMagnitude(new Vector3(m_EnableStrafe ? input.x : 0f, 0f, input.y), 1f);
-
-            // Determine frame of reference for what the input direction is relative to
-            var forwardSourceTransform = m_ForwardSource == null ? xrOrigin.Camera.transform : m_ForwardSource;
-            var inputForwardInWorldSpace = forwardSourceTransform.forward;
-
-            var originTransform = xrOrigin.Origin.transform;
-            var speedFactor = m_MoveSpeed * Time.deltaTime * originTransform.localScale.x; // Adjust speed with user scale
-
-            // If flying, just compute move directly from input and forward source
-            if (m_EnableFly)
-            {
-                var inputRightInWorldSpace = forwardSourceTransform.right;
-                var combinedMove = inputMove.x * inputRightInWorldSpace + inputMove.z * inputForwardInWorldSpace;
-                return combinedMove * speedFactor;
-            }
-
-            var originUp = originTransform.up;
-
-            if (Mathf.Approximately(Mathf.Abs(Vector3.Dot(inputForwardInWorldSpace, originUp)), 1f))
-            {
-                // When the input forward direction is parallel with the rig normal,
-                // it will probably feel better for the player to move along the same direction
-                // as if they tilted forward or up some rather than moving in the rig forward direction.
-                // It also will probably be a better experience to at least move in a direction
-                // rather than stopping if the head/controller is oriented such that it is perpendicular with the rig.
-                inputForwardInWorldSpace = -forwardSourceTransform.up;
-            }
-
-            var inputForwardProjectedInWorldSpace = Vector3.ProjectOnPlane(inputForwardInWorldSpace, originUp);
-            var forwardRotation = Quaternion.FromToRotation(originTransform.forward, inputForwardProjectedInWorldSpace);
-
-            var translationInRigSpace = forwardRotation * inputMove * speedFactor;
-            var translationInWorldSpace = originTransform.TransformDirection(translationInRigSpace);
-
-            return translationInWorldSpace;
+            throw new NotSupportedException(k_ContinuousMoveProviderBaseDeprecated);
         }
 
         /// <summary>
@@ -236,63 +125,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// <param name="translationInWorldSpace">The translation amount in world space to move the rig (pre-gravity).</param>
         protected virtual void MoveRig(Vector3 translationInWorldSpace)
         {
-            var xrOrigin = system.xrOrigin?.Origin;
-            if (xrOrigin == null)
-                return;
-
-            FindCharacterController();
-
-            var motion = translationInWorldSpace;
-
-            if (m_CharacterController != null && m_CharacterController.enabled)
-            {
-                // Step vertical velocity from gravity
-                if (m_CharacterController.isGrounded || !m_UseGravity || m_EnableFly)
-                {
-                    m_VerticalVelocity = Vector3.zero;
-                }
-                else
-                {
-                    m_VerticalVelocity += Physics.gravity * Time.deltaTime;
-                }
-
-                motion += m_VerticalVelocity * Time.deltaTime;
-
-                if (CanBeginLocomotion() && BeginLocomotion())
-                {
-                    // Note that calling Move even with Vector3.zero will have an effect by causing isGrounded to update
-                    m_IsMovingXROrigin = true;
-                    m_CharacterController.Move(motion);
-                    EndLocomotion();
-                }
-            }
-            else
-            {
-                if (CanBeginLocomotion() && BeginLocomotion())
-                {
-                    m_IsMovingXROrigin = true;
-                    xrOrigin.transform.position += motion;
-                    EndLocomotion();
-                }
-            }
-        }
-
-        void FindCharacterController()
-        {
-            var xrOrigin = system.xrOrigin?.Origin;
-            if (xrOrigin == null)
-                return;
-
-            // Save a reference to the optional CharacterController on the rig GameObject
-            // that will be used to move instead of modifying the Transform directly.
-            if (m_CharacterController == null && !m_AttemptedGetCharacterController)
-            {
-                // Try on the Origin GameObject first, and then fallback to the XR Origin GameObject (if different)
-                if (!xrOrigin.TryGetComponent(out m_CharacterController) && xrOrigin != system.xrOrigin.gameObject)
-                    system.xrOrigin.TryGetComponent(out m_CharacterController);
-
-                m_AttemptedGetCharacterController = true;
-            }
+            throw new NotSupportedException(k_ContinuousMoveProviderBaseDeprecated);
         }
     }
 }

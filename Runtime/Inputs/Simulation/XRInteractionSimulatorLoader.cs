@@ -44,19 +44,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
             }
 
-#pragma warning disable CS0618
-            if (XRDeviceSimulator.instance != null)
-            {
-                Object.DontDestroyOnLoad(XRDeviceSimulator.instance);
-                return;
-            }
-#pragma warning restore CS0618
-
             var simulatorPrefab = settings.simulatorPrefab;
             if (simulatorPrefab == null)
             {
                 Debug.LogWarning("XR Interaction Simulator prefab was missing, cannot automatically instantiate." +
-                    " Open Window > Package Manager, select XR Interaction Toolkit, and Reimport the XR Device Simulator sample," +
+                    " Open Window > Package Manager, select XR Interaction Toolkit, and Reimport the XR Interaction Simulator sample," +
                     " and then toggle the setting in Edit > Project Settings > XR Plug-in Management > XR Interaction Toolkit to try to resolve this issue.");
                 return;
             }

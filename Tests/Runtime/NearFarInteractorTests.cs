@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
+using UnityEngine.EventSystems;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Utils;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
@@ -9,6 +11,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -36,10 +40,382 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             (InteractorFarAttachMode.Far, InteractableFarAttachMode.Far),
         };
 
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+        UnityEngine.UIElements.PanelSettings m_PanelSettings;
+#endif
+
         [TearDown]
         public void TearDown()
         {
             TestUtilities.DestroyAllSceneObjects();
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+            if (m_PanelSettings != null)
+                Object.DestroyImmediate(m_PanelSettings);
+
+            TestUtilities.RestoreUIToolkitTrackedInput();
+#endif
+        }
+
+        const float k_MomentumScrollDistance = 300f;
+        const float k_MomentumTolerance = 0.5f;
+        const int k_MaxHoverFrames = 600;
+
+        // Slow deceleration so a momentum scroll is still scrolling when the test presses.
+        const float k_SlowDecelerationRate = 0.5f;
+
+        // Fast deceleration so a momentum scroll finishes within a few frames.
+        const float k_FastDecelerationRate = 0.001f;
+
+        // Momentum slows over time, not frames, so waits for it to finish are limited by real time.
+        const float k_MaxMomentumSeconds = 5f;
+
+        // Interactor scroll input that scrolls k_MomentumScrollDistance pixels down at the default tracked scroll delta multiplier.
+        static readonly Vector2 k_MomentumScrollInput = new Vector2(0f, -k_MomentumScrollDistance / UIInputModule.k_DefaultTrackedScrollDeltaMultiplier);
+
+        [UnityTest]
+        public IEnumerator ScrollRectScrollsExactDistance([Values] bool uiScrollMomentum)
+        {
+            TestUtilities.CreateInteractionManager();
+            var inputModule = TestUtilities.CreateXRUIInputModule();
+            var interactor = TestUtilities.CreateNearFarInteractorWithXROrigin(out var camera);
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            var recorder = TestUtilities.CreateScrollRectCanvas(camera, interactor.transform, k_FastDecelerationRate);
+            EnableUIScroll(interactor, uiScrollMomentum);
+
+            var scrollEvents = new List<(GameObject target, Vector2 delta)>();
+            inputModule.scroll += (target, eventData) => scrollEvents.Add((target, eventData.scrollDelta));
+
+            // Wait for the ray to hover the canvas.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            yield return null;
+
+            // Scroll for a single frame.
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+
+            var deadline = Time.realtimeSinceStartup + k_MaxMomentumSeconds;
+            while (recorder.total.y > -k_MomentumScrollDistance + k_MomentumTolerance && Time.realtimeSinceStartup < deadline)
+                yield return null;
+
+            if (uiScrollMomentum)
+                Assert.That(recorder.deltas.Count, Is.GreaterThan(1), "The scroll should continue over several frames.");
+            else
+                Assert.That(recorder.deltas.Count, Is.EqualTo(1), "The scroll should arrive all at once.");
+
+            Assert.That(recorder.total.y, Is.EqualTo(-k_MomentumScrollDistance).Within(k_MomentumTolerance));
+
+            // Either way, the input module reports the scroll input once, with its full amount, to its scroll event subscribers.
+            Assert.That(scrollEvents.Count, Is.EqualTo(1));
+            Assert.That(scrollEvents[0].target, Is.SameAs(recorder.gameObject));
+            Assert.That(scrollEvents[0].delta.y, Is.EqualTo(-k_MomentumScrollDistance).Within(k_MomentumTolerance));
+        }
+
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_3_OR_NEWER
+        [UnityTest]
+        public IEnumerator UIToolkitMomentumScrollsExactDistance()
+        {
+            var interactor = SetupUIToolkitScrollScene(out var scrollView);
+            scrollView.scrollDecelerationRate = k_FastDecelerationRate;
+
+            yield return WaitForUIHover(interactor);
+
+            var startOffset = scrollView.scrollOffset.y + k_MomentumScrollDistance;
+            scrollView.scrollOffset = new Vector2(0f, startOffset);
+
+            // Scroll for a single frame.
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+
+            var movedAfterFirstFrame = scrollView.scrollOffset.y - startOffset;
+            var deadline = Time.realtimeSinceStartup + k_MaxMomentumSeconds;
+            while (scrollView.scrollOffset.y - startOffset < k_MomentumScrollDistance - k_MomentumTolerance && Time.realtimeSinceStartup < deadline)
+                yield return null;
+
+            Assert.That(movedAfterFirstFrame, Is.LessThan(k_MomentumScrollDistance - k_MomentumTolerance), "The scroll should continue over several frames.");
+            Assert.That(scrollView.scrollOffset.y - startOffset, Is.EqualTo(k_MomentumScrollDistance).Within(k_MomentumTolerance));
+        }
+
+        [UnityTest]
+        public IEnumerator UIToolkitScrollWithoutMomentumDoesNotContinue()
+        {
+            var interactor = SetupUIToolkitScrollScene(out var scrollView, uiScrollMomentum: false);
+
+            // Set the wheel step inline, so the ScrollView doesn't read it from a theme.
+            scrollView.mouseWheelScrollSize = 36f;
+
+            // Slow deceleration, so momentum would keep the content moving if it were wrongly applied.
+            scrollView.scrollDecelerationRate = k_SlowDecelerationRate;
+
+            yield return WaitForUIHover(interactor);
+
+            var startOffset = scrollView.scrollOffset.y + k_MomentumScrollDistance;
+            scrollView.scrollOffset = new Vector2(0f, startOffset);
+
+            // Scroll for a single frame.
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+
+            // Without momentum, the ScrollView decides how far one scroll moves, so only check that it moved.
+            var offsetAfterScroll = scrollView.scrollOffset.y;
+            Assert.That(offsetAfterScroll, Is.GreaterThan(startOffset), "The scroll should move the content.");
+
+            yield return null;
+
+            Assert.That(scrollView.scrollOffset.y, Is.EqualTo(offsetAfterScroll), "The content should not keep moving.");
+        }
+
+        [UnityTest]
+        public IEnumerator UIToolkitScrollWhileLeavingPanelStartsNoMomentum()
+        {
+            var interactor = SetupUIToolkitScrollScene(out var scrollView);
+
+            yield return WaitForUIHover(interactor);
+
+            var startOffset = scrollView.scrollOffset.y + k_MomentumScrollDistance;
+            scrollView.scrollOffset = new Vector2(0f, startOffset);
+
+            // Aim away and scroll on the same frame, the frame the interactor resets its UI Toolkit pointer. The panel it just
+            // left is still the previous hover then, but it must not start momentum.
+            interactor.transform.rotation = Quaternion.LookRotation(Vector3.back);
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            Assert.That(scrollView.scrollOffset.y, Is.EqualTo(startOffset));
+        }
+#endif
+
+        [UnityTest]
+        public IEnumerator ScrollRectMomentumContinuesUntilPressed()
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXRUIInputModule();
+            var interactor = TestUtilities.CreateNearFarInteractorWithXROrigin(out var camera);
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            var recorder = TestUtilities.CreateScrollRectCanvas(camera, interactor.transform, k_SlowDecelerationRate);
+            EnableUIScroll(interactor);
+
+            // Wait for the ray to hover the canvas.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            yield return null;
+
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            Assert.That(recorder.total.y, Is.LessThan(0f).And.GreaterThan(-k_MomentumScrollDistance + k_MomentumTolerance), "The scroll should still be scrolling.");
+
+            // Press the UI mid-scroll, the same way a pinch or trigger press does.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var deliveredAtPress = recorder.deltas.Count;
+            yield return null;
+
+            Assert.That(recorder.deltas.Count, Is.EqualTo(deliveredAtPress), "A press stops the momentum.");
+            Assert.That(recorder.total.y, Is.GreaterThan(-k_MomentumScrollDistance + k_MomentumTolerance));
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollRectPressThatStopsMomentumReachesPressedObject()
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXRUIInputModule();
+            var interactor = TestUtilities.CreateNearFarInteractorWithXROrigin(out var camera);
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            var recorder = TestUtilities.CreateScrollRectCanvas(camera, interactor.transform, k_SlowDecelerationRate);
+            var pressRecorders = new[]
+            {
+                recorder.transform.Find("Left Child").gameObject.AddComponent<PressRecorder>(),
+                recorder.transform.Find("Right Child").gameObject.AddComponent<PressRecorder>(),
+            };
+            EnableUIScroll(interactor);
+
+            // Wait for the ray to hover the canvas.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            yield return null;
+
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            // Press and release mid-scroll, while the momentum is still scrolling.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var deliveredAtPress = recorder.deltas.Count;
+            interactor.uiPressInput.QueueManualState(false, 0f);
+            yield return null;
+
+            Assert.That(recorder.deltas.Count, Is.EqualTo(deliveredAtPress), "The press stops the momentum.");
+            Assert.That(pressRecorders.Sum(pressRecorder => pressRecorder.pressCount), Is.EqualTo(1),
+                "The press still reaches what is under the pointer, the same as a press that stops a ScrollRect's own inertia.");
+            Assert.That(pressRecorders.Sum(pressRecorder => pressRecorder.clickCount), Is.EqualTo(1));
+        }
+
+        // Records the uGUI presses and clicks it receives.
+        class PressRecorder : MonoBehaviour, IPointerDownHandler, IPointerClickHandler
+        {
+            public int pressCount { get; private set; }
+
+            public int clickCount { get; private set; }
+
+            public void OnPointerDown(PointerEventData eventData)
+            {
+                ++pressCount;
+            }
+
+            public void OnPointerClick(PointerEventData eventData)
+            {
+                ++clickCount;
+            }
+        }
+
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_3_OR_NEWER
+        [UnityTest]
+        public IEnumerator UIToolkitMomentumContinuesUntilPressed()
+        {
+            var interactor = SetupUIToolkitScrollScene(out var scrollView);
+            scrollView.scrollDecelerationRate = k_SlowDecelerationRate;
+
+            yield return WaitForUIHover(interactor);
+
+            var startOffset = scrollView.scrollOffset.y + k_MomentumScrollDistance;
+            scrollView.scrollOffset = new Vector2(0f, startOffset);
+
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            var moved = scrollView.scrollOffset.y - startOffset;
+            Assert.That(moved, Is.GreaterThan(0f).And.LessThan(k_MomentumScrollDistance - k_MomentumTolerance), "The scroll should still be scrolling.");
+
+            // Press the UI mid-scroll, the same way a pinch or trigger press does. UI Toolkit receives the press through its own event processing.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var offsetAtPress = scrollView.scrollOffset.y;
+            yield return null;
+
+            Assert.That(scrollView.scrollOffset.y, Is.EqualTo(offsetAtPress), "A press stops the momentum.");
+            Assert.That(scrollView.scrollOffset.y - startOffset, Is.LessThan(k_MomentumScrollDistance - k_MomentumTolerance));
+        }
+
+        [UnityTest]
+        public IEnumerator UIToolkitPressThatStopsMomentumIsConsumed()
+        {
+            var interactor = SetupUIToolkitScrollScene(out var scrollView);
+            scrollView.scrollDecelerationRate = k_SlowDecelerationRate;
+
+            // The content under the pointer, standing in for a button inside the ScrollView.
+            var content = scrollView.contentContainer[0];
+            var pressCount = 0;
+            var clickCount = 0;
+            content.RegisterCallback<UnityEngine.UIElements.PointerDownEvent>(_ => ++pressCount);
+            content.RegisterCallback<UnityEngine.UIElements.ClickEvent>(_ => ++clickCount);
+
+            yield return WaitForUIHover(interactor);
+
+            scrollView.scrollOffset = new Vector2(0f, scrollView.scrollOffset.y + k_MomentumScrollDistance);
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            // Press and release mid-scroll, while the momentum is still scrolling. UI Toolkit receives the press through its own event processing.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            interactor.uiPressInput.QueueManualState(false, 0f);
+            yield return null;
+
+            Assert.That(pressCount + clickCount, Is.EqualTo(0), "The press only stops the scroll, so it does not reach the elements inside the ScrollView.");
+
+            // With the scroll stopped, the next press reaches the element under the pointer.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            interactor.uiPressInput.QueueManualState(false, 0f);
+            yield return null;
+
+            Assert.That(clickCount, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator UIToolkitScrollViewCanBeDraggedAfterPressStopsMomentum()
+        {
+            const int dragFrames = 10;
+            const float dragDegreesPerFrame = 0.5f;
+
+            var interactor = SetupUIToolkitScrollScene(out var scrollView);
+            scrollView.scrollDecelerationRate = k_SlowDecelerationRate;
+
+            yield return WaitForUIHover(interactor);
+
+            scrollView.scrollOffset = new Vector2(0f, scrollView.scrollOffset.y + k_MomentumScrollDistance);
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            // Press mid-scroll, while the momentum is still scrolling, which stops it.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var offsetAfterStop = scrollView.scrollOffset.y;
+
+            // Keep pressing and tilt the interactor, the same way a hand moves while pinching.
+            for (var i = 1; i <= dragFrames; ++i)
+            {
+                interactor.transform.rotation = Quaternion.Euler(-dragDegreesPerFrame * i, 0f, 0f);
+                yield return null;
+            }
+
+            Assert.That(scrollView.scrollOffset.y, Is.Not.EqualTo(offsetAfterStop).Within(1f), "The ScrollView can still be dragged after a press stops its momentum.");
+
+            interactor.uiPressInput.QueueManualState(false, 0f);
+            yield return null;
+        }
+
+        // Sets up a Near-Far Interactor aimed at a world space UI Toolkit ScrollView, with UI scroll input from manual values.
+        NearFarInteractor SetupUIToolkitScrollScene(out UIElements.ScrollView scrollView, bool uiScrollMomentum = true)
+        {
+            TestUtilities.ForceUIToolkitTrackedInput();
+
+            var manager = TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateUIToolkitInputSetup();
+            var interactor = TestUtilities.CreateNearFarInteractor();
+            interactor.interactionManager = manager;
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            EnableUIScroll(interactor, uiScrollMomentum);
+            scrollView = TestUtilities.CreateWorldSpaceScrollView(out m_PanelSettings);
+            return interactor;
+        }
+
+        // Waits for UI Toolkit to report the hover, which the handler uses to find the ScrollView.
+        static IEnumerator WaitForUIHover(NearFarInteractor interactor)
+        {
+            var hovering = false;
+            interactor.uiHoverEntered.AddListener(_ => hovering = true);
+            for (var i = 0; i < k_MaxHoverFrames && !hovering; ++i)
+                yield return null;
+
+            Assert.That(hovering, Is.True, "The interactor should hover the panel.");
+        }
+#endif
+
+        static void EnableUIScroll(NearFarInteractor interactor, bool uiScrollMomentum = true)
+        {
+            interactor.enableUIInteraction = true;
+            interactor.enableNearCasting = false;
+            interactor.enableFarCasting = true;
+            interactor.uiScrollMomentum = uiScrollMomentum;
+            interactor.uiScrollInput = new XRInputValueReader<Vector2>("UI Scroll", XRInputValueReader.InputSourceMode.ManualValue);
+            interactor.uiPressInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
         }
 
         [UnityTest]
@@ -71,6 +447,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.EqualTo(enableNearCasting));
             Assert.That(interactor.interactablesSelected, enableNearCasting ? Is.EqualTo(new[] { interactable }) : Is.Empty);
@@ -114,6 +492,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.EqualTo(enableFarCasting));
             Assert.That(interactor.interactablesSelected, enableFarCasting ? Is.EqualTo(new[] { interactable }) : Is.Empty);
@@ -220,6 +600,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -313,6 +695,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             // Move interactable further out than UI
             interactor.interactionAttachController.MoveTo(interactor.transform.position + interactor.transform.forward * 10f);
@@ -375,6 +759,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -485,7 +871,15 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
             controllerRecorder.visitEachFrame = true;
 
-            yield return new WaitForSeconds(0.1f);
+            // Wait on frames rather than time: the recorder applies one recorded frame per Update, and the
+            // interactor evaluates its selection region on the frame after it selects. A 0.1 s wait ends on
+            // the selection frame itself when a frame takes 50 ms or more, as on CI agents without a GPU.
+            for (var frame = 0; frame < 10 && !interactor.hasSelection; ++frame)
+            {
+                yield return null;
+            }
+
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -561,6 +955,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -628,6 +1024,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }
@@ -906,6 +1304,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.visitEachFrame = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             var validTargets = new List<IXRInteractable>();
             interactor.GetValidTargets(validTargets);

@@ -16,6 +16,7 @@ Locomotion Providers implement different types of locomotion. The toolkit suppli
 | [Gravity Provider](gravity-provider.md)                                      | Allows the user better control over gravity effects within the virtual environment.|
 | [Jump Provider](jump-provider.md)                                            | Allows the user to jump and gives control to high level jumping options.|
 | [Snap Turn Provider](snap-turning.md)                                        | Allows the user to instantly turn by a specified number of degrees. |
+| [Step Move Provider](step-movement.md)                                       | Allows the user to move forward, backward, left, or right by a fixed distance. |
 | [Teleportation Provider](teleportation.md#teleportation-provider)            | Allows the user to teleport to a designated location. |
 
 ## Additional resources

@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 #if UNITY_6000_5_OR_NEWER
 using Unity.Scripting.LifecycleManagement;
@@ -12,9 +11,11 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="ActionBasedController"/>.
     /// </summary>
     [CustomEditor(typeof(ActionBasedController), true), CanEditMultipleObjects]
-    [Obsolete("ActionBasedControllerEditor has been deprecated in version 3.0.0.")]
+    [Obsolete(k_ActionBasedControllerEditorDeprecated, true)]
     public class ActionBasedControllerEditor : XRBaseControllerEditor
     {
+        const string k_ActionBasedControllerEditorDeprecated = "ActionBasedControllerEditor has been deprecated in version 3.0.0.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.positionAction"/>.</summary>
         protected SerializedProperty m_PositionAction;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ActionBasedController.rotationAction"/>.</summary>
@@ -102,74 +103,24 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_PositionAction = serializedObject.FindProperty("m_PositionAction");
-            m_RotationAction = serializedObject.FindProperty("m_RotationAction");
-            m_IsTrackedAction = serializedObject.FindProperty("m_IsTrackedAction");
-            m_TrackingStateAction = serializedObject.FindProperty("m_TrackingStateAction");
-            m_SelectAction = serializedObject.FindProperty("m_SelectAction");
-            m_SelectActionValue = serializedObject.FindProperty("m_SelectActionValue");
-            m_ActivateAction = serializedObject.FindProperty("m_ActivateAction");
-            m_ActivateActionValue = serializedObject.FindProperty("m_ActivateActionValue");
-            m_UIPressAction = serializedObject.FindProperty("m_UIPressAction");
-            m_UIPressActionValue = serializedObject.FindProperty("m_UIPressActionValue");
-            m_UIScrollAction = serializedObject.FindProperty("m_UIScrollAction");
-            m_HapticDeviceAction = serializedObject.FindProperty("m_HapticDeviceAction");
-            m_RotateAnchorAction = serializedObject.FindProperty("m_RotateAnchorAction");
-            m_DirectionalAnchorRotationAction = serializedObject.FindProperty("m_DirectionalAnchorRotationAction");
-            m_TranslateAnchorAction = serializedObject.FindProperty("m_TranslateAnchorAction");
-            m_ScaleDeltaAction = serializedObject.FindProperty("m_ScaleDeltaAction");
-            m_ScaleToggleAction = serializedObject.FindProperty("m_ScaleToggleAction");
         }
 
         /// <inheritdoc />
         protected override void DrawTrackingConfiguration()
         {
-            base.DrawTrackingConfiguration();
-
-            if (m_EnableInputTracking.boolValue)
-            {
-                switch (InputSystem.settings.updateMode)
-                {
-                    case InputSettings.UpdateMode.ProcessEventsInFixedUpdate when m_UpdateTrackingType.intValue != (int)XRBaseController.UpdateType.Fixed:
-                        EditorGUILayout.HelpBox(Contents.updateModeNotFixed.text, MessageType.Warning);
-                        break;
-                    case InputSettings.UpdateMode.ProcessEventsInDynamicUpdate when m_UpdateTrackingType.intValue == (int)XRBaseController.UpdateType.Fixed:
-                        EditorGUILayout.HelpBox(Contents.updateModeIsFixed.text, MessageType.Warning);
-                        break;
-                }
-            }
-
-            EditorGUILayout.PropertyField(m_PositionAction, Contents.positionAction);
-            EditorGUILayout.PropertyField(m_RotationAction, Contents.rotationAction);
-            EditorGUILayout.PropertyField(m_IsTrackedAction, Contents.isTrackedAction);
-            EditorGUILayout.PropertyField(m_TrackingStateAction, Contents.trackingStateAction);
+            throw new NotSupportedException(k_ActionBasedControllerEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawInputConfiguration()
         {
-            base.DrawInputConfiguration();
-            EditorGUILayout.PropertyField(m_SelectAction, Contents.selectAction);
-            EditorGUILayout.PropertyField(m_SelectActionValue, Contents.selectActionValue);
-            EditorGUILayout.PropertyField(m_ActivateAction, Contents.activateAction);
-            EditorGUILayout.PropertyField(m_ActivateActionValue, Contents.activateActionValue);
-            EditorGUILayout.PropertyField(m_UIPressAction, Contents.uiPressAction);
-            EditorGUILayout.PropertyField(m_UIPressActionValue, Contents.uiPressActionValue);
-            EditorGUILayout.PropertyField(m_UIScrollAction, Contents.uiScrollAction);
+            throw new NotSupportedException(k_ActionBasedControllerEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawOtherActions()
         {
-            base.DrawOtherActions();
-            EditorGUILayout.PropertyField(m_HapticDeviceAction, Contents.hapticDeviceAction);
-            EditorGUILayout.PropertyField(m_RotateAnchorAction, Contents.rotateAnchorAction);
-            EditorGUILayout.PropertyField(m_DirectionalAnchorRotationAction, Contents.directionalAnchorRotationAction);
-            EditorGUILayout.PropertyField(m_TranslateAnchorAction, Contents.translateAnchorAction);
-            EditorGUILayout.PropertyField(m_ScaleToggleAction, Contents.scaleToggleAction);
-            EditorGUILayout.PropertyField(m_ScaleDeltaAction, Contents.scaleDeltaAction);
+            throw new NotSupportedException(k_ActionBasedControllerEditorDeprecated);
         }
     }
 }

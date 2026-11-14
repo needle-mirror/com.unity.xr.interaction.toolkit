@@ -18,11 +18,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright © 2026 Unity Technologies
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
-
-using System;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -146,9 +144,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
             GestureTouchesUtility.LockFingerId(fingerId1);
             GestureTouchesUtility.LockFingerId(fingerId2);
 
-#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition1, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit1, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
-#pragma warning restore 618
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition1, recognizer.xrOrigin, out var hit1, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
             {
                 var gameObject = hit1.transform.gameObject;
                 var grabInteractable = gameObject.GetComponentInParent<XRGrabInteractable>();
@@ -158,22 +154,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     if (interactableObject != null)
                         targetObject = interactableObject;
                 }
-                else
-                {
-#pragma warning disable 618
-                    var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                    if (baseGestureInteractable != null)
-                    {
-                        var interactableObject = baseGestureInteractable.gameObject;
-                        if (interactableObject != null)
-                            targetObject = interactableObject;
-                    }
-#pragma warning restore 618
-                }
             }
-#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
-            else if (GestureTouchesUtility.RaycastFromCamera(startPosition2, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit2, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
-#pragma warning restore 618
+            else if (GestureTouchesUtility.RaycastFromCamera(startPosition2, recognizer.xrOrigin, out var hit2, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
             {
                 var gameObject = hit2.transform.gameObject;
                 var grabInteractable = gameObject.GetComponentInParent<XRGrabInteractable>();
@@ -182,18 +164,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                     var interactableObject = grabInteractable.gameObject;
                     if (interactableObject != null)
                         targetObject = interactableObject;
-                }
-                else
-                {
-#pragma warning disable 618
-                    var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                    if (baseGestureInteractable != null)
-                    {
-                        var interactableObject = baseGestureInteractable.gameObject;
-                        if (interactableObject != null)
-                            targetObject = interactableObject;
-                    }
-#pragma warning restore 618
                 }
             }
 

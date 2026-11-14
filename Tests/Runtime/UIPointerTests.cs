@@ -661,7 +661,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(eventSystem.IsPointerOverGameObject(primaryPointerId), Is.False);
             Assert.That(eventSystem.IsPointerOverGameObject(-1), Is.False);
 
-
             // Check down, off, back on, and up
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
             yield return null;
@@ -754,7 +753,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(eventSystem.IsPointerOverGameObject(primaryPointerId), Is.False);
             Assert.That(eventSystem.IsPointerOverGameObject(-1), Is.False);
 
-
             // Check down and drag
             recorder.SetNextPose(Vector3.zero, Quaternion.Euler(0.0f, -30.0f, 0.0f), false, false, true);
             yield return null;
@@ -799,7 +797,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(globalUIReceiver.events[5].type, Is.EqualTo(EventType.UpdateSelected));
 
             Assert.That(rightUIReceiver.events, Has.Count.EqualTo(0));
-
 
             ResetReceivers(testObjects);
 
@@ -1051,9 +1048,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Object.Destroy(testObjects.eventSystem.gameObject);
         }
 
+        // XRUIInputModule.OnEnable selects InputManagerBindings when the project enables only the old
+        // Input Manager, so the module never reads Input System actions and these tests cannot pass.
+        // Reported as ignored rather than compiled out, so the skip stays visible in the results.
+        static void IgnoreIfInputSystemActionsUnavailable()
+        {
+#if ENABLE_LEGACY_INPUT_MANAGER && !ENABLE_INPUT_SYSTEM
+            Assert.Ignore("Requires Active Input Handling to include the Input System package.");
+#endif
+        }
+
         [UnityTest]
         public IEnumerator UIJoystickNavigation()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             // Enable device input
@@ -1093,6 +1101,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator UIJoystickNavigationUsingFallback()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             // Enable device input
@@ -1111,6 +1120,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator UIGamepadNavigation()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             // Enable device input
@@ -1150,6 +1160,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator UIGamepadNavigationUsingFallback()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             // Enable device input
@@ -1171,10 +1182,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(device, Is.Not.Null);
             Assert.That(stick, Is.Not.Null);
             Assert.That(submitButton, Is.Not.Null);
-
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
-#pragma warning restore CS0618
 
             if (device is Gamepad)
                 Assert.That(Gamepad.current, Is.SameAs(device));
@@ -1279,13 +1286,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator UIActionBindingsForMouselikeInput()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             testObjects.uiInputModule.enableBuiltinActionsAsFallback = false;
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
-#pragma warning restore CS0618
-
             // Setup gamepad input with new input system
             var asset = ScriptableObject.CreateInstance<InputActionAsset>();
 
@@ -1320,6 +1324,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
         [UnityTest]
         public IEnumerator UIActionBindingsForMouselikeInputUsingFallback()
         {
+            IgnoreIfInputSystemActionsUnavailable();
             var testObjects = SetupUIScene(true);
 
             testObjects.uiInputModule.enableBuiltinActionsAsFallback = true;
@@ -1336,10 +1341,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             testObjects.uiInputModule.enableJoystickInput = false;
             testObjects.uiInputModule.enableMouseInput = true;
             testObjects.uiInputModule.enableTouchInput = false;
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            testObjects.uiInputModule.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
-#pragma warning restore CS0618
-
             var leftUIReceiver = testObjects.leftUIReceiver;
             var rightUIReceiver = testObjects.rightUIReceiver;
             var globalUIReceiver = testObjects.globalUIReceiver;

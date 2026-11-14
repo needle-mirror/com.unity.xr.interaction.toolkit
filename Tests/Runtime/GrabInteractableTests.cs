@@ -1942,6 +1942,63 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             Assert.That(grabInteractable.transform.parent, Is.SameAs(originalParent));
         }
 
+        [UnityTest]
+        public IEnumerator TwoHandedScalingWorksWithFirstHandOnlyRotationMode([ValueSource(nameof(s_MovementTypes))] XRBaseInteractable.MovementType movementType)
+        {
+            var grabInteractableGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grabInteractableGO.name = "Grab Interactable";
+            grabInteractableGO.transform.localPosition = Vector3.zero;
+            grabInteractableGO.transform.localRotation = Quaternion.identity;
+            var rigidbody = grabInteractableGO.AddComponent<Rigidbody>();
+            rigidbody.useGravity = false;
+            rigidbody.isKinematic = true;
+            var grabInteractable = grabInteractableGO.AddComponent<XRGrabInteractable>();
+            grabInteractable.movementType = movementType;
+            grabInteractable.addDefaultGrabTransformers = false;
+            grabInteractable.selectMode = InteractableSelectMode.Multiple;
+            grabInteractable.trackScale = true;
+            grabInteractable.throwOnDetach = false;
+            TestUtilities.DisableDelayProperties(grabInteractable);
+
+            var generalGrabTransformer = grabInteractableGO.AddComponent<XRGeneralGrabTransformer>();
+            generalGrabTransformer.allowTwoHandedScaling = true;
+            generalGrabTransformer.allowTwoHandedRotation = XRGeneralGrabTransformer.TwoHandedRotationMode.FirstHandOnly;
+            generalGrabTransformer.clampScaling = false;
+            grabInteractable.AddSingleGrabTransformer(generalGrabTransformer);
+            grabInteractable.AddMultipleGrabTransformer(generalGrabTransformer);
+
+            var interactor0 = TestUtilities.CreateMockInteractor();
+            var interactor1 = TestUtilities.CreateMockInteractor();
+
+            interactor0.transform.localPosition = new Vector3(-0.5f, 0f, 0f);
+            interactor1.transform.localPosition = new Vector3(0.5f, 0f, 0f);
+
+            var initialScale = grabInteractable.transform.localScale;
+
+            interactor0.validTargets.Add(grabInteractable);
+
+            yield return WaitForSteadyState(movementType);
+
+            Assert.That(grabInteractable.isSelected, Is.True);
+            Assert.That(grabInteractable.interactorsSelecting.Count, Is.EqualTo(1));
+
+            interactor1.validTargets.Add(grabInteractable);
+
+            yield return WaitForSteadyState(movementType);
+
+            Assert.That(grabInteractable.interactorsSelecting.Count, Is.EqualTo(2));
+
+            interactor0.transform.localPosition = new Vector3(-1.5f, 0f, 0f);
+            interactor1.transform.localPosition = new Vector3(1.5f, 0f, 0f);
+
+            yield return WaitForSteadyState(movementType);
+
+            var scaledScale = grabInteractable.transform.localScale;
+            Assert.That(scaledScale.x, Is.GreaterThan(initialScale.x));
+            Assert.That(scaledScale.y, Is.GreaterThan(initialScale.y));
+            Assert.That(scaledScale.z, Is.GreaterThan(initialScale.z));
+        }
+
         class PublicAccessGrabInteractable : XRGrabInteractable
         {
             public new bool ShouldMatchAttachPosition(IXRSelectInteractor interactor) => base.ShouldMatchAttachPosition(interactor);

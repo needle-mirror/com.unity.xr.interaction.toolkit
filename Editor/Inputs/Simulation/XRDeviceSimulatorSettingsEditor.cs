@@ -12,11 +12,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
     {
         const string k_PackageName = "com.unity.xr.interaction.toolkit";
         const string k_PackageDisplayName = "XR Interaction Toolkit";
-        const string k_SampleDisplayName = "XR Device Simulator";
         const string k_InteractionSimulatorSampleDisplayName = "XR Interaction Simulator";
 
         const string k_XRInteractionSimulatorPrefabName = "XR Interaction Simulator";
-        const string k_XRDeviceSimulatorPrefabName = "XR Device Simulator";
 
         const float k_LabelsWidth = 270f;
 
@@ -24,8 +22,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         SerializedProperty m_AutomaticallyInstantiateSimulatorPrefab;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.automaticallyInstantiateInEditorOnly"/>.</summary>
         SerializedProperty m_AutomaticallyInstantiateInEditorOnly;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.useClassic"/>.</summary>
-        SerializedProperty m_UseClassic;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
         SerializedProperty m_SimulatorPrefab;
 
@@ -45,10 +41,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                     "Enable to only automatically create the simulator prefab when running inside the Unity Editor." +
                     " Disable to allow the simulator prefab to also be created in standalone builds.");
 
-            /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.useClassic"/>. </summary>
-            public static readonly GUIContent useClassic =
-                EditorGUIUtility.TrTextContent("Use Classic XR Device Simulator", "Enable to automatically use the legacy XR Device Simulator prefab instead.");
-
             /// <summary><see cref="GUIContent"/> for <see cref="XRDeviceSimulatorSettings.simulatorPrefab"/>.</summary>
             public static readonly GUIContent simulatorPrefab =
                 EditorGUIUtility.TrTextContent("XR Interaction Simulator prefab",
@@ -59,7 +51,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         {
             m_AutomaticallyInstantiateSimulatorPrefab = serializedObject.FindProperty("m_AutomaticallyInstantiateSimulatorPrefab");
             m_AutomaticallyInstantiateInEditorOnly = serializedObject.FindProperty("m_AutomaticallyInstantiateInEditorOnly");
-            m_UseClassic = serializedObject.FindProperty("m_UseClassic");
             m_SimulatorPrefab = serializedObject.FindProperty("m_SimulatorPrefab");
         }
 
@@ -68,7 +59,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
         {
             serializedObject.Update();
 
-            var useClassicPreviousValue = m_UseClassic.boolValue;
             var autoInstantiatePrefabPreviousValue = m_AutomaticallyInstantiateSimulatorPrefab.boolValue;
             var simulatorPrefabPreviousValue = m_SimulatorPrefab.objectReferenceValue;
 
@@ -81,7 +71,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 using (new EditorGUI.DisabledScope(!m_AutomaticallyInstantiateSimulatorPrefab.boolValue))
                 {
                     EditorGUILayout.PropertyField(m_AutomaticallyInstantiateInEditorOnly, Contents.automaticallyInstantiateInEditorOnly);
-                    EditorGUILayout.PropertyField(m_UseClassic, Contents.useClassic);
                     EditorGUILayout.PropertyField(m_SimulatorPrefab, Contents.simulatorPrefab);
                 }
 
@@ -91,17 +80,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Inputs.Simulation
                 {
                     if (m_AutomaticallyInstantiateSimulatorPrefab.boolValue)
                     {
-                        bool loaded;
-#pragma warning disable CS0618
-                        if (m_UseClassic.boolValue)
-                            loaded = TryLoadSimulatorSampleAsset<XRDeviceSimulator>(k_XRDeviceSimulatorPrefabName, k_SampleDisplayName);
-#pragma warning restore CS0618
-                        else
-                            loaded = TryLoadSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
-
+                        var loaded = TryLoadSimulatorSampleAsset<XRInteractionSimulator>(k_XRInteractionSimulatorPrefabName, k_InteractionSimulatorSampleDisplayName);
                         if (!loaded)
                         {
-                            m_UseClassic.boolValue = useClassicPreviousValue;
                             m_AutomaticallyInstantiateSimulatorPrefab.boolValue = autoInstantiatePrefabPreviousValue;
                             m_SimulatorPrefab.objectReferenceValue = simulatorPrefabPreviousValue;
                         }

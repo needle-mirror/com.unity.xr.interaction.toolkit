@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor.PackageManager;
@@ -14,6 +13,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
     [TestFixture]
     class EditorDocumentationTests
     {
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
+
         /// <summary>
         /// <see cref="PackageManager.PackageInfo"/> for com.unity.xr.interaction.toolkit.
         /// </summary>
@@ -22,10 +23,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [OneTimeSetUp]
         public void SetUp()
         {
-            var assembly = Assembly.Load("Unity.XR.Interaction.Toolkit");
-            Assert.That(assembly, Is.Not.Null);
-
-            m_PackageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
+            m_PackageInfo = PackageManager.PackageInfo.FindForPackageName(k_PackageName);
             Assert.That(m_PackageInfo, Is.Not.Null);
             Assert.That(m_PackageInfo.version, Is.Not.Null);
             Assert.That(m_PackageInfo.version, Is.Not.Empty);

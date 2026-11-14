@@ -7,7 +7,8 @@
         "Unity.TextMeshPro",
         "Unity.XR.CoreUtils",
         "Unity.XR.Hands",
-        "Unity.XR.Interaction.Toolkit"
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Interaction.Toolkit.Samples.StarterAssets"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

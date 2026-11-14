@@ -185,9 +185,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         double m_LastPlaybackTime;
         int m_LastFrameIdx;
 
-        bool m_PrevEnableInputActions;
-        bool m_PrevEnableInputTracking;
-
         IXRInputButtonReader m_PrevSelectBypass;
         IXRInputButtonReader m_PrevActivateBypass;
         IXRInputButtonReader m_PrevUIPressBypass;
@@ -203,11 +200,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         protected void Awake()
         {
-#pragma warning disable CS0618 // Type or member is obsolete -- Find reference for backwards compatibility
-            if (m_XRController == null)
-                m_XRController = GetComponentInParent<XRBaseController>(true);
-#pragma warning restore CS0618
-
             if (m_InteractorObject == null)
                 m_InteractorObject = GetComponentInParent<IXRInteractor>(true) as Object;
 
@@ -228,13 +220,7 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                 XRControllerState controllerState;
                 var time = Time.time - recordingStartTime;
-#pragma warning disable CS0618 // Type or member is obsolete -- If the controller component is added, use its state for backwards compatibility
-                if (m_XRController != null)
-                {
-                    controllerState = new XRControllerState(m_XRController.currentControllerState);
-                }
-#pragma warning restore CS0618
-                else if (interactor != null)
+                if (interactor != null)
                 {
                     var localPose = interactor.transform.GetLocalPose();
                     controllerState = new XRControllerState
@@ -363,16 +349,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         void StartPlaying()
         {
-#pragma warning disable CS0618 // Type or member is obsolete -- Done for backwards compatibility
-            if (m_XRController != null)
-            {
-                m_PrevEnableInputActions = m_XRController.enableInputActions;
-                m_PrevEnableInputTracking = m_XRController.enableInputTracking;
-                m_XRController.enableInputActions = false;
-                m_XRController.enableInputTracking = false;
-            }
-#pragma warning restore CS0618
-
             var interactor = GetInteractor();
             if (interactor != null)
             {
@@ -411,14 +387,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
         /// </summary>
         void StopPlaying()
         {
-#pragma warning disable CS0618 // Type or member is obsolete -- Done for backwards compatibility
-            if (m_XRController != null)
-            {
-                m_XRController.enableInputActions = m_PrevEnableInputActions;
-                m_XRController.enableInputTracking = m_PrevEnableInputTracking;
-            }
-#pragma warning restore CS0618
-
             var interactor = GetInteractor();
             if (m_Interactor != null)
             {
@@ -458,7 +426,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
                         break;
                     }
-
                 }
             }
 
@@ -468,11 +435,6 @@ namespace UnityEngine.XR.Interaction.Toolkit
 
             var recordingFrame = m_Recording.frames[frameIdx];
 
-#pragma warning disable CS0618 // Type or member is obsolete -- If the controller component is added, set its state for backwards compatibility
-            if (m_XRController != null)
-                m_XRController.currentControllerState = recordingFrame;
-#pragma warning restore CS0618
-
             var interactor = GetInteractor();
             if (interactor != null)
             {
@@ -481,21 +443,16 @@ namespace UnityEngine.XR.Interaction.Toolkit
                 m_UIPressBypass.state = recordingFrame.uiPressInteractionState;
                 m_UIScrollBypass.state = recordingFrame.uiScrollValue;
 
-                // Drive the Transform directly if we're not using the deprecated XR Controller
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (m_XRController == null)
-#pragma warning restore CS0618
-                {
-                    var interactorTransform = interactor.transform;
-                    var hasPosition = (recordingFrame.inputTrackingState & InputTrackingState.Position) != 0;
-                    var hasRotation = (recordingFrame.inputTrackingState & InputTrackingState.Rotation) != 0;
-                    if (hasPosition && hasRotation)
-                        interactorTransform.SetLocalPose(new Pose(recordingFrame.position, recordingFrame.rotation));
-                    else if (hasPosition)
-                        interactorTransform.localPosition = recordingFrame.position;
-                    else if (hasRotation)
-                        interactorTransform.localRotation = recordingFrame.rotation;
-                }
+                // Drive the Transform directly
+                var interactorTransform = interactor.transform;
+                var hasPosition = (recordingFrame.inputTrackingState & InputTrackingState.Position) != 0;
+                var hasRotation = (recordingFrame.inputTrackingState & InputTrackingState.Rotation) != 0;
+                if (hasPosition && hasRotation)
+                    interactorTransform.SetLocalPose(new Pose(recordingFrame.position, recordingFrame.rotation));
+                else if (hasPosition)
+                    interactorTransform.localPosition = recordingFrame.position;
+                else if (hasRotation)
+                    interactorTransform.localRotation = recordingFrame.rotation;
             }
 
             m_LastFrameIdx = frameIdx;

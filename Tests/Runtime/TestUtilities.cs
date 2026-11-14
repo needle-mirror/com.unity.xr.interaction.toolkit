@@ -1,12 +1,18 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
+#if UNITY_6000_5_OR_NEWER
+using Unity.Scripting.LifecycleManagement;
+#endif
 using Unity.XR.CoreUtils;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Attachment;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
@@ -375,6 +381,275 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
 
             return canvasGo;
         }
+
+        /// <summary>
+        /// Creates an EventSystem with an XR UI Input Module that only processes XR input.
+        /// Call before creating interactors, otherwise they create their own EventSystem and use that one instead.
+        /// </summary>
+        internal static XRUIInputModule CreateXRUIInputModule()
+        {
+            var inputModule = new GameObject("EventSystem", typeof(EventSystem), typeof(XRUIInputModule)).GetComponent<XRUIInputModule>();
+            inputModule.enableXRInput = true;
+            inputModule.enableMouseInput = false;
+            inputModule.enableTouchInput = false;
+            inputModule.enableGamepadInput = false;
+            inputModule.enableJoystickInput = false;
+            return inputModule;
+        }
+
+        /// <summary>
+        /// Records the uGUI scroll events it receives.
+        /// </summary>
+        internal class ScrollRecorder : MonoBehaviour, IScrollHandler
+        {
+            public readonly List<Vector2> deltas = new List<Vector2>();
+
+            public Vector2 total
+            {
+                get
+                {
+                    var sum = Vector2.zero;
+                    foreach (var delta in deltas)
+                    {
+                        sum += delta;
+                    }
+
+                    return sum;
+                }
+            }
+
+            public void OnScroll(PointerEventData eventData)
+            {
+                deltas.Add(eventData.scrollDelta);
+            }
+        }
+
+        /// <summary>
+        /// Creates a world space canvas 2.5 meters in front of the given transform, filled by a <see cref="ScrollRect"/>
+        /// that records the scroll events it receives.
+        /// </summary>
+        internal static ScrollRecorder CreateScrollRectCanvas(Camera worldCamera, Transform facing, float decelerationRate)
+        {
+            var canvas = CreateUICanvas(worldCamera);
+            canvas.transform.position = facing.position + facing.forward * 2.5f;
+            var scrollTarget = canvas.transform.Find("Parent").gameObject;
+            var scrollRect = scrollTarget.AddComponent<ScrollRect>();
+            scrollRect.content = (RectTransform)scrollTarget.transform.Find("Left Child");
+            scrollRect.decelerationRate = decelerationRate;
+            return scrollTarget.AddComponent<ScrollRecorder>();
+        }
+
+        static readonly Vector3 k_OutOfReachPosition = new Vector3(0f, -10f, 0f);
+
+        /// <summary>
+        /// Waits <paramref name="count"/> frames.
+        /// </summary>
+        internal static IEnumerator WaitFrames(int count)
+        {
+            for (var i = 0; i < count; ++i)
+                yield return null;
+        }
+
+        /// <summary>
+        /// Switches the readers to manual value mode.
+        /// </summary>
+        internal static void SetManualInput(params XRInputButtonReader[] readers)
+        {
+            foreach (var reader in readers)
+            {
+                reader.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
+            }
+        }
+
+        /// <summary>
+        /// Moves an interactor 10 meters below the origin, pointing down, so it hits nothing in the test scene.
+        /// </summary>
+        internal static void ParkOutOfReach(Transform interactor)
+        {
+            interactor.position = k_OutOfReachPosition;
+            interactor.rotation = Quaternion.LookRotation(Vector3.down);
+        }
+
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+        /// <summary>
+        /// Creates the XR UI Toolkit Manager and the Panel Input Configuration that world space UI Toolkit input needs,
+        /// as in the World Space UI sample. Create them before interactors so the interactors register with them.
+        /// </summary>
+        internal static void CreateUIToolkitInputSetup()
+        {
+            new GameObject("XR UI Toolkit Manager").AddComponent<XRUIToolkitManager>();
+            var configuration = new GameObject("Panel Input Configuration").AddComponent<UIElements.PanelInputConfiguration>();
+            configuration.panelInputRedirection = UIElements.PanelInputConfiguration.PanelInputRedirection.Never;
+        }
+
+        // Restored by RestoreUIToolkitTrackedInput in each test's TearDown, so they do not need automatic cleanup.
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        static object s_PreviousEditorRemoteConnected;
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        static bool s_ForcedEditorRemoteConnected;
+
+        /// <summary>
+        /// Makes UI Toolkit process the tracked device pointer input that interactors send, without an XR device.
+        /// Call <see cref="RestoreUIToolkitTrackedInput"/> in TearDown.
+        /// </summary>
+        /// <remarks>
+        /// In the Editor, UI Toolkit only processes tracked device input while <c>DefaultEventSystem.IsEditorRemoteConnected</c>
+        /// returns <see langword="true"/>. XRI sets it only while an XR device is active (see <see cref="XRUIToolkitHandler.UpdateEventSystem"/>),
+        /// so tests force it. Without this, batch mode runs never process the input, and the pointer events stay queued.
+        /// <c>DefaultEventSystem</c> is internal to UnityEngine, so this goes through reflection.
+        /// </remarks>
+        internal static void ForceUIToolkitTrackedInput()
+        {
+            var field = GetEditorRemoteConnectedField();
+            Assert.That(field, Is.Not.Null, "Could not find DefaultEventSystem.IsEditorRemoteConnected to route tracked device input to UI Toolkit.");
+
+            if (!s_ForcedEditorRemoteConnected)
+                s_PreviousEditorRemoteConnected = field.GetValue(null);
+
+            Func<bool> alwaysConnected = () => true;
+            field.SetValue(null, alwaysConnected);
+            s_ForcedEditorRemoteConnected = true;
+        }
+
+        /// <summary>
+        /// Restores the value <see cref="ForceUIToolkitTrackedInput"/> replaced. Does nothing if it was not forced.
+        /// </summary>
+        internal static void RestoreUIToolkitTrackedInput()
+        {
+            if (!s_ForcedEditorRemoteConnected)
+                return;
+
+            GetEditorRemoteConnectedField()?.SetValue(null, s_PreviousEditorRemoteConnected);
+            s_ForcedEditorRemoteConnected = false;
+            s_PreviousEditorRemoteConnected = null;
+        }
+
+        // A static field in Unity 6000.2 through 7000.0.
+        static FieldInfo GetEditorRemoteConnectedField()
+        {
+            var type = typeof(UIElements.VisualElement).Assembly.GetType("UnityEngine.UIElements.DefaultEventSystem");
+            return type?.GetField("IsEditorRemoteConnected", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        }
+
+        // UnityEngine.UIElements.WorldSpaceInput is internal to UnityEngine and is not visible to this
+        // test assembly (only to the XRI runtime), so it is reached through reflection.
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        static readonly MethodInfo s_LocalPointToGameObjectWorldSpace =
+            typeof(UIElements.VisualElement).Assembly.GetType("UnityEngine.UIElements.WorldSpaceInput")?
+                .GetMethod("LocalPointToGameObjectWorldSpace", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
+                    null, new[] { typeof(UIElements.VisualElement), typeof(Vector3) }, null);
+
+        /// <summary>
+        /// Returns the world position of the center of a laid out element on a world space panel.
+        /// </summary>
+        internal static Vector3 ElementCenterWorld(UIElements.VisualElement element)
+        {
+            Assert.That(s_LocalPointToGameObjectWorldSpace, Is.Not.Null, "WorldSpaceInput.LocalPointToGameObjectWorldSpace not found.");
+            var layout = element.layout;
+            return (Vector3)s_LocalPointToGameObjectWorldSpace.Invoke(null, new object[] { element, new Vector3(layout.width * 0.5f, layout.height * 0.5f, 0f) });
+        }
+
+        /// <summary>
+        /// Places an interactor 0.6 m in front of a world space panel and turns it so its cast origin points at the
+        /// center of <paramref name="element"/>, then waits a frame for the interactor to hover it.
+        /// </summary>
+        /// <param name="interactor">The interactor root to move.</param>
+        /// <param name="castOrigin">Returns the transform the interactor casts from, which can be offset from its root.</param>
+        /// <param name="panel">The transform of the GameObject that hosts the panel.</param>
+        /// <param name="element">The element to aim at.</param>
+        internal static IEnumerator AimAtElement(Transform interactor, Func<Transform> castOrigin, Transform panel, UIElements.VisualElement element)
+        {
+            var target = ElementCenterWorld(element);
+            interactor.position = target - panel.forward * 0.6f;
+            interactor.rotation = Quaternion.LookRotation(target - interactor.position, Vector3.up);
+            yield return null;
+
+            // Correct for a cast origin that is offset from the interactor root.
+            var origin = castOrigin();
+            if (origin != null && origin != interactor)
+                interactor.rotation = Quaternion.FromToRotation(origin.forward, (target - origin.position).normalized) * interactor.rotation;
+
+            yield return null;
+        }
+
+        /// <summary>
+        /// Pokes the center of <paramref name="element"/> slowly, pulls back, then parks the interactor out of reach.
+        /// </summary>
+        /// <param name="poke">The poke interactor.</param>
+        /// <param name="panel">The transform of the GameObject that hosts the panel.</param>
+        /// <param name="element">The element to poke.</param>
+        internal static IEnumerator PokeTestElement(XRPokeInteractor poke, Transform panel, UIElements.VisualElement element)
+        {
+            var target = ElementCenterWorld(element);
+            var forward = panel.forward;
+            var root = poke.transform;
+            var attach = poke.GetAttachTransform(null);
+
+            void PlaceAttach(Vector3 point) => root.position += point - attach.position;
+
+            // Slow press, about 1 mm per frame, that stops just past the surface. A fast push can hover
+            // without selecting on the zero depth MatchBoundingBox collider.
+            var start = target - forward * 0.05f;
+            var end = target + forward * 0.005f;
+            PlaceAttach(start);
+            yield return WaitFrames(5);
+
+            const int steps = 60;
+            for (var i = 1; i <= steps; ++i)
+            {
+                PlaceAttach(Vector3.Lerp(start, end, i / (float)steps));
+                yield return null;
+            }
+
+            yield return WaitFrames(10);
+
+            for (var i = 1; i <= steps; ++i)
+            {
+                PlaceAttach(Vector3.Lerp(end, start, i / (float)steps));
+                yield return null;
+            }
+
+            yield return WaitFrames(10);
+            ParkOutOfReach(root);
+            yield return WaitFrames(5);
+        }
+
+        // A panel can only be made world space from code in Unity 6.3 or newer.
+#if UNITY_6000_3_OR_NEWER
+        /// <summary>
+        /// Creates a world space UI Toolkit panel 2 meters in front of the origin, filled by a tall ScrollView.
+        /// Destroy <paramref name="panelSettings"/> after the test.
+        /// </summary>
+        internal static UIElements.ScrollView CreateWorldSpaceScrollView(out UIElements.PanelSettings panelSettings)
+        {
+            const float panelPixels = 400f;
+            const float contentHeight = 4000f;
+
+            panelSettings = ScriptableObject.CreateInstance<UIElements.PanelSettings>();
+            panelSettings.renderMode = UIElements.PanelRenderMode.WorldSpace;
+
+            var documentObject = new GameObject("UI Document");
+            documentObject.transform.position = new Vector3(0f, 0f, 2f);
+            var document = documentObject.AddComponent<UIElements.UIDocument>();
+            document.panelSettings = panelSettings;
+            document.worldSpaceSize = new Vector2(panelPixels, panelPixels);
+
+            var scrollView = new UIElements.ScrollView(UIElements.ScrollViewMode.Vertical);
+            var content = new UIElements.VisualElement();
+            content.style.height = contentHeight;
+            content.style.flexShrink = 0f;
+            scrollView.Add(content);
+            document.rootVisualElement.Add(scrollView);
+            return scrollView;
+        }
+#endif
+#endif
 
         internal static XRSimpleInteractable CreateMultiSelectableSimpleInteractable()
         {

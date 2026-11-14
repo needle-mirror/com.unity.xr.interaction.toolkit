@@ -1,8 +1,9 @@
 {
   "name": "com.unity.xr.interaction.toolkit",
   "displayName": "XR Interaction Toolkit",
-  "version": "3.7.0",
-  "unity": "6000.0",
+  "version": "7.0.0-pre.1",
+  "unity": "7000.0",
+  "unityRelease": "0a12",
   "description": "A high-level, component-based, interaction system for creating VR and AR experiences. It provides a framework that makes 3D and UI interactions available from Unity input events. The core of this system is a set of base Interactor and Interactable components, and an Interaction Manager that ties these two types of components together. It also contains components that you can use for locomotion and drawing visuals.",
   "keywords": [
     "XR",
@@ -14,7 +15,7 @@
   "dependencies": {
     "com.unity.inputsystem": "1.8.1",
     "com.unity.mathematics": "1.2.6",
-    "com.unity.ugui": "2.0.0",
+    "com.unity.ugui": "7.0.0",
     "com.unity.xr.core-utils": "2.4.0",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
@@ -29,12 +30,12 @@
     },
     {
       "displayName": "Hands Interaction Demo",
-      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources",
+      "description": "Demo scene and other assets for hand-tracking integration with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample\n • HandVisualizer sample (from <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>)\n • TMP Essential Resources",
       "path": "Samples~/Hands Interaction Demo"
     },
     {
       "displayName": "XR Mouse Interaction Demo",
-      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0 or newer\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.androidxr-openxr\">Unity OpenXR Android XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Hands Interaction Demo sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources",
+      "description": "Demo scene and assets for Android Mouse support using the Android Mouse OpenXR Extension with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.openxr\">OpenXR Plugin</a> 1.17.0 or newer\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.androidxr-openxr\">Unity OpenXR Android XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Hands Interaction Demo sample\n • HandVisualizer sample (from <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>)\n • TMP Essential Resources",
       "path": "Samples~/XRMouseInteractionDemo"
     },
     {
@@ -49,40 +50,35 @@
     },
     {
       "displayName": "Spatial Keyboard",
-      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources",
+      "description": "Virtual spatial keyboard to allow for text entry in a world space UI. This interactable keyboard can be used in your app instead of the platform's system keyboard.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • HandVisualizer sample (from <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>)\n • TMP Essential Resources",
       "path": "Samples~/Spatial Keyboard"
     },
     {
       "displayName": "World Space UI",
-      "description": "This sample provides a demo scene and prefabs demonstrating how to leverage UI Toolkit and UGUI in world space in conjunction with the XR Interaction Toolkit. \n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • HandVisualizer sample (from XR Hands)\n • TMP Essential Resources\n • Unity 6.2 or newer (minimum 6000.2.0a9)",
+      "description": "This sample provides a demo scene and prefabs demonstrating how to leverage UI Toolkit and UGUI in world space in conjunction with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>\n • Starter Assets sample\n • Hands Interaction Demo sample\n • HandVisualizer sample (from <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.hands\">XR Hands</a>)\n • TMP Essential Resources\n • Unity 6.2 or newer (minimum 6000.2.0a9)",
       "path": "Samples~/World Space UI"
     },
     {
       "displayName": "visionOS",
-      "description": "This sample provides a demo scene and prefabs designed to to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
+      "description": "This sample provides a demo scene and prefabs designed to help you get started developing on visionOS with the XR Interaction Toolkit.\n<i>Dependencies:</i>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.xr.arfoundation\">AR Foundation</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.visionos\">PolySpatial visionOS</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.polyspatial.xr\">PolySpatial XR</a>\n • <a href=\"com.unity3d.kharma:upmpackage/com.unity.shadergraph\">Shader Graph</a>\n • Starter Assets sample",
       "path": "Samples~/visionOS"
     },
     {
       "displayName": "Legacy XR Input Readers",
       "description": "This sample provides ScriptableObjects to assist with migration from the older device-based controller input to be used with the new input readers introduced with version 3.0.0.",
       "path": "Samples~/Legacy XR Input Readers"
-    },
-    {
-      "displayName": "XR Device Simulator",
-      "description": "(Legacy) Assets related to the simulation of input for XR headsets, controllers, and hands.\n <b>Note:</b> This is the older \"classic\" version of input simulation and does not have as many features as the XR Interaction Simulator sample. This sample will be removed in a future version of the XR Interaction Toolkit.",
-      "path": "Samples~/XR Device Simulator"
     }
   ],
   "_upm": {
-    "changelog": "### Added\n- Added `XRHandsConfigurationManager` component script for setting the `XRHandSubsystem` pose source configuration to Common Gestures. See [XR Hand Device: Configuration](xref:xrhands-hand-device#configuration) in the XR Hands documentation. This component was added to a new `Hands Configuration Manager` GameObject in the `XR Origin Hands (XR Rig)` prefab variant. This GameObject is currently deactivated to keep the pose source configuration set to Legacy until more runtimes are fully compliant with the [OpenXR: Hand Interaction Profile](xref:openxr-hand-interaction-profile).\n- Added event-driven collider registration and lifecycle support to `XRUIToolkitManager` leveraging the `UIDocument.worldSpaceColliderChanged` when running on Unity 7000.0.0a8 or newer to improve performance.\n\n### Changed\n- Changed the input actions in the `XRI Default Input Actions` asset in the Starter Assets sample to separate actions intended to be used for controllers and hand tracking to improve compatibility with the [OpenXR: Hand Interaction Profile](xref:openxr-hand-interaction-profile). Changed the `XR Origin Hands (XR Rig)` prefab variant and some nested prefabs to use the new input actions which represent different hand tracking poses. Some of the bindings for the pose input actions were removed and consolidated into the `<XRHandDevice>` which combines multiple input sources.\n- Changed recommended version of [XR Hands package](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) (com.unity.xr.hands) to 1.10.0-pre.1 or newer to support explicit wrist pose input controls in `<XRHandDevice>`.\n\n### Fixed\n- Fixed the `Hand Teleport Interactor` prefab in the Hands Interaction Demo sample to work correctly when the Hand Interaction Profile is enabled in OpenXR. This is done by using a new set of Hand Teleport input actions in the `XRI Default Input Actions` asset in the Starter Assets sample. ([UUM-144538](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-144538))\n- Fixed [XR Interaction Simulator documentation](xref:xri-xr-interaction-simulator) that incorrectly listed hand control hot keys that were previously removed. ([UUM-154070](https://issuetracker.unity3d.com/product/unity/issues/guid/UUM-154070))\n- Fixed an issue where importing package samples into Unity 7 alpha versions caused a compiler error.\n- Fixed the `JoystickPinchHandGesture` script and prefab in the Hands Interaction Demo sample to improve hand teleportation.\n  - Changed prefab to reduce smoothing of rotation aiming.\n  - Removed pitch and translation offset of the aiming ray origin in the prefab for consistency across OpenXR runtimes.\n  - Fixed to initialize the Navigator UI direction correctly upon a new teleport and avoid unintentional pitch offsets while aiming it.\n  - Fixed the directional aiming with the Navigator UI to have a consistent reference space.\n  - Fixed the rules for when to show the Navigator UI to be based on whether the orientation can be controlled rather than based on if it was a Teleportation Anchor being targeted.\n- Fixed the `PinchPointFollow` script in the Hands Interaction Demo sample to not use the full orientation of the target transform but rather just the forward direction since OpenXR runtimes can vary the y-axis. Renamed the Target Rotation property to Target Forward to reflect this change.\n- Fixed compiler warning related to `IProcessSceneWithReport` in Unity 7000.0.0a5 or newer.\n- Fixed Spatial Keyboard so the input field caret does not continue flashing after the keyboard closed."
+    "changelog": "### Added\n\n- Added gaze aim to the Hands Interaction Demo sample, so users can target objects and UI by looking at them and pinching to select. The `GazePinchRayDriver` component aims the far ray of a Near-Far Interactor with gaze, and the `ToggleGazeAim` component on the `XR Origin Hands (XR Rig)` prefab switches between gaze aim and hand aim, off by default.\n- Added eye tracking permission requests for Meta Quest and Android XR to the Permissions Manager in `HandsDemoScene`, disabled by default.\n- Added `eyeTrackingDeviceFound`, `IsGazeTracked`, and `eyeTrackingDeviceFoundChanged` to `GazeInputManager` in the Starter Assets sample.\n- Added `StepMoveProvider`, a locomotion provider that moves the XR Origin in fixed distance steps.\n- Added a Microgesture Teleport Mode section to the `TeleportHandGesture` script in the Hands Interaction Demo sample. On the right hand, a microgesture thumb tap enters teleport mode and a second tap teleports. While in this mode, swiping left or right snap turns and swiping forward or backward steps. Configured the `XR Origin Hands (XR Rig)` prefab to use it.\n- Added `Microgesture Teleport Mode`, `Microgesture Snap Turn`, and `Microgesture Step` input actions to the `XRI Right Locomotion` action map in the `XRI Default Input Actions` asset in the Starter Assets sample.\n- Added `PressScrollInput` component that takes a single press, such as a hand tracking microgesture swipe or a button press, and converts it into one UI scroll of a fixed distance in the pressed direction.\n- Added **UI Scroll Momentum** (`NearFarInteractor.uiScrollMomentum` and `XRRayInteractor.uiScrollMomentum`), which makes UI scroll input continue on the scroll view it was aimed at and slow to a stop at that scroll view's deceleration rate. Off by default.\n- Added a `Microgesture Scroll` action to the `XRI Left Interaction` and `XRI Right Interaction` action maps in the `XRI Default Input Actions` asset in the Starter Assets sample.\n- Added microgesture UI scrolling to the `XR Origin Hands (XR Rig)` prefab in the Hands Interaction Demo sample.\n- Added `PanelRenderer` support for world-space UI Toolkit panels when using poke, ray, and near-far interaction.\n- Added `panelComponent` property to `UIHoverEventArgs` for identifying the panel host (`UIDocument` or `PanelRenderer`) during hover events.\n\n### Changed\n\n- Changed the package version from 3.7.1 to 7.0.0-pre.1 to align the package major version with Unity 7.\n- Changed the minimum Unity version from 6000.0 to 7000.0.\n- Changed the minimum uGUI version from 2.0.0 to 7.0.0.\n- Changed recommended version of [XR Hands package](https://docs.unity3d.com/Manual/com.unity.xr.hands.html) (com.unity.xr.hands) to 7.0.0-pre.1 or newer to support Meta Hand Tracking Aim driving aim pose input controls in `<XRHandDevice>`.\n- Changed the input actions in the `XRI Default Input Actions` asset in the Starter Assets sample to remove bindings to `<MetaAimHand>` in Hand Aim Position, Hand Aim Rotation, and Hand Aim Tracking State actions since the remaining `<XRHandDevice>` bindings are now sufficient as of com.unity.xr.hands version 7.0.0-pre.1.\n- Changed interactors to always read input from their input reader properties (such as `selectInput` and `activateInput`). Input is no longer read from an obsolete XR Controller component, and the obsolete audio and haptic event settings on interactors are no longer migrated to `SimpleAudioFeedback` and `SimpleHapticFeedback` components at runtime.\n- Changed `ContinuousMoveProvider`, `GrabMoveProvider`, and `TwoHandedGrabMoveProvider` to no longer apply gravity themselves when no `GravityProvider` is in the scene. Add a `GravityProvider` component to apply gravity during locomotion. Refer to [Gravity Provider](xref:gravity-provider).\n- Changed locomotion providers to require a `LocomotionMediator`. The obsolete `LocomotionSystem` is no longer located as a fallback.\n- Changed the AR gesture recognizers to only create gestures from Input System Enhanced Touch input. Input Manager touch input is no longer supported.\n- Changed the XR Interaction Simulat"
   },
   "upmCi": {
-    "footprint": "81d743371989a154ea8cd8c63a9cdc52ab1866b0"
+    "footprint": "87e270f0547b8a1299e23a6519b4b507ac924c93"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@3.7/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.xr.interaction.toolkit@7.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/xr.git",
     "type": "git",
-    "revision": "21671009324b04a5cf766def6620556e1692d5c4"
+    "revision": "97aa00bbf170ab2202509a163aaa8c48beaca341"
   }
 }

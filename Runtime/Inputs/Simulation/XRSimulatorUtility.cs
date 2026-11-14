@@ -254,6 +254,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// </summary>
     static class XRSimulatorUtility
     {
+        const string k_FindCreateSimulatedHandExpressionManagerDeprecated = "SimulatedHandExpressionManager has been marked as deprecated. It will be replaced with SimulatedHandPlaybackManager in future versions.";
+
         /// <summary>
         /// The maximum angle the XR Camera can have around the x-axis.
         /// </summary>
@@ -283,18 +285,10 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         /// Searches for a <see cref="SimulatedHandExpressionManager"/> component in the scene, and creates one if an existing
         /// component is not found.
         /// </summary>
-        [Obsolete("SimulatedHandExpressionManager has been marked as deprecated. It will be replaced with SimulatedHandPlaybackManager in future versions.")]
+        [Obsolete(k_FindCreateSimulatedHandExpressionManagerDeprecated, true)]
         internal static SimulatedHandExpressionManager FindCreateSimulatedHandExpressionManager(GameObject simulator)
         {
-            if (ComponentLocatorUtility<SimulatedHandExpressionManager>.TryFindComponent(out var simulatedHandExpressionManager))
-            {
-                return simulatedHandExpressionManager;
-            }
-            else
-            {
-                simulatedHandExpressionManager = simulator.AddComponent<SimulatedHandExpressionManager>();
-                return simulatedHandExpressionManager;
-            }
+            throw new NotSupportedException(k_FindCreateSimulatedHandExpressionManagerDeprecated);
         }
 
         /// <summary>

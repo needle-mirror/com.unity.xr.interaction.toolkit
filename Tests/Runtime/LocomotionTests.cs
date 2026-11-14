@@ -9,6 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Gravity;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Jump;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
@@ -36,6 +37,22 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRRayInteractor.HitDetectionType.Raycast,
             XRRayInteractor.HitDetectionType.SphereCast,
             XRRayInteractor.HitDetectionType.ConeCast,
+        };
+
+        const float k_CameraYaw = 45f;
+        const float k_StepMoveWaitTime = 0.25f;
+
+        static readonly StepMoveCase[] s_StepMoveCases =
+        {
+            new StepMoveCase(Vector2.up, Vector2.up),
+            new StepMoveCase(Vector2.down, Vector2.down),
+            new StepMoveCase(Vector2.right, Vector2.right),
+            new StepMoveCase(Vector2.left, Vector2.left),
+            new StepMoveCase(new Vector2(0.9f, 0.3f), Vector2.right),
+            new StepMoveCase(new Vector2(-0.2f, 0.8f), Vector2.up),
+            new StepMoveCase(Vector2.right, Vector2.zero, enableStrafe: false),
+            new StepMoveCase(Vector2.left, Vector2.zero, enableStrafe: false),
+            new StepMoveCase(Vector2.down, Vector2.zero, enableStepBackward: false),
         };
 
         [TearDown]
@@ -976,6 +993,150 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             yield return null;
 
             Assert.That(xrOrigin.transform.rotation.eulerAngles, Is.EqualTo(new Vector3(0f, 180f, 0f)).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMove([ValueSource(nameof(s_StepMoveCases))] StepMoveCase stepMoveCase)
+        {
+            var stepProvider = CreateStepMoveProvider();
+            stepProvider.enableStrafe = stepMoveCase.enableStrafe;
+            stepProvider.enableStepBackward = stepMoveCase.enableStepBackward;
+            stepProvider.rightHandStepInput.manualValue = stepMoveCase.input;
+
+            yield return null;
+
+            var expectedPosition = GetExpectedStepPosition(k_CameraYaw, stepMoveCase.expectedDirection, stepProvider.stepDistance);
+            Assert.That(stepProvider.mediator.xrOrigin.Origin.transform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMoveUsesForwardSource()
+        {
+            var stepProvider = CreateStepMoveProvider();
+            var xrOrigin = stepProvider.mediator.xrOrigin;
+
+            const float controllerYaw = -45f;
+            var controller = new GameObject("Controller");
+            controller.transform.SetParent(xrOrigin.CameraFloorOffsetObject.transform, false);
+            controller.transform.Rotate(0f, controllerYaw, 0f);
+
+            stepProvider.forwardSource = controller.transform;
+            stepProvider.rightHandStepInput.manualValue = Vector2.up;
+
+            yield return null;
+
+            var expectedPosition = GetExpectedStepPosition(controllerYaw, Vector2.up, stepProvider.stepDistance);
+            Assert.That(xrOrigin.Origin.transform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMoveDebouncesHeldInput()
+        {
+            var stepProvider = CreateStepMoveProvider();
+            stepProvider.debounceTime = k_StepMoveWaitTime;
+            stepProvider.rightHandStepInput.manualValue = Vector2.up;
+            var originTransform = stepProvider.mediator.xrOrigin.Origin.transform;
+            var oneStepPosition = GetExpectedStepPosition(k_CameraYaw, Vector2.up, stepProvider.stepDistance);
+
+            yield return WaitForStepFrames();
+
+            Assert.That(originTransform.position, Is.EqualTo(oneStepPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMoveWaitsForDelayTime()
+        {
+            var stepProvider = CreateStepMoveProvider();
+            stepProvider.delayTime = k_StepMoveWaitTime;
+            stepProvider.rightHandStepInput.manualValue = Vector2.up;
+            var originTransform = stepProvider.mediator.xrOrigin.Origin.transform;
+
+            yield return null;
+
+            Assert.That(originTransform.position, Is.EqualTo(Vector3.zero).Using(Vector3ComparerWithEqualsOperator.Instance));
+
+            // Releasing the input before the delay ends still steps once the delay ends.
+            stepProvider.rightHandStepInput.manualValue = Vector2.zero;
+
+            yield return new WaitForSeconds(k_StepMoveWaitTime);
+            yield return WaitForStepFrames();
+
+            var expectedPosition = GetExpectedStepPosition(k_CameraYaw, Vector2.up, stepProvider.stepDistance);
+            Assert.That(originTransform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMoveScalesWithOrigin()
+        {
+            var stepProvider = CreateStepMoveProvider();
+            var originTransform = stepProvider.mediator.xrOrigin.Origin.transform;
+
+            const float originScale = 2f;
+            originTransform.localScale = Vector3.one * originScale;
+            stepProvider.rightHandStepInput.manualValue = Vector2.up;
+
+            yield return null;
+
+            var expectedPosition = GetExpectedStepPosition(k_CameraYaw, Vector2.up, stepProvider.stepDistance * originScale);
+            Assert.That(originTransform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        [UnityTest]
+        public IEnumerator StepMoveWhenLookingStraightUp()
+        {
+            var stepProvider = CreateStepMoveProvider();
+            var xrOrigin = stepProvider.mediator.xrOrigin;
+            xrOrigin.Camera.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+            stepProvider.rightHandStepInput.manualValue = Vector2.up;
+
+            yield return null;
+
+            var expectedPosition = GetExpectedStepPosition(0f, Vector2.up, stepProvider.stepDistance);
+            Assert.That(xrOrigin.Origin.transform.position, Is.EqualTo(expectedPosition).Using(Vector3ComparerWithEqualsOperator.Instance));
+        }
+
+        static StepMoveProvider CreateStepMoveProvider()
+        {
+            var xrOrigin = TestUtilities.CreateXROrigin();
+            xrOrigin.Camera.transform.Rotate(0f, k_CameraYaw, 0f);
+
+            var mediator = xrOrigin.gameObject.AddComponent<LocomotionMediator>();
+            mediator.xrOrigin = xrOrigin;
+            var stepProvider = xrOrigin.gameObject.AddComponent<StepMoveProvider>();
+            stepProvider.mediator = mediator;
+            stepProvider.rightHandStepInput.inputSourceMode = XRInputValueReader.InputSourceMode.ManualValue;
+
+            return stepProvider;
+        }
+
+        static IEnumerator WaitForStepFrames()
+        {
+            yield return null;
+            yield return null;
+            yield return null;
+        }
+
+        static Vector3 GetExpectedStepPosition(float forwardYaw, Vector2 direction, float distance)
+        {
+            return Quaternion.Euler(0f, forwardYaw, 0f) * new Vector3(direction.x, 0f, direction.y) * distance;
+        }
+
+        public readonly struct StepMoveCase
+        {
+            public Vector2 input { get; }
+            public Vector2 expectedDirection { get; }
+            public bool enableStrafe { get; }
+            public bool enableStepBackward { get; }
+
+            public StepMoveCase(Vector2 input, Vector2 expectedDirection, bool enableStrafe = true, bool enableStepBackward = true)
+            {
+                this.input = input;
+                this.expectedDirection = expectedDirection;
+                this.enableStrafe = enableStrafe;
+                this.enableStepBackward = enableStepBackward;
+            }
+
+            public override string ToString() => $"input {input}, strafe {enableStrafe}, backward {enableStepBackward}";
         }
 
         [UnityTest]

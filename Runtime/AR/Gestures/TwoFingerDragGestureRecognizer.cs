@@ -23,7 +23,6 @@
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
 
 using System;
-using UnityEngine;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -49,11 +48,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         readonly Func<InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch, TwoFingerDragGesture> m_CreateEnhancedGesture;
         readonly Action<TwoFingerDragGesture, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch> m_ReinitializeEnhancedGesture;
 
-#if !XRI_LEGACY_INPUT_DISABLED
-        readonly Func<Touch, Touch, TwoFingerDragGesture> m_CreateGestureFunction;
-        readonly Action<TwoFingerDragGesture, Touch, Touch> m_ReinitializeGestureFunction;
-#endif
-
         /// <summary>
         /// Initializes and returns an instance of <see cref="TwoFingerDragGestureRecognizer"/>.
         /// </summary>
@@ -61,34 +55,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             m_CreateEnhancedGesture = CreateEnhancedGesture;
             m_ReinitializeEnhancedGesture = ReinitializeEnhancedGesture;
-
-#if !XRI_LEGACY_INPUT_DISABLED
-            m_CreateGestureFunction = CreateGesture;
-            m_ReinitializeGestureFunction = ReinitializeGesture;
-#endif
         }
-
-#if !XRI_LEGACY_INPUT_DISABLED
-        /// <summary>
-        /// Creates a two finger drag gesture with the given touches.
-        /// </summary>
-        /// <param name="touch1">The first touch that started this gesture.</param>
-        /// <param name="touch2">The second touch that started this gesture.</param>
-        /// <returns>The created Two Finger Drag gesture.</returns>
-        TwoFingerDragGesture CreateGesture(Touch touch1, Touch touch2)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            return new TwoFingerDragGesture(this, touch1, touch2);
-#pragma warning restore CS0618
-        }
-
-        static void ReinitializeGesture(TwoFingerDragGesture gesture, Touch touch1, Touch touch2)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-            gesture.Reinitialize(touch1, touch2);
-#pragma warning restore CS0618
-        }
-#endif
 
         /// <summary>
         /// Creates a two finger drag gesture with the given touches.
@@ -111,12 +78,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         {
             if (GestureTouchesUtility.touchInputSource == GestureTouchesUtility.TouchInputSource.Enhanced)
                 TryCreateTwoFingerGestureOnTouchBegan(m_CreateEnhancedGesture, m_ReinitializeEnhancedGesture);
-#if !XRI_LEGACY_INPUT_DISABLED
-            else
-#pragma warning disable CS0618 // Type or member is obsolete -- For backwards compatibility with existing projects
-                TryCreateTwoFingerGestureOnTouchBegan(m_CreateGestureFunction, m_ReinitializeGestureFunction);
-#pragma warning restore CS0618
-#endif
         }
     }
 }

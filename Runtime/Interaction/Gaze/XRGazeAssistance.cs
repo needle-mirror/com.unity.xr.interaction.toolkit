@@ -499,7 +499,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Gaze
 #if BURST_PRESENT
     [BurstCompile]
 #endif
-        static void GetAssistedVelocityInternal(in Vector3 source, in Vector3 target, in Vector3 velocity, float gravity,
+        internal static void GetAssistedVelocityInternal(in Vector3 source, in Vector3 target, in Vector3 velocity, float gravity,
             float maxAngle, float requiredSpeed, float maxSpeedPercent, float assistPercent, float epsilon, out Vector3 adjustedVelocity)
         {
             var toTarget = (target - source);

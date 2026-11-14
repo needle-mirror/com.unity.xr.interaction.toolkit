@@ -116,9 +116,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            // Only need to wait one frame since the single select mode should cause the socket selection to first exit
-            // before being selected by the direct interactor.
             yield return new WaitForFixedUpdate();
+            yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
             yield return null;
 
             Assert.That(socketInteractor.interactablesSelected, Is.Empty);
@@ -145,13 +145,9 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             });
             controllerRecorder.isPlaying = true;
 
-            // May need to wait two frames.
-            // One for XRInteractionManager to enter the selection of the socket and direct interactors.
-            // Two for XRInteractionManager.ClearInteractorSelection to exit the selection of the socket
-            // since the CanSelect should now want to clear the selection due to no longer being the exclusive
-            // interactor selecting.
             yield return new WaitForFixedUpdate();
-            yield return null;
+            yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
             yield return null;
 
             Assert.That(socketInteractor.interactablesSelected, Is.Empty);

@@ -794,7 +794,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Attachment
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 startLocalOffsetNormalized, float startLocalOffsetLength,
+        internal static void ComputeAmplifiedOffset(in float3 velocityLocal, in float3 startLocalOffsetNormalized, float startLocalOffsetLength,
             in float3 targetLocalOffsetNormalized, in float3 currentLocalOffset, float minAdditionalVelocityScalar, float maxAdditionalVelocityScalar,
             float pushVelocityBias, float pullVelocityBias, float zVelocityRampThreshold, bool calculateMomentum, bool applyMomentum, float momentumDecayScale,
             ref float momentum, ref float pivot, float deltaTime, out float3 newOffset)

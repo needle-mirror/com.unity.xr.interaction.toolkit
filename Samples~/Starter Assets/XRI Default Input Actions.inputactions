@@ -650,30 +650,8 @@
                 },
                 {
                     "name": "",
-                    "id": "3c84bb07-3453-43ff-ad99-3f420b3d9a37",
-                    "path": "<MetaAimHand>{LeftHand}/devicePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "73f3c491-d5ec-4851-84f5-9138a454eb5c",
                     "path": "<XRHandDevice>{LeftHand}/aimRotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "5eb93829-969b-4292-afee-baa0ad704936",
-                    "path": "<MetaAimHand>{LeftHand}/deviceRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -826,17 +804,6 @@
                 },
                 {
                     "name": "",
-                    "id": "cc3e1026-82ad-4165-85fb-bbb646a8e2fe",
-                    "path": "<MetaAimHand>{LeftHand}/trackingState",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Tracking State",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "770441ba-bf4c-417d-845f-cfadcbbaff9c",
                     "path": "<XRHandDevice>{LeftHand}/wristTrackingState",
                     "interactions": "",
@@ -936,6 +903,15 @@
                     "processors": "InvertVector2(invertY=false)",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Microgesture Scroll",
+                    "type": "Value",
+                    "id": "78a34b74-718e-4ea8-9bd6-716ef8d0c6c8",
+                    "expectedControlType": "Vector2",
+                    "processors": "InvertVector2(invertY=false)",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Translate Manipulation",
@@ -1313,6 +1289,61 @@
                     "action": "UI Scroll",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "2DVector",
+                    "id": "cde1d495-df47-4cde-9048-109a2ff1b7db",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "773a5498-28e4-4e43-a6ee-2d8d34ab1a85",
+                    "path": "<HandInteractionMicrogestures>{LeftHand}/swipeForward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "9459cc8d-e29d-4399-a161-aa223afab5fa",
+                    "path": "<HandInteractionMicrogestures>{LeftHand}/swipeBackward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "4d3b8e0c-5c51-4490-849c-b785ed073d07",
+                    "path": "<HandInteractionMicrogestures>{LeftHand}/swipeLeft",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "d6ee5059-f11d-497a-a6cd-9e9bce371be1",
+                    "path": "<HandInteractionMicrogestures>{LeftHand}/swipeRight",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -1815,30 +1846,8 @@
                 },
                 {
                     "name": "",
-                    "id": "226a479e-a62d-45ee-b340-530300863c6b",
-                    "path": "<MetaAimHand>{RightHand}/devicePosition",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Position",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "43fa4f6a-9bc1-47f1-9c04-3840e77ba4ec",
                     "path": "<XRHandDevice>{RightHand}/aimRotation",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Rotation",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "85e69598-6a3c-4344-bc55-31058aa86559",
-                    "path": "<MetaAimHand>{RightHand}/deviceRotation",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -1905,17 +1914,6 @@
                     "name": "",
                     "id": "59822bd6-e701-4299-bcf2-23dd82fb5bfb",
                     "path": "<XRHandDevice>{RightHand}/aimTrackingState",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Hand Aim Tracking State",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "4df97532-f2a1-45ef-9784-88a6b51e851e",
-                    "path": "<MetaAimHand>{RightHand}/trackingState",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2101,6 +2099,15 @@
                     "processors": "InvertVector2(invertY=false)",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Microgesture Scroll",
+                    "type": "Value",
+                    "id": "cbe76d62-824e-4551-9b4b-a7d4f3757dfe",
+                    "expectedControlType": "Vector2",
+                    "processors": "InvertVector2(invertY=false)",
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Translate Manipulation",
@@ -2502,6 +2509,61 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "2DVector",
+                    "id": "f8d42f81-275f-4cf3-b00b-5488c3d92844",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "832e602c-19df-4777-99b9-6cf398caed74",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeForward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "36666ee1-a647-4edb-8249-07b51055efff",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeBackward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "e5f7921d-bf71-4cb1-9fb9-1c75f86d9e06",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeLeft",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "e0214eda-1aee-4668-b106-20364b5fbf09",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeRight",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Scroll",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
                     "name": "",
                     "id": "d8258e49-f7cc-44d7-bc27-77c2161e2005",
                     "path": "<XRController>{RightHand}/{Primary2DAxisClick}",
@@ -2628,6 +2690,33 @@
                     "type": "Button",
                     "id": "01c7fda4-9c15-4167-8b87-58024f21d903",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Microgesture Teleport Mode",
+                    "type": "Button",
+                    "id": "52407b5b-a9a7-4516-b389-2f9c7d4c4e44",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Microgesture Snap Turn",
+                    "type": "Value",
+                    "id": "4c588402-42eb-4e0b-94ff-ae639cd9aadc",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Microgesture Step",
+                    "type": "Value",
+                    "id": "a6b1de57-18c3-4224-a0b9-e17e279a3780",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -2776,6 +2865,127 @@
                     "action": "Hand Teleport Select Value",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2f17c6e3-8f08-4e09-8534-78d1f777871d",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/tapThumb",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Teleport Mode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "2DVector",
+                    "id": "b1d6d213-5868-42ca-b178-2da490c0b261",
+                    "path": "2DVector",
+                    "interactions": "Sector(directions=12,sweepBehavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Snap Turn",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "cad7ebbd-b881-4238-875e-15a66a89c7de",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeForward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Snap Turn",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "19ff2a6b-53de-4a14-a4cd-a5cb45ee1b0c",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeBackward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Snap Turn",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "e2a554e4-317c-4961-a5fa-f40bfb5cf2e9",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeLeft",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Snap Turn",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "6e26d7f3-5448-41cf-b5ea-3c4cd9c5ad50",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeRight",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Snap Turn",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "2DVector",
+                    "id": "91bf42eb-a242-4f85-ba39-d39d73fccc50",
+                    "path": "2DVector",
+                    "interactions": "Sector(directions=3,sweepBehavior=1)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Step",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "a487e4d4-c840-4a38-a4a6-9352ed3d080b",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeForward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Step",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "02960f99-6a45-4cb9-986a-068f7ee79ac8",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeBackward",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Step",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "47152552-2186-499b-83fb-4b78d842771a",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeLeft",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Step",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "e7c0697f-d910-42b6-bfe6-6b7f0169324f",
+                    "path": "<HandInteractionMicrogestures>{RightHand}/swipeRight",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Microgesture Step",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },

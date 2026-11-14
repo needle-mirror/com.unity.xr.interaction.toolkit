@@ -13,6 +13,7 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace UnityEngine.XR.Interaction.Toolkit.Tests
 {
@@ -43,10 +44,115 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             XRBaseInputInteractor.InputTriggerType.Sticky,
         };
 
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+        UnityEngine.UIElements.PanelSettings m_PanelSettings;
+#endif
+
         [TearDown]
         public void TearDown()
         {
             TestUtilities.DestroyAllSceneObjects();
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+            if (m_PanelSettings != null)
+                Object.DestroyImmediate(m_PanelSettings);
+
+            TestUtilities.RestoreUIToolkitTrackedInput();
+#endif
+        }
+
+        const float k_MomentumScrollDistance = 300f;
+        const float k_MomentumTolerance = 0.5f;
+        const int k_MaxHoverFrames = 600;
+
+        // Slow deceleration so a momentum scroll is still scrolling when the test presses.
+        const float k_SlowDecelerationRate = 0.5f;
+
+        // Interactor scroll input that scrolls k_MomentumScrollDistance pixels down at the default tracked scroll delta multiplier.
+        static readonly Vector2 k_MomentumScrollInput = new Vector2(0f, -k_MomentumScrollDistance / UIInputModule.k_DefaultTrackedScrollDeltaMultiplier);
+
+        [UnityTest]
+        public IEnumerator ScrollRectMomentumContinuesUntilPressed()
+        {
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateXRUIInputModule();
+            var camera = new GameObject("Camera").AddComponent<Camera>();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            var recorder = TestUtilities.CreateScrollRectCanvas(camera, interactor.transform, k_SlowDecelerationRate);
+            EnableUIScrollMomentum(interactor);
+
+            // Wait for the ray to hover the canvas.
+            yield return new WaitForFixedUpdate();
+            yield return null;
+            yield return null;
+
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            Assert.That(recorder.total.y, Is.LessThan(0f).And.GreaterThan(-k_MomentumScrollDistance + k_MomentumTolerance), "The scroll should still be scrolling.");
+
+            // Press the UI mid-scroll, the same way a trigger press does.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var deliveredAtPress = recorder.deltas.Count;
+            yield return null;
+
+            Assert.That(recorder.deltas.Count, Is.EqualTo(deliveredAtPress), "A press stops the momentum.");
+            Assert.That(recorder.total.y, Is.GreaterThan(-k_MomentumScrollDistance + k_MomentumTolerance));
+        }
+
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_3_OR_NEWER
+        [UnityTest]
+        public IEnumerator UIToolkitMomentumContinuesUntilPressed()
+        {
+            TestUtilities.ForceUIToolkitTrackedInput();
+
+            TestUtilities.CreateInteractionManager();
+            TestUtilities.CreateUIToolkitInputSetup();
+            var interactor = TestUtilities.CreateRayInteractor();
+            interactor.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+            EnableUIScrollMomentum(interactor);
+            var scrollView = TestUtilities.CreateWorldSpaceScrollView(out m_PanelSettings);
+            scrollView.scrollDecelerationRate = k_SlowDecelerationRate;
+
+            // Wait for UI Toolkit to report the hover, which the handler uses to find the ScrollView.
+            var hovering = false;
+            interactor.uiHoverEntered.AddListener(_ => hovering = true);
+            for (var i = 0; i < k_MaxHoverFrames && !hovering; ++i)
+                yield return null;
+
+            Assert.That(hovering, Is.True, "The interactor should hover the panel.");
+
+            var startOffset = scrollView.scrollOffset.y + k_MomentumScrollDistance;
+            scrollView.scrollOffset = new Vector2(0f, startOffset);
+
+            interactor.uiScrollInput.manualValue = k_MomentumScrollInput;
+            yield return null;
+            interactor.uiScrollInput.manualValue = Vector2.zero;
+            yield return null;
+
+            var moved = scrollView.scrollOffset.y - startOffset;
+            Assert.That(moved, Is.GreaterThan(0f).And.LessThan(k_MomentumScrollDistance - k_MomentumTolerance), "The scroll should still be scrolling.");
+
+            // Press the UI mid-scroll, the same way a trigger press does. UI Toolkit receives the press through its own event processing.
+            interactor.uiPressInput.QueueManualState(true, 1f);
+            yield return null;
+            var offsetAtPress = scrollView.scrollOffset.y;
+            yield return null;
+
+            Assert.That(scrollView.scrollOffset.y, Is.EqualTo(offsetAtPress), "A press stops the momentum.");
+            Assert.That(scrollView.scrollOffset.y - startOffset, Is.LessThan(k_MomentumScrollDistance - k_MomentumTolerance));
+        }
+#endif
+
+        static void EnableUIScrollMomentum(XRRayInteractor interactor)
+        {
+            interactor.enableUIInteraction = true;
+            interactor.uiScrollMomentum = true;
+            interactor.uiScrollInput = new XRInputValueReader<Vector2>("UI Scroll", XRInputValueReader.InputSourceMode.ManualValue);
+            interactor.uiPressInput.inputSourceMode = XRInputButtonReader.InputSourceMode.ManualValue;
         }
 
         [UnityTest]
@@ -272,6 +378,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactable.isSelected, Is.True);
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
@@ -602,6 +710,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
 
@@ -1081,6 +1191,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Tests
             controllerRecorder.isPlaying = true;
 
             yield return new WaitForSeconds(0.1f);
+            // The recorder applies the press on its second Update; a single slow frame can satisfy the wait before that.
+            yield return null;
 
             Assert.That(interactor.interactablesSelected, Is.EqualTo(new[] { interactable }));
         }

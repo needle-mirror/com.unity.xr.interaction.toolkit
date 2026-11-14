@@ -32,14 +32,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then doing a pinch/zoom will modify the scale
     /// of the object.
     /// </summary>
-    [Obsolete("ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
+    [Obsolete("ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.", true)]
     public class ARScaleInteractable { }
 }
 
 #else
-
-using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -50,142 +47,78 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     [AddComponentMenu("XR/AR/Deprecated/AR Scale Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARScaleInteractable)]
-    [Obsolete("ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
+    [Obsolete(k_ARScaleInteractableDeprecated, true)]
     public class ARScaleInteractable : ARBaseGestureInteractable
     {
-        [SerializeField, Tooltip("The minimum scale of the object.")]
-        float m_MinScale = 0.75f;
+        const string k_ARScaleInteractableDeprecated = "ARScaleInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.";
 
         /// <summary>
         /// The minimum scale of the object.
         /// </summary>
         public float minScale
         {
-            get => m_MinScale;
-            set => m_MinScale = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField, Tooltip("The maximum scale of the object.")]
-        float m_MaxScale = 1.75f;
 
         /// <summary>
         /// The maximum scale of the object.
         /// </summary>
         public float maxScale
         {
-            get => m_MaxScale;
-            set => m_MaxScale = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField, Tooltip("The elastic ratio used when scaling the object")]
-        float m_ElasticRatioLimit;
 
         /// <summary>
         /// The limit of the elastic ratio.
         /// </summary>
         public float elasticRatioLimit
         {
-            get => m_ElasticRatioLimit;
-            set => m_ElasticRatioLimit = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField, Tooltip("Sensitivity to movement being translated into scale.")]
-        float m_Sensitivity = 0.75f;
 
         /// <summary>
         /// Sensitivity to movement being translated into scale.
         /// </summary>
         public float sensitivity
         {
-            get => m_Sensitivity;
-            set => m_Sensitivity = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField, Tooltip("Amount that the scale bounces back after hitting min/max of range.")]
-        float m_Elasticity = 0.15f;
 
         /// <summary>
         /// Amount that the scale bounces back after hitting min/max of range.
         /// </summary>
         public float elasticity
         {
-            get => m_Elasticity;
-            set => m_Elasticity = value;
+            get => default;
+            set => _ = value;
         }
-
-        float scaleDelta
-        {
-            get
-            {
-                if (m_MinScale > m_MaxScale)
-                {
-                    Debug.LogError("minScale must be smaller than maxScale.", this);
-                    return 0f;
-                }
-
-                return m_MaxScale - m_MinScale;
-            }
-        }
-
-        float clampedScaleRatio => Mathf.Clamp01(m_CurrentScaleRatio);
-
-        Vector3 currentScale
-        {
-            get
-            {
-                var elasticScaleRatio = clampedScaleRatio + ElasticDelta();
-                var elasticScale = m_MinScale + (elasticScaleRatio * scaleDelta);
-                return new Vector3(elasticScale, elasticScale, elasticScale);
-            }
-        }
-
-        float m_CurrentScaleRatio;
-        float m_CapturedMinScale;
-        float m_CapturedMaxScale;
-        bool m_IsScaling;
 
         /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected void OnValidate()
         {
-            m_MinScale = Mathf.Max(0f, m_MinScale);
-            m_MaxScale = Mathf.Max(Mathf.Max(0f, m_MinScale), m_MaxScale);
         }
 
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-            UpdateCurrentScaleRatio();
         }
 
         /// <inheritdoc />
         public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            base.ProcessInteractable(updatePhase);
-
-            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Late)
-            {
-                if (!m_IsScaling)
-                {
-                    // Re-adjust ratio in case of min and max scale change.
-                    if (!Mathf.Approximately(m_CapturedMinScale, m_MinScale) ||
-                        !Mathf.Approximately(m_CapturedMaxScale, m_MaxScale))
-                    {
-                        UpdateCurrentScaleRatio();
-                    }
-
-                    m_CurrentScaleRatio = Mathf.Lerp(m_CurrentScaleRatio, clampedScaleRatio, Time.deltaTime * 8f);
-                    transform.localScale = currentScale;
-                }
-            }
+            throw new NotSupportedException(k_ARScaleInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(PinchGesture gesture)
         {
-            return IsGameObjectSelected() && gesture.targetObject == null;
+            throw new NotSupportedException(k_ARScaleInteractableDeprecated);
         }
 
         /// <summary>
@@ -195,8 +128,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnStartManipulation(PinchGesture gesture)
         {
-            m_IsScaling = true;
-            UpdateCurrentScaleRatio();
+            throw new NotSupportedException(k_ARScaleInteractableDeprecated);
         }
 
         /// <summary>
@@ -206,17 +138,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(PinchGesture gesture)
         {
-            m_CurrentScaleRatio += sensitivity * DisplayUtility.PixelsToInches(gesture.gapDelta);
-
-            transform.localScale = currentScale;
-
-            // If we've tried to scale too far beyond the limit, then cancel the gesture
-            // to snap back within the scale range.
-            if (m_CurrentScaleRatio < -elasticRatioLimit
-                || m_CurrentScaleRatio > (1f + elasticRatioLimit))
-            {
-                gesture.Cancel();
-            }
+            throw new NotSupportedException(k_ARScaleInteractableDeprecated);
         }
 
         /// <summary>
@@ -226,33 +148,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEndManipulation(PinchGesture gesture)
         {
-            m_IsScaling = false;
-        }
-
-        void UpdateCurrentScaleRatio()
-        {
-            m_CurrentScaleRatio = scaleDelta != 0f ? (transform.localScale.x - m_MinScale) / scaleDelta : 1f;
-            m_CapturedMinScale = m_MinScale;
-            m_CapturedMaxScale = m_MaxScale;
-        }
-
-        float ElasticDelta()
-        {
-            float overRatio;
-            if (m_CurrentScaleRatio > 1f)
-            {
-                overRatio = m_CurrentScaleRatio - 1f;
-            }
-            else if (m_CurrentScaleRatio < 0f)
-            {
-                overRatio = m_CurrentScaleRatio;
-            }
-            else
-            {
-                return 0f;
-            }
-
-            return (1f - (1f / ((Mathf.Abs(overRatio) * elasticity) + 1f))) * Mathf.Sign(overRatio);
+            throw new NotSupportedException(k_ARScaleInteractableDeprecated);
         }
     }
 }

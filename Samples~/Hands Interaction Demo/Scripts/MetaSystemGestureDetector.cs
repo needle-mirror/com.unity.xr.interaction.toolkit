@@ -133,6 +133,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
 #if XR_HANDS_1_1_OR_NEWER && (ENABLE_VR || UNITY_GAMECORE)
         [NonSerialized] // NonSerialized is required to avoid an "Unsupported enum base type" error about the Flags enum being ulong
         MetaAimFlags m_AimFlags;
+
+        bool m_PrePinched;
 #endif
 
         bool m_AimFlagsBound;
@@ -218,32 +220,47 @@ namespace UnityEngine.XR.Interaction.Toolkit.Samples.Hands
         void UpdateAimFlags(MetaAimFlags value, bool forceInvoke = false)
         {
             var hadMenuPressed = (m_AimFlags & MetaAimFlags.MenuPressed) != 0;
+            var hadIndexPinching = (m_AimFlags & MetaAimFlags.IndexPinching) != 0;
             m_AimFlags = value;
             var hasSystemGesture = (m_AimFlags & MetaAimFlags.SystemGesture) != 0;
             var hasMenuPressed = (m_AimFlags & MetaAimFlags.MenuPressed) != 0;
-            var hasValid = (m_AimFlags & MetaAimFlags.Valid) != 0;
             var hasIndexPinching = (m_AimFlags & MetaAimFlags.IndexPinching) != 0;
+            var hasDominantHand = (m_AimFlags & MetaAimFlags.DominantHand) != 0;
 
-            if (!hadMenuPressed && hasMenuPressed)
-            {
+            // We want to suppress firing menu and system gesture events if the user
+            // pre-pinched before turning their hand around. Some runtimes do not
+            // do this filtering, so this ensures the events are only fired at expected times
+            // consistently across all platforms.
+            if (!m_PrePinched && hasIndexPinching && !hadIndexPinching && !hasSystemGesture && !hasMenuPressed)
+                m_PrePinched = true;
+            else if (m_PrePinched && !hasIndexPinching)
+                m_PrePinched = false;
+
+            // Some runtimes will set the MenuPressed flag for both hands rather than limiting
+            // to just the non-dominant hand, so ensure the menu event is only fired for the non-dominant
+            // hand for consistency across all platforms.
+            // By convention, a right hand pinch while the system gesture is active is the universal menu
+            // action (i.e, to open the shell or a recenter for a held pinch), and a left hand pinch
+            // is the menu action, matching the controller layout. Accessibility options can flip this
+            // to the opposite for left and right hands, which can be determined based on the dominant
+            // hand flag. Filtering ensures no event callbacks are triggered when a user does the universal
+            // menu pinch. Note that on Meta runtimes, in this flipped mode, the menu action will still occur
+            // on the left hand input device when performed by the right hand. On Android XR, the menu action
+            // will occur on the hand that performed the pinch.
+            if (hasMenuPressed && !hadMenuPressed && !m_PrePinched && (hasDominantHand ^ hasIndexPinching))
                 m_MenuPressed?.Invoke();
-            }
 
-            if (hasSystemGesture || hasMenuPressed)
+            if (hasSystemGesture && !m_PrePinched)
             {
                 SetGestureState(SystemGestureState.Started, forceInvoke);
                 return;
             }
 
-            if (hasValid)
-            {
-                SetGestureState(SystemGestureState.Ended, forceInvoke);
-                return;
-            }
-
             // We want to keep the system gesture going when the user is still index pinching
-            // even though the SystemGesture flag is no longer set.
-            if (hasIndexPinching && m_SystemGestureState.Value != SystemGestureState.Ended)
+            // even if the SystemGesture flag is no longer set. On some runtimes (Android XR), the flags
+            // are cleared to None when going to the launcher after doing the universal menu action,
+            // so keep the state latched until returning to the application.
+            if ((hasIndexPinching || m_AimFlags == MetaAimFlags.None) && m_SystemGestureState.Value != SystemGestureState.Ended)
             {
                 SetGestureState(SystemGestureState.Started, forceInvoke);
                 return;

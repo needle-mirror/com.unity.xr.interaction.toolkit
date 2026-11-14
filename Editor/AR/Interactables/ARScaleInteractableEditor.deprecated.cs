@@ -7,10 +7,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
     /// <summary>
     /// Custom editor for an <see cref="ARScaleInteractable"/>.
     /// </summary>
-    [Obsolete("ARScaleInteractableEditor has been replaced by the ARTransformer. Use the ARTransformer instead.")]
+    [Obsolete(k_ARScaleInteractableEditorDeprecated, true)]
     [CustomEditor(typeof(ARScaleInteractable), true), CanEditMultipleObjects]
     public class ARScaleInteractableEditor : ARBaseGestureInteractableEditor
     {
+        const string k_ARScaleInteractableEditorDeprecated = "ARScaleInteractableEditor has been replaced by the ARTransformer. Use the ARTransformer instead.";
+
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARScaleInteractable.minScale"/>.</summary>
         protected SerializedProperty m_MinScale;
         /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="ARScaleInteractable.maxScale"/>.</summary>
@@ -25,27 +27,12 @@ namespace UnityEditor.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_MinScale = serializedObject.FindProperty("m_MinScale");
-            m_MaxScale = serializedObject.FindProperty("m_MaxScale");
-            m_ElasticRatioLimit = serializedObject.FindProperty("m_ElasticRatioLimit");
-            m_Sensitivity = serializedObject.FindProperty("m_Sensitivity");
-            m_Elasticity = serializedObject.FindProperty("m_Elasticity");
         }
 
         /// <inheritdoc />
         protected override void DrawProperties()
         {
-            base.DrawProperties();
-
-            EditorGUILayout.Space();
-
-            EditorGUILayout.PropertyField(m_MinScale);
-            EditorGUILayout.PropertyField(m_MaxScale);
-            EditorGUILayout.PropertyField(m_ElasticRatioLimit);
-            EditorGUILayout.PropertyField(m_Sensitivity);
-            EditorGUILayout.PropertyField(m_Elasticity);
+            throw new NotSupportedException(k_ARScaleInteractableEditorDeprecated);
         }
     }
 }

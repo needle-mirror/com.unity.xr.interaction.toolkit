@@ -376,6 +376,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         public bool isScrollable { get; set; }
 
         /// <summary>
+        /// Whether scroll input from this device continues with momentum on the scroll view it was aimed at.
+        /// </summary>
+        internal bool scrollMomentum { get; set; }
+
+        /// <summary>
         /// Returns a struct representing an invalid pointer id.
         /// This can be used when returning an instance from a method to represent invalid data.
         /// </summary>

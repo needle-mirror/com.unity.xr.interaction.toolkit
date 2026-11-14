@@ -3,7 +3,6 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
-using Unity.Collections;
 #if UNITY_6000_5_OR_NEWER
 using Unity.Scripting.LifecycleManagement;
 #endif
@@ -21,6 +20,8 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
     [TestFixture]
     class PackageScriptsTests
     {
+        const string k_PackageName = "com.unity.xr.interaction.toolkit";
+
         // Instructions to developers modifying exceptions lists:
         // - Use "All" to apply to all package versions.
         // - Use "3.0" or "3.1" etc. to apply the exception to a specific major.minor version.
@@ -33,9 +34,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         static readonly (string, string)[] s_NamespaceExceptionList =
         {
             ("All", "UnityEditor.XR.Interaction.Toolkit.Utilities.EditorComponentLocatorUtility"),
-#if (UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER) || (UNITY_6000_6_B1_OR_NEWER && BURST_PRESENT)
-            ("All", "System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute"),
-#endif
         };
 
 #if UNITY_6000_5_OR_NEWER
@@ -66,6 +64,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRDualGrabFreeTransformer.lastInteractorAttachPose has { internal get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Transformers.XRSocketGrabTransformer.scaleOnlyMode has { internal get; internal set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceEventData.pressWorldPosition has { internal get; internal set; }."),
+            ("All", "Property UnityEngine.XR.Interaction.Toolkit.UI.XRUIInputModule.blockWorldSpacePointerInput has { internal get; internal set; }."),
         };
 
 #if UNITY_6000_5_OR_NEWER
@@ -85,6 +84,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.AR.TwoFingerDragGesture.Reinitialize has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Filtering.XRTargetFilter.RegisterEvaluatorHandlers has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Filtering.XRTargetFilter.UnregisterEvaluatorHandlers has internal."),
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.PressScrollInput.ProcessScroll has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.AddDevices has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.ApplyControllerState has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.SimulatedDeviceLifecycleManager.ApplyHandState has internal."),
@@ -107,6 +107,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.ARTransformer.MigratePlaneClassifications has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.Transformers.XRBaseGrabTransformer.GetRegistrationMode has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.UI.UIInputModule.PerformRaycast has internal."),
+#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+            ("All", "Method UnityEngine.XR.Interaction.Toolkit.UI.XRUIToolkitManager.IsMonitored has internal."),
+#endif
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRControllerRecording.SetFrameDependentData has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.RegisterColliderMapping has internal."),
             ("All", "Method UnityEngine.XR.Interaction.Toolkit.XRInteractionManager.UnregisterColliderMapping has internal."),
@@ -118,7 +121,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 #endif
         static readonly (string, string)[] s_PrivatePropertyExceptionList =
         {
-            ("All", "Property UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation.XRDeviceSimulator.targetedDeviceInput has { private get; private set; }."),
             ("All", "Property UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable.isTransformDirty has { private get; private set; }."),
         };
 
@@ -127,8 +129,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
 #endif
         static readonly (string, string)[] s_EditorExceptionList =
         {
-            ("All", "Field UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement.GrabMoveProviderEditor.m_Reference has private instead of protected."),
-            ("All", "Field UnityEditor.XR.Interaction.Toolkit.Locomotion.Movement.GrabMoveProviderEditor.m_SingletonActionBindings has private instead of protected."),
         };
 
         /// <summary>
@@ -139,10 +139,7 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
         [OneTimeSetUp]
         public void SetUp()
         {
-            var assembly = Assembly.Load("Unity.XR.Interaction.Toolkit");
-            Assert.That(assembly, Is.Not.Null);
-
-            PackageManager.PackageInfo packageInfo = PackageManager.PackageInfo.FindForAssembly(assembly);
+            var packageInfo = PackageManager.PackageInfo.FindForPackageName(k_PackageName);
             Assert.That(packageInfo, Is.Not.Null);
 
             // Parse the major.minor version
@@ -236,10 +233,40 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             {
                 if (type.FullName != null && type.Namespace != null)
                 {
-                    if (!type.Namespace.StartsWith(rootNamespace))
+                    if (!type.Namespace.StartsWith(rootNamespace) && !IsToolGeneratedType(type))
                         outputList.Add(type.FullName);
                 }
             }
+        }
+
+        /// <summary>
+        /// Types injected into the assembly by the compiler (such as <c>Microsoft.CodeAnalysis.EmbeddedAttribute</c>
+        /// and <c>System.Runtime.CompilerServices.NullableAttribute</c>) or by IL post-processors (such as the Burst
+        /// direct call interceptors). Which of these are emitted varies by Unity version and installed packages,
+        /// and their namespaces are not under the control of this package.
+        /// </summary>
+#if UNITY_6000_5_OR_NEWER
+        [NoAutoStaticsCleanup]
+#endif
+        static readonly string[] s_ToolGeneratedNamespaces =
+        {
+            "Microsoft.CodeAnalysis",
+            "System.Runtime.CompilerServices",
+            "Unity.Burst.Interceptors",
+        };
+
+        static bool IsToolGeneratedType(Type type)
+        {
+            if (type.IsDefined(typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false))
+                return true;
+
+            foreach (var toolNamespace in s_ToolGeneratedNamespaces)
+            {
+                if (type.Namespace == toolNamespace || type.Namespace.StartsWith(toolNamespace + "."))
+                    return true;
+            }
+
+            return false;
         }
 
         static void PopulateInternalProperties(Assembly assembly, HashSetList<string> outputList)
@@ -455,12 +482,9 @@ namespace UnityEditor.XR.Interaction.Toolkit.Editor.Tests
             {
                 if (exception.Item1 == "All" || exception.Item1 == m_MajorMinorVersion)
                 {
-                    // Skip AR types (optionally included with AR Foundation) and compiler-generated
-                    // System.Runtime.CompilerServices types (conditionally emitted by the compiler
-                    // depending on platform and cross-assembly internal access patterns).
+                    // Skip AR types (optionally included with AR Foundation).
                     if (!outputList.Contains(exception.Item2) &&
-                        !exception.Item2.Contains(".AR") &&
-                        !exception.Item2.Contains("System.Runtime.CompilerServices"))
+                        !exception.Item2.Contains(".AR"))
                     {
                         Debug.LogWarning($"Stale exception not found in source list: {exception.Item2}");
                         hasStaleException = true;

@@ -32,14 +32,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// If an object is selected, then dragging along the horizontal axis
     /// or performing a twist gesture will rotate along the y-axis of the item.
     /// </summary>
-    [Obsolete("ARRotationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
+    [Obsolete("ARRotationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.", true)]
     public class ARRotationInteractable { }
 }
 
 #else
-
-using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
@@ -50,43 +47,39 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
     /// </summary>
     [AddComponentMenu("XR/AR/Deprecated/AR Rotation Interactable", 22)]
     [HelpURL(XRHelpURLConstants.k_ARRotationInteractable)]
-    [Obsolete("ARRotationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.")]
+    [Obsolete(k_ARRotationInteractableDeprecated, true)]
     public class ARRotationInteractable : ARBaseGestureInteractable
     {
-        [SerializeField, Tooltip("The rate at which Unity rotates the attached object with a drag gesture.")]
-        float m_RotationRateDegreesDrag = 100f;
+        const string k_ARRotationInteractableDeprecated = "ARRotationInteractable has been replaced by the ARTransformer. Use the ARTransformer instead.";
 
         /// <summary>
         /// The rate at which Unity rotates the attached object with a drag gesture.
         /// </summary>
         public float rotationRateDegreesDrag
         {
-            get => m_RotationRateDegreesDrag;
-            set => m_RotationRateDegreesDrag = value;
+            get => default;
+            set => _ = value;
         }
-
-        [SerializeField, Tooltip("The rate at which Unity rotates the attached object with a twist gesture.")]
-        float m_RotationRateDegreesTwist = 2.5f;
 
         /// <summary>
         /// The rate at which Unity rotates the attached object with a twist gesture.
         /// </summary>
         public float rotationRateDegreesTwist
         {
-            get => m_RotationRateDegreesTwist;
-            set => m_RotationRateDegreesTwist = value;
+            get => default;
+            set => _ = value;
         }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(DragGesture gesture)
         {
-            return IsGameObjectSelected() && gesture.targetObject == null;
+            throw new NotSupportedException(k_ARRotationInteractableDeprecated);
         }
 
         /// <inheritdoc />
         protected override bool CanStartManipulationForGesture(TwistGesture gesture)
         {
-            return IsGameObjectSelected() && gesture.targetObject == null;
+            throw new NotSupportedException(k_ARRotationInteractableDeprecated);
         }
 
         /// <summary>
@@ -96,22 +89,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(DragGesture gesture)
         {
-            // ReSharper disable once LocalVariableHidesMember -- hide deprecated camera property
-            var camera = xrOrigin != null
-                ? xrOrigin.Camera
-#pragma warning disable 618 // Calling deprecated property to help with backwards compatibility.
-                : (arSessionOrigin != null ? arSessionOrigin.camera : Camera.main);
-#pragma warning restore 618
-            if (camera == null)
-                return;
-
-            var forward = camera.transform.forward;
-            var worldToVerticalOrientedDevice = Quaternion.Inverse(Quaternion.LookRotation(forward, Vector3.up));
-            var deviceToWorld = camera.transform.rotation;
-            var rotatedDelta = worldToVerticalOrientedDevice * deviceToWorld * gesture.delta;
-
-            var rotationAmount = -1f * rotatedDelta.x * DisplayUtility.screenDpiRatio * m_RotationRateDegreesDrag;
-            transform.Rotate(0f, rotationAmount, 0f);
+            throw new NotSupportedException(k_ARRotationInteractableDeprecated);
         }
 
         /// <summary>
@@ -121,8 +99,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected override void OnContinueManipulation(TwistGesture gesture)
         {
-            var rotationAmount = -gesture.deltaRotation * m_RotationRateDegreesTwist;
-            transform.Rotate(0f, rotationAmount, 0f);
+            throw new NotSupportedException(k_ARRotationInteractableDeprecated);
         }
     }
 }

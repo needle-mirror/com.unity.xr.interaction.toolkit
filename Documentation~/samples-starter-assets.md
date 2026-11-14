@@ -143,7 +143,7 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
       <a href="#scripts">Gaze Input Manager</a><hr style="margin-top: 7px; margin-bottom: 7px;">
       <a href="https://docs.unity3d.com/Packages/com.unity.inputsystem@latest?subfolder=/api/UnityEngine.InputSystem.XR.TrackedPoseDriver.html">Tracked Pose Driver</a>
     </td>
-    <td>This GameObject is deactivated by default to disable gaze interaction.  The XR Gaze Interactor has a Gaze Configuration foldout that lists Interactables thata it can interact with based on the user's eye gaze (if available via the HMD).  If eye tracking is unavailable then this GameObject will either be disabled or fall back to HMD direction, depending on the Gaze Input Manager setting.</td>
+    <td>This GameObject is deactivated by default to disable gaze interaction.  The XR Gaze Interactor has a Gaze Configuration foldout that lists Interactables that it can interact with based on the user's eye gaze (if available via the HMD).  If eye tracking is unavailable then this GameObject will either be disabled or fall back to HMD direction, depending on the Gaze Input Manager setting.</td>
   </tr>
   <tr>
     <td colspan="3"><strong>Gaze Stabilized</strong></td>
@@ -223,7 +223,7 @@ The `XR Origin (XR Rig)` prefab has the following hierarchy.
     <td></td>
     <td colspan="2"><strong>Left</strong>/<strong>Right Controller Stabilized Attach</strong></td>
     <td></td>
-    <td>Stabilized left or right controller pose used as the Ray Origin Transform offor the Teleport Interactor's XR Ray Interactor component.</td>
+    <td>Stabilized left or right controller pose used as the Ray Origin Transform for the Teleport Interactor's XR Ray Interactor component.</td>
   </tr>
   <tr>
     <td rowspan="8"></td>
@@ -326,15 +326,15 @@ Assets to let users set up and configure tunneling vignette effects as a comfort
 |---|---|
 |**`TunnelingVignette.mat`**|Material used to display the tunnelling vignette with configurable properties, including aperture size, feathering effect, and vignette color.|
 |**`TunnelingVignette.prefab`**|Prefab that contains a complete setup with necessary components for configuring and controlling the tunneling vignette. This Prefab is intended to be a child GameObject of the Main Camera.|
-|**`TunnelingVignette.shader`**|Default shader used by the material and Prefab to compute the vignette effect. Works with the built-in rendering pipeline and Scriptable Render Pipeline (SRP).|
+|**`TunnelingVignette.shader`**|Default shader used by the material and Prefab to compute the vignette effect.|
 |**`TunnelingVignetteHemisphere.fbx`**|Hemisphere model with the mesh for showing the tunneling vignette on its inner surface.|
-|**`TunnelingVignetteSG.shadergraph`**|[Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) asset primarily used as reference material to demonstrate the computation of the default shader. Notes in the asset explain the math involved and the steps needed to generate a SRP shader that achieves the same function as the default shader. This is not used by the material or Prefab, however this can be used as an alternative starting point to create a modified shader.|
+|**`TunnelingVignetteSG.shadergraph`**|[Shader Graph](https://docs.unity3d.com/Manual/com.unity.shadergraph.html) asset primarily used as reference material to demonstrate the computation of the default shader. Notes in the asset explain the math involved and the steps needed to generate a URP shader that achieves the same function as the default shader. This is not used by the material or Prefab, however this can be used as an alternative starting point to create a modified shader.|
 
 [!include[](snippets/birp-deprecated-warning.md)]
 
 ## Presets
 
-You can leverage much XR Interaction Toolkit functionality in your project via the prefabs and GameObjects described in Typical XR Interaction configuration above.  However, if you wish to build up custom interactivities through the GameObject > XR menu, then you may wish to configure these presets so that they will automatically apply property settings when you add corresponding components. This is especially helpful in that it can point input actions of your newly created components to actions in the XRI Default Input Actions asset described above.
+You can leverage much XR Interaction Toolkit functionality in your project via the prefabs and GameObjects described in Typical XR Interaction configuration above.  However, if you wish to build up custom interact through the GameObject > XR menu, then you may wish to configure these presets so that they will automatically apply property settings when you add corresponding components. This is especially helpful in that it can point input actions of your newly created components to actions in the XRI Default Input Actions asset described above.
 
 |**Preset**|**Description**|
 |---|---|
@@ -373,7 +373,7 @@ The following scripts are included to support the prefabs and `DemoScene`.
 |**`ControllerInputActionManager`**|Component used to mediate the interactors for a controller under different interaction states and the input actions used by them.|
 |**`DestroySelf`**|Destroys the GameObject it is attached to after a specified amount of time.|
 |**`DynamicMoveProvider`**|A version of action-based continuous movement that automatically controls the frame of reference that determines the forward direction of movement based on user preference for each hand.|
-|**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available.|
+|**`GazeInputManager`**|Component used to manage input fallback for an [XRGazeInteractor](xr-gaze-interactor.md) when eye tracking is not available. It activates its GameObject while an eye tracking device is connected, or while **Fallback If Eye Tracking Unavailable** is enabled, and deactivates it otherwise. Other scripts can read `eyeTrackingDeviceFound` and call `IsGazeTracked()` to check whether gaze is available, and subscribe to `eyeTrackingDeviceFoundChanged` to know when an eye tracking device connects or disconnects.|
 |**`ObjectSpawner`**|Component with an API for spawning objects from a given set of prefabs. This component has additional options to constrain when spawning happens and behavior of object when spawned.|
 |**`RotationAxisLockGrabTransformer`**|An XR grab transformer that allows for the locking of specific rotation axes.|
 |**`ToggleComponentZone`**|Component used to enable/disable components or activate/deactivate GameObjects upon entry into a trigger collider.|

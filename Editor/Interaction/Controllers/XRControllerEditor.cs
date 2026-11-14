@@ -11,34 +11,10 @@ namespace UnityEditor.XR.Interaction.Toolkit
     /// Custom editor for an <see cref="XRController"/>.
     /// </summary>
     [CustomEditor(typeof(XRController), true), CanEditMultipleObjects]
-    [Obsolete("XRControllerEditor has been deprecated in version 3.0.0.")]
+    [Obsolete(k_XRControllerEditorDeprecated, true)]
     public class XRControllerEditor : XRBaseControllerEditor
     {
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.controllerNode"/>.</summary>
-        SerializedProperty m_ControllerNode;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.selectUsage"/>.</summary>
-        SerializedProperty m_SelectUsage;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.activateUsage"/>.</summary>
-        SerializedProperty m_ActivateUsage;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.uiPressUsage"/>.</summary>
-        SerializedProperty m_UIPressUsage;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.axisToPressThreshold"/>.</summary>
-        SerializedProperty m_AxisToPressThreshold;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.rotateObjectLeft"/>.</summary>
-        SerializedProperty m_RotateAnchorLeft;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.rotateObjectRight"/>.</summary>
-        SerializedProperty m_RotateAnchorRight;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.moveObjectIn"/>.</summary>
-        SerializedProperty m_MoveObjectIn;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.moveObjectOut"/>.</summary>
-        SerializedProperty m_MoveObjectOut;
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.directionalAnchorRotation"/>.</summary>
-        SerializedProperty m_DirectionalAnchorRotation;
-
-#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER || PACKAGE_DOCS_GENERATION
-        /// <summary><see cref="SerializedProperty"/> of the <see cref="SerializeField"/> backing <see cref="XRController.poseProvider"/>.</summary>
-#endif
-        SerializedProperty m_PoseProvider;
+        const string k_XRControllerEditorDeprecated = "XRControllerEditor has been deprecated in version 3.0.0.";
 
         /// <summary>
         /// Contents of GUI elements used by this editor.
@@ -80,47 +56,18 @@ namespace UnityEditor.XR.Interaction.Toolkit
         /// <inheritdoc />
         protected override void OnEnable()
         {
-            base.OnEnable();
-
-            m_ControllerNode = serializedObject.FindProperty("m_ControllerNode");
-            m_SelectUsage = serializedObject.FindProperty("m_SelectUsage");
-            m_ActivateUsage = serializedObject.FindProperty("m_ActivateUsage");
-            m_UIPressUsage = serializedObject.FindProperty("m_UIPressUsage");
-            m_AxisToPressThreshold = serializedObject.FindProperty("m_AxisToPressThreshold");
-            m_RotateAnchorLeft = serializedObject.FindProperty("m_RotateAnchorLeft");
-            m_RotateAnchorRight = serializedObject.FindProperty("m_RotateAnchorRight");
-            m_MoveObjectIn = serializedObject.FindProperty("m_MoveObjectIn");
-            m_MoveObjectOut = serializedObject.FindProperty("m_MoveObjectOut");
-            m_DirectionalAnchorRotation = serializedObject.FindProperty("m_DirectionalAnchorRotation");
-            m_PoseProvider = serializedObject.FindProperty("m_PoseProvider");
         }
 
         /// <inheritdoc />
         protected override void DrawInputConfiguration()
         {
-            base.DrawInputConfiguration();
-#if XR_LEGACY_INPUT_HELPERS_2_1_OR_NEWER
-            EditorGUILayout.PropertyField(m_PoseProvider, Contents.poseProvider);
-            if (m_PoseProvider.objectReferenceValue != null)
-                EditorGUILayout.HelpBox(Contents.poseProviderWarning.text, MessageType.Info, true);
-#endif
-
-            EditorGUILayout.PropertyField(m_ControllerNode, Contents.controllerNode);
-            EditorGUILayout.PropertyField(m_SelectUsage, Contents.selectUsage);
-            EditorGUILayout.PropertyField(m_ActivateUsage, Contents.activateUsage);
-            EditorGUILayout.PropertyField(m_UIPressUsage, Contents.uiPressUsage);
-            EditorGUILayout.PropertyField(m_AxisToPressThreshold, Contents.axisToPressThreshold);
+            throw new NotSupportedException(k_XRControllerEditorDeprecated);
         }
 
         /// <inheritdoc />
         protected override void DrawOtherActions()
         {
-            base.DrawOtherActions();
-            EditorGUILayout.PropertyField(m_RotateAnchorLeft, Contents.rotateAnchorLeft);
-            EditorGUILayout.PropertyField(m_RotateAnchorRight, Contents.rotateAnchorRight);
-            EditorGUILayout.PropertyField(m_MoveObjectIn, Contents.moveObjectIn);
-            EditorGUILayout.PropertyField(m_MoveObjectOut, Contents.moveObjectOut);
-            EditorGUILayout.PropertyField(m_DirectionalAnchorRotation, Contents.directionalAnchorRotation);
+            throw new NotSupportedException(k_XRControllerEditorDeprecated);
         }
     }
 }

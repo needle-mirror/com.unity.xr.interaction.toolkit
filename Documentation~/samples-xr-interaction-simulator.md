@@ -12,7 +12,7 @@ The XR Interaction Toolkit package provides an example implementation of an XR I
 |**Asset**|**Description**|
 |---|---|
 |**`Editor`**|Asset folder containing some editor-specific utility classes.|
-|**`Hand Expression Captures\`**|Asset folder containing captured hand poses for the simulator when simulating tracked hands.|
+|**`Hand Recordings\`**|Asset folder containing hand capture sequences (`XRHandCaptureSequence` assets from the XR Hands package) that the simulator uses when simulating tracked hands.|
 |**`Scripts\`**|Asset folder containing scripts for the runtime UI for the interaction simulator.|
 |**`UI\`**|Asset folder containing prefabs and textures for the runtime UI for the interaction simulator.|
 |**`XR Interaction Controller Controls.inputactions`**|Asset that contains actions with default bindings for use with the XR Interaction Simulator focused on controls for the simulated controllers.|

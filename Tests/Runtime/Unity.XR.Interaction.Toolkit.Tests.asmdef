@@ -26,6 +26,11 @@
     ],
     "versionDefines": [
         {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "UIELEMENTS_MODULE_PRESENT"
+        },
+        {
             "name": "com.unity.xr.arfoundation",
             "expression": "2.0.2",
             "define": "AR_FOUNDATION_PRESENT"
@@ -39,6 +44,11 @@
             "name": "Unity",
             "expression": "6000.0.50f1",
             "define": "UNITY_6000_0_50_OR_NEWER"
+        },
+        {
+            "name": "Unity",
+            "expression": "7000.0.0a8",
+            "define": "UNITY_7000_0_a8_OR_NEWER"
         }
     ],
     "noEngineReferences": false

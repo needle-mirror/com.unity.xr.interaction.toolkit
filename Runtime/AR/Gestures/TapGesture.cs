@@ -18,11 +18,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Modifications copyright © 2020 Unity Technologies ApS
+// Modifications copyright © 2026 Unity Technologies
 
 #if AR_FOUNDATION_PRESENT || PACKAGE_DOCS_GENERATION
-
-using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -90,9 +88,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <inheritdoc />
         protected internal override void OnStart()
         {
-#pragma warning disable 618 // Using deprecated property to help with backwards compatibility.
-            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, recognizer.arSessionOrigin, out var hit, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
-#pragma warning restore 618
+            if (GestureTouchesUtility.RaycastFromCamera(startPosition, recognizer.xrOrigin, out var hit, recognizer.raycastMask, recognizer.raycastTriggerInteraction))
             {
                 var gameObject = hit.transform.gameObject;
                 if (gameObject != null)
@@ -103,18 +99,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
                         var interactableObject = grabInteractable.gameObject;
                         if (interactableObject != null)
                             targetObject = interactableObject;
-                    }
-                    else
-                    {
-#pragma warning disable 618
-                        var baseGestureInteractable = gameObject.GetComponentInParent<ARBaseGestureInteractable>();
-                        if (baseGestureInteractable != null)
-                        {
-                            var interactableObject = baseGestureInteractable.gameObject;
-                            if (interactableObject != null)
-                                targetObject = interactableObject;
-                        }
-#pragma warning restore 618
                     }
                 }
             }

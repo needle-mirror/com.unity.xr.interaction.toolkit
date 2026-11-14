@@ -436,7 +436,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 
         void ComputeAdjustedInteractorPose(XRGrabInteractable grabInteractable, out Vector3 newHandleBar, out Vector3 adjustedInteractorPosition, out Quaternion adjustedInteractorRotation)
         {
-            if (grabInteractable.interactorsSelecting.Count == 1 || m_TwoHandedRotationMode == TwoHandedRotationMode.FirstHandOnly)
+            if (grabInteractable.interactorsSelecting.Count == 1)
             {
                 newHandleBar = m_StartHandleBar;
                 var attachTransform = grabInteractable.interactorsSelecting[0].GetAttachTransform(grabInteractable);
@@ -455,6 +455,13 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
                 var interactor1Transform = interactor1.GetAttachTransform(grabInteractable);
 
                 newHandleBar = interactor0Transform.InverseTransformPoint(interactor1Transform.position);
+
+                if (m_TwoHandedRotationMode == TwoHandedRotationMode.FirstHandOnly)
+                {
+                    adjustedInteractorPosition = interactor0Transform.position;
+                    adjustedInteractorRotation = interactor0Transform.rotation;
+                    return;
+                }
 
                 Quaternion newRotation;
                 if (m_TwoHandedRotationMode == TwoHandedRotationMode.FirstHandDirectedTowardsSecondHand)
@@ -555,7 +562,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewObjectPosition(in float3 interactorPosition, in quaternion interactorRotation, in quaternion objectRotation, in float3 objectScale, bool trackRotation, in float3 offsetPosition, in float3 objectLocalGrabPoint, in float3 interactorLocalGrabPoint, out Vector3 newPosition)
+        internal static void ComputeNewObjectPosition(in float3 interactorPosition, in quaternion interactorRotation, in quaternion objectRotation, in float3 objectScale, bool trackRotation, in float3 offsetPosition, in float3 objectLocalGrabPoint, in float3 interactorLocalGrabPoint, out Vector3 newPosition)
         {
             // Scale up offset pose with new object scale
             float3 scaledOffsetPose = Scale(offsetPosition, objectScale);
@@ -602,7 +609,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void AdjustPositionForPermittedAxesBurst(in Vector3 targetPosition, in Pose originalObjectPose, ConstrainedAxisDisplacementMode axisDisplacementMode, bool hasX, bool hasY, bool hasZ, out Vector3 adjustedTargetPosition)
+        internal static void AdjustPositionForPermittedAxesBurst(in Vector3 targetPosition, in Pose originalObjectPose, ConstrainedAxisDisplacementMode axisDisplacementMode, bool hasX, bool hasY, bool hasZ, out Vector3 adjustedTargetPosition)
         {
             float3 xComponent = float3.zero;
             float3 yComponent = float3.zero;
@@ -714,7 +721,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewOneHandedScale(in Vector3 currentScale, in Vector3 initialScaleProportions, bool clampScale, in Vector3 minScale, in Vector3 maxScale, float scaleInput, float deltaTime, float scaleSpeed, out Vector3 newScale)
+        internal static void ComputeNewOneHandedScale(in Vector3 currentScale, in Vector3 initialScaleProportions, bool clampScale, in Vector3 minScale, in Vector3 maxScale, float scaleInput, float deltaTime, float scaleSpeed, out Vector3 newScale)
         {
             newScale = currentScale;
 
@@ -749,7 +756,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Transformers
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void ComputeNewTwoHandedScale(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale, out Vector3 newScale)
+        internal static void ComputeNewTwoHandedScale(in Vector3 startScale, in Vector3 currentScale, in Vector3 startHandleBar, in Vector3 newHandleBar, bool clampScale, float scaleMultiplier, float thresholdMoveRatioForScale, in Vector3 minScale, in Vector3 maxScale, out Vector3 newScale)
         {
             newScale = currentScale;
 

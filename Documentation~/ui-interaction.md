@@ -9,6 +9,7 @@ The XR Interaction Toolkit provides UI components to enable interaction with con
 | **Topic**             | **Description**         |
 | :-------------------- | :----------------------- |
 | [Set up UI Canvases for XR](ui-setup.md) | How to configure a UI for XR interaction. |
+| [Scroll UI with XR input](ui-scrolling.md) | How to scroll UI with a thumbstick or single presses, and how to use scroll momentum. |
 | [UI components](ui-components.md) | Lists the toolkit components related to UI interaction. |
 
 ## Additional resources

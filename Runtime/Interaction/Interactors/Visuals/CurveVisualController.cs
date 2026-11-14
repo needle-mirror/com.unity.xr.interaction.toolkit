@@ -1357,7 +1357,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void GetAdjustedEndPointForMaxDistance(in float3 origin, in float3 endPoint, float maxDistance, out float3 newEndPoint)
+        internal static void GetAdjustedEndPointForMaxDistance(in float3 origin, in float3 endPoint, float maxDistance, out float3 newEndPoint)
         {
             float3 normalizedDirection = math.normalizesafe(endPoint - origin, float3.zero);
             newEndPoint = origin + normalizedDirection * maxDistance;
@@ -1366,7 +1366,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void GetClosestPointOnLine(in float3 origin, in float3 direction, in float3 point, out float3 newPoint)
+        internal static void GetClosestPointOnLine(in float3 origin, in float3 direction, in float3 point, out float3 newPoint)
         {
             float3 toPoint = point - origin;
 
@@ -1379,7 +1379,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static void AdjustCastHitEndPoint(in float3 worldOrigin, in float3 worldDirection, in float3 hitEndPoint, in float3 sampleEndPoint, out float validHitDistance, out float3 endPoint)
+        internal static void AdjustCastHitEndPoint(in float3 worldOrigin, in float3 worldDirection, in float3 hitEndPoint, in float3 sampleEndPoint, out float validHitDistance, out float3 endPoint)
         {
             GetClosestPointOnLine(worldOrigin, worldDirection, hitEndPoint, out float3 projectedPoint);
 
@@ -1391,7 +1391,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals
 #if BURST_PRESENT
         [BurstCompile]
 #endif
-        static bool ComputeFallBackLine(in float3 curveOrigin, in float3 endPoint, float startOffset, float endOffset, ref NativeArray<float3> fallBackTargetPoints)
+        internal static bool ComputeFallBackLine(in float3 curveOrigin, in float3 endPoint, float startOffset, float endOffset, ref NativeArray<float3> fallBackTargetPoints)
         {
             var originToEnd = endPoint - curveOrigin;
 

@@ -58,6 +58,7 @@ MonoBehaviour:
   m_PivotReferenceSize: 0
   m_Pivot: 1
   m_WorldSpaceCollider: {fileID: 0}
+  m_GenerateAccessibilityHierarchy: 1
 --- !u!114 &1465888289746029124
 MonoBehaviour:
   m_ObjectHideFlags: 0

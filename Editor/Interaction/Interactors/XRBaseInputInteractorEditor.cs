@@ -60,45 +60,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
             m_SelectActionTrigger = serializedObject.FindProperty("m_SelectActionTrigger");
             m_AllowHoveredActivate = serializedObject.FindProperty("m_AllowHoveredActivate");
             m_TargetPriorityMode = serializedObject.FindProperty("m_TargetPriorityMode");
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            m_InputCompatibilityMode = serializedObject.FindProperty("m_InputCompatibilityMode");
-            m_HideControllerOnSelect = serializedObject.FindProperty("m_HideControllerOnSelect");
-
-            m_PlayAudioClipOnSelectEntered = serializedObject.FindProperty("m_PlayAudioClipOnSelectEntered");
-            m_AudioClipForOnSelectEntered = serializedObject.FindProperty("m_AudioClipForOnSelectEntered");
-            m_PlayAudioClipOnSelectExited = serializedObject.FindProperty("m_PlayAudioClipOnSelectExited");
-            m_AudioClipForOnSelectExited = serializedObject.FindProperty("m_AudioClipForOnSelectExited");
-            m_PlayAudioClipOnSelectCanceled = serializedObject.FindProperty("m_PlayAudioClipOnSelectCanceled");
-            m_AudioClipForOnSelectCanceled = serializedObject.FindProperty("m_AudioClipForOnSelectCanceled");
-            m_PlayAudioClipOnHoverEntered = serializedObject.FindProperty("m_PlayAudioClipOnHoverEntered");
-            m_AudioClipForOnHoverEntered = serializedObject.FindProperty("m_AudioClipForOnHoverEntered");
-            m_PlayAudioClipOnHoverExited = serializedObject.FindProperty("m_PlayAudioClipOnHoverExited");
-            m_AudioClipForOnHoverExited = serializedObject.FindProperty("m_AudioClipForOnHoverExited");
-            m_PlayAudioClipOnHoverCanceled = serializedObject.FindProperty("m_PlayAudioClipOnHoverCanceled");
-            m_AudioClipForOnHoverCanceled = serializedObject.FindProperty("m_AudioClipForOnHoverCanceled");
-            m_AllowHoverAudioWhileSelecting = serializedObject.FindProperty("m_AllowHoverAudioWhileSelecting");
-
-            m_PlayHapticsOnSelectEntered = serializedObject.FindProperty("m_PlayHapticsOnSelectEntered");
-            m_HapticSelectEnterIntensity = serializedObject.FindProperty("m_HapticSelectEnterIntensity");
-            m_HapticSelectEnterDuration = serializedObject.FindProperty("m_HapticSelectEnterDuration");
-            m_PlayHapticsOnHoverEntered = serializedObject.FindProperty("m_PlayHapticsOnHoverEntered");
-            m_HapticHoverEnterIntensity = serializedObject.FindProperty("m_HapticHoverEnterIntensity");
-            m_HapticHoverEnterDuration = serializedObject.FindProperty("m_HapticHoverEnterDuration");
-            m_PlayHapticsOnSelectExited = serializedObject.FindProperty("m_PlayHapticsOnSelectExited");
-            m_HapticSelectExitIntensity = serializedObject.FindProperty("m_HapticSelectExitIntensity");
-            m_HapticSelectExitDuration = serializedObject.FindProperty("m_HapticSelectExitDuration");
-            m_PlayHapticsOnSelectCanceled = serializedObject.FindProperty("m_PlayHapticsOnSelectCanceled");
-            m_HapticSelectCancelIntensity = serializedObject.FindProperty("m_HapticSelectCancelIntensity");
-            m_HapticSelectCancelDuration = serializedObject.FindProperty("m_HapticSelectCancelDuration");
-            m_PlayHapticsOnHoverExited = serializedObject.FindProperty("m_PlayHapticsOnHoverExited");
-            m_HapticHoverExitIntensity = serializedObject.FindProperty("m_HapticHoverExitIntensity");
-            m_HapticHoverExitDuration = serializedObject.FindProperty("m_HapticHoverExitDuration");
-            m_PlayHapticsOnHoverCanceled = serializedObject.FindProperty("m_PlayHapticsOnHoverCanceled");
-            m_HapticHoverCancelIntensity = serializedObject.FindProperty("m_HapticHoverCancelIntensity");
-            m_HapticHoverCancelDuration = serializedObject.FindProperty("m_HapticHoverCancelDuration");
-            m_AllowHoverHapticsWhileSelecting = serializedObject.FindProperty("m_AllowHoverHapticsWhileSelecting");
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc />
@@ -119,11 +80,6 @@ namespace UnityEditor.XR.Interaction.Toolkit.Interactors
         /// </summary>
         protected virtual void DrawDeprecatedProperties()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            DrawAudioEvents();
-            DrawHapticEvents();
-            DrawDeprecatedControllerConfiguration();
-#pragma warning restore CS0618
         }
 
         /// <inheritdoc />

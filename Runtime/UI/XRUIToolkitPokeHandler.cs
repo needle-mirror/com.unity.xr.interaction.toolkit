@@ -1,5 +1,12 @@
-#if UIELEMENTS_MODULE_PRESENT && UNITY_6000_2_OR_NEWER
+#if UIELEMENTS_MODULE_PRESENT
+#if UNITY_6000_2_OR_NEWER
 #define UITOOLKIT_WORLDSPACE_ENABLED
+#endif
+#if UNITY_6000_5_OR_NEWER
+#define UITOOLKIT_PANEL_RENDERER_ENABLED
+#endif
+#endif // UIELEMENTS_MODULE_PRESENT
+#if UITOOLKIT_WORLDSPACE_ENABLED
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 #endif
@@ -51,7 +58,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Processes a poke interaction with a UI Toolkit document.
         /// </summary>
         /// <param name="hitCollider">The <see cref="Collider"/> being interacted with.</param>
-        /// <param name="interactableTransform">The <see cref="Transform"/> being interacted with. This requires a UI Document component.</param>
+        /// <param name="interactableTransform">The <see cref="Transform"/> being interacted with. This requires a <see cref="UIDocument"/> or <see cref="PanelRenderer"/> component.</param>
         /// <param name="interactable">The <see cref="IXRInteractable"/> being interacted with.</param>
         /// <param name="useMultiPick">If <see langword="True"/>, UI Toolkit will perform a multi-picking operation.</param>
         /// <param name="pokeFilter">The <see cref="IXRPokeFilter"/> reference for the <paramref name="interactable"/>.</param>
@@ -63,29 +70,40 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             IXRPokeFilter pokeFilter = null)
         {
 #if UITOOLKIT_WORLDSPACE_ENABLED
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            if (!interactableTransform.TryGetComponent<IPanelComponent>(out var panelComponent))
+                return;
+
+            var panelTransform = panelComponent.gameObject.transform;
+#else
             if (!interactableTransform.TryGetComponent(out UIDocument document))
                 return;
 
-            var documentTransform = document.transform;
+            var panelTransform = document.transform;
+#endif
             var pokeTransform = m_Interactor.GetAttachTransform(null);
             var pokePoint = pokeTransform.position;
 
-            // Use document's forward as our stable picking axis
-            var documentNormal = -documentTransform.forward;
+            // Use panel's forward as our stable picking axis
+            var panelNormal = -panelTransform.forward;
 
-            // Project onto document plane
-            var documentPlane = new Plane(documentNormal, documentTransform.position);
-            documentPlane.Raycast(new Ray(pokePoint, -documentNormal), out float distanceToPlane);
-            var closestPoint = pokePoint - documentNormal * distanceToPlane;
+            // Project onto panel plane
+            var panelPlane = new Plane(panelNormal, panelTransform.position);
+            panelPlane.Raycast(new Ray(pokePoint, -panelNormal), out float distanceToPlane);
+            var closestPoint = pokePoint - panelNormal * distanceToPlane;
 
             // Pull back ray origin by our poke width to ensure stable picking
-            var rayOrigin = closestPoint + documentNormal;
+            var rayOrigin = closestPoint + panelNormal;
 
             // Update debug visuals if enabled
-            UpdateVisualizers(pokePoint, closestPoint, rayOrigin, documentNormal, documentTransform);
+            UpdateVisualizers(pokePoint, closestPoint, rayOrigin, panelNormal, panelTransform);
 
             // Perform pick to find hit element
-            var hitElement = PerformPick(document, rayOrigin, -documentNormal, m_Interactor.pokeWidth, useMultiPick);
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+            var hitElement = PerformPick(panelComponent, rayOrigin, -panelNormal, m_Interactor.pokeWidth, useMultiPick);
+#else
+            var hitElement = PerformPick(document, rayOrigin, -panelNormal, m_Interactor.pokeWidth, useMultiPick);
+#endif
 
             if (hitElement != null)
             {
@@ -105,8 +123,12 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
                 {
                     closestPoint = closestPoint,
                     interactorOrigin = pokePoint,
-                    interactorDirection = documentNormal,
+                    interactorDirection = panelNormal,
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+                    hitPanelComponent = panelComponent
+#else
                     hitDocument = document
+#endif
                 });
 
                 // Determine poke depth from filter if available
@@ -193,16 +215,20 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// <summary>
         /// Perform a pick operation at the given point
         /// </summary>
-        VisualElement PerformPick(UIDocument document, Vector3 center, Vector3 direction, float radius, bool useMultiPick)
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+        VisualElement PerformPick(IPanelComponent panelComponent, Vector3 center, Vector3 direction, float radius, bool useMultiPick)
+#else
+        VisualElement PerformPick(UIDocument panelComponent, Vector3 center, Vector3 direction, float radius, bool useMultiPick)
+#endif
         {
             // Center pick always has priority if it hits
-            var centerElement = WorldSpaceInput.Pick3D(document, new Ray(center, direction));
+            var centerElement = WorldSpaceInput.Pick3D(panelComponent, new Ray(center, direction));
             if (centerElement != null)
                 return centerElement;
 
             // If multi-pick is disabled or radius is too small, return null
             if (useMultiPick)
-                return PerformMultiPick(document, center, direction, radius);
+                return PerformMultiPick(panelComponent, center, direction, radius);
             else
                 return null;
 
@@ -213,7 +239,11 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
         /// Performs multiple ray casts in a pattern around the center point to find the best UI element to interact with.
         /// This helps with hitting small UI elements and provides more reliable picking.
         /// </summary>
-        VisualElement PerformMultiPick(UIDocument document, Vector3 center, Vector3 direction, float radius)
+#if UITOOLKIT_PANEL_RENDERER_ENABLED
+        VisualElement PerformMultiPick(IPanelComponent panelComponent, Vector3 center, Vector3 direction, float radius)
+#else
+        VisualElement PerformMultiPick(UIDocument panelComponent, Vector3 center, Vector3 direction, float radius)
+#endif
         {
             // Store all hits with their distances
             Dictionary<VisualElement, float> elementDistances = new Dictionary<VisualElement, float>();
@@ -222,21 +252,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             const int sampleCount = 4;
             const float angleStep = 2f * Mathf.PI / sampleCount; // Using radians directly
 
-            // Extract document's transformed axes for sampling in correct space
-            Matrix4x4 documentTransform = document.transform.localToWorldMatrix;
-            Vector3 xAxis = documentTransform.GetColumn(0); // Already includes proper scaling
-            Vector3 yAxis = documentTransform.GetColumn(1); // Already includes proper scaling
+            // Extract panel's transformed axes for sampling in correct space
+            Matrix4x4 panelTransformMatrix = panelComponent.gameObject.transform.localToWorldMatrix;
+            Vector3 xAxis = panelTransformMatrix.GetColumn(0); // Already includes proper scaling
+            Vector3 yAxis = panelTransformMatrix.GetColumn(1); // Already includes proper scaling
 
             for (int i = 0; i < sampleCount; i++)
             {
                 float angle = i * angleStep;
 
-                // Calculate offset in world space using document's transformed axes
+                // Calculate offset in world space using panel's transformed axes
                 Vector3 worldOffset = xAxis * (Mathf.Cos(angle) * radius) +
                                     yAxis * (Mathf.Sin(angle) * radius);
 
                 var sampleOrigin = center + worldOffset;
-                var element = WorldSpaceInput.Pick3D(document, new Ray(sampleOrigin, direction));
+                var element = WorldSpaceInput.Pick3D(panelComponent, new Ray(sampleOrigin, direction));
 
                 if (element != null)
                 {
@@ -295,7 +325,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.UI
             m_NormalVisualizer.position = closestPoint + normal * 0.025f;
             m_NormalVisualizer.up = normal;
 
-            // Ensure visualizers are parented to the document for proper visibility
+            // Ensure visualizers are parented to the panel for proper visibility
             if (m_VisualizersRoot.transform.parent != parentTransform)
             {
                 m_VisualizersRoot.transform.SetParent(parentTransform, false);

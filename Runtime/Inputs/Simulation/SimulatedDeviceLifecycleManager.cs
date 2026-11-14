@@ -13,7 +13,6 @@ using Unity.Scripting.LifecycleManagement;
 
 #if XR_HANDS_1_1_OR_NEWER
 using UnityEngine.XR.Hands;
-using UnityEngine.XR.Hands.ProviderImplementation;
 #endif
 
 #if XR_HANDS_1_8_OR_NEWER
@@ -27,7 +26,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
     /// A component which handles the lifecycle of simulated HMDs, controllers, and hands. It deals with the adding and removing of devices,
     /// keeping track of the current device mode, and initializing subsystems for simulation.
     /// </summary>
-    /// <seealso cref="XRDeviceSimulator"/>
     /// <seealso cref="XRSimulatedController"/>
     /// <seealso cref="XRSimulatedHMD"/>
 #if UNITY_6000_5_OR_NEWER
@@ -106,14 +104,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #endif
 
 #if XR_HANDS_1_1_OR_NEWER
-        XRDeviceSimulatorHandsSubsystem m_SimHandSubsystem;
-
-        /// <summary>
-        /// The instance of the simulated hand subsystem.
-        /// </summary>
-        internal XRDeviceSimulatorHandsSubsystem simHandSubsystem => m_SimHandSubsystem;
-
-        XRHandProviderUtility.SubsystemUpdater m_SubsystemUpdater;
         XRInputModalityManager m_InputModalityManager;
 
         XRHandSubsystem m_HandSubsystem;
@@ -157,11 +147,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         bool m_StartedDeviceModeChange;
 
         /// <summary>
-        /// This flag indicates whether we will use the simulated hand subsystem or use a regular hand subsystem with playback.
-        /// </summary>
-        bool m_UseSimulatedHandSubsystem;
-
-        /// <summary>
         /// See <see cref="MonoBehaviour"/>.
         /// </summary>
         protected virtual void Awake()
@@ -177,9 +162,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 return;
             }
 
-#pragma warning disable CS0618 // Type or member is obsolete -- Backwards compatibility for the deprecated Classic simulator
-            m_UseSimulatedHandSubsystem = TryGetComponent<XRDeviceSimulator>(out _);
-#pragma warning restore CS0618 // Type or member is obsolete
             InitializeHandSubsystem();
 
 #if XR_HANDS_1_1_OR_NEWER
@@ -195,15 +177,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if ENABLE_VR || UNITY_GAMECORE
 
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_UseSimulatedHandSubsystem)
-            {
-                m_SimHandSubsystem?.Start();
-                m_SubsystemUpdater?.Start();
-            }
-            else
-            {
-                m_HandSubsystem?.Start();
-            }
+            m_HandSubsystem?.Start();
 #endif
 
             if (m_RemoveOtherHMDDevices)
@@ -244,15 +218,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             RemoveDevices();
 
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_UseSimulatedHandSubsystem)
-            {
-                m_SimHandSubsystem?.Stop();
-                m_SubsystemUpdater?.Stop();
-            }
-            else
-            {
-                m_HandSubsystem?.Stop();
-            }
+            m_HandSubsystem?.Stop();
 #endif
         }
 
@@ -262,18 +228,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
         protected virtual void OnDestroy()
         {
 #if XR_HANDS_1_1_OR_NEWER
-            if (m_UseSimulatedHandSubsystem)
-            {
-                m_SimHandSubsystem?.Destroy();
-                m_SimHandSubsystem = null;
-                m_SubsystemUpdater?.Destroy();
-                m_SubsystemUpdater = null;
-            }
-            else
-            {
-                m_HandSubsystem?.Destroy();
-                m_HandSubsystem = null;
-            }
+            m_HandSubsystem?.Destroy();
+            m_HandSubsystem = null;
 #endif
 
             if (instance == this)
@@ -295,8 +251,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                     // Step 2: Add controller input devices.
                     case DeviceMode.Controller when !m_StartedDeviceModeChange:
                         // Step 1
-                        if (m_UseSimulatedHandSubsystem)
-                            m_SimHandSubsystem?.SetUpdateHandsAllowed(false);
                         m_StartedDeviceModeChange = true;
                         break;
                     case DeviceMode.Controller:
@@ -315,8 +269,6 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                         break;
                     case DeviceMode.Hand:
                         // Step 2
-                        if (m_UseSimulatedHandSubsystem)
-                            m_SimHandSubsystem?.SetUpdateHandsAllowed(true);
                         m_DeviceModeDirty = false;
                         m_StartedDeviceModeChange = false;
                         break;
@@ -354,36 +306,19 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
             if (m_DeviceMode != DeviceMode.Hand)
                 return;
 
-            if (m_UseSimulatedHandSubsystem)
-            {
-                if (m_SimHandSubsystem == null)
-                    return;
-
-                m_SimHandSubsystem.SetIsTracked(Handedness.Left, leftHandState.isTracked);
-                m_SimHandSubsystem.SetIsTracked(Handedness.Right, rightHandState.isTracked);
-
-                m_SimHandSubsystem.SetHandExpression(Handedness.Left, leftHandState.expressionName);
-                m_SimHandSubsystem.SetRootHandPose(Handedness.Left, new Pose(leftHandState.position, leftHandState.rotation));
-
-                m_SimHandSubsystem.SetHandExpression(Handedness.Right, rightHandState.expressionName);
-                m_SimHandSubsystem.SetRootHandPose(Handedness.Right, new Pose(rightHandState.position, rightHandState.rotation));
-            }
-            else
-            {
 #if XR_HANDS_1_8_OR_NEWER
-                if (m_LeftHandPlayback != null && m_LeftHandPlayback.sourceCaptureSequence != null)
-                {
-                    m_LeftHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
-                    m_LeftHandPlayback.anchor = new Pose(leftHandState.position, leftHandState.rotation);
-                }
-
-                if (m_RightHandPlayback != null && m_RightHandPlayback.sourceCaptureSequence != null)
-                {
-                    m_RightHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
-                    m_RightHandPlayback.anchor = new Pose(rightHandState.position, rightHandState.rotation);
-                }
-#endif
+            if (m_LeftHandPlayback != null && m_LeftHandPlayback.sourceCaptureSequence != null)
+            {
+                m_LeftHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
+                m_LeftHandPlayback.anchor = new Pose(leftHandState.position, leftHandState.rotation);
             }
+
+            if (m_RightHandPlayback != null && m_RightHandPlayback.sourceCaptureSequence != null)
+            {
+                m_RightHandPlayback.options = XRHandPlaybackOptions.RootPoseLockedToAnchor;
+                m_RightHandPlayback.anchor = new Pose(rightHandState.position, rightHandState.rotation);
+            }
+#endif
 #endif
         }
 
@@ -398,7 +333,7 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
 #if !XR_HANDS_1_8_OR_NEWER
             // The playback-based hand simulation path (used by XRInteractionSimulator)
             // requires XR Hands 1.8+. Block switching to hands if it's not available.
-            if (!m_UseSimulatedHandSubsystem && m_DeviceMode == DeviceMode.Controller)
+            if (m_DeviceMode == DeviceMode.Controller)
             {
                 Debug.LogWarning("Switching to hand mode requires XR Hands 1.8.0 or newer. " +
                     "Please update the com.unity.xr.hands package to enable hand simulation.", this);
@@ -567,49 +502,21 @@ namespace UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation
                 }
             }
 
-            if (m_UseSimulatedHandSubsystem)
-            {
-                var descriptors = new List<XRHandSubsystemDescriptor>();
-                SubsystemManager.GetSubsystemDescriptors(descriptors);
-                for (var i = 0; i < descriptors.Count; ++i)
-                {
-                    var descriptor = descriptors[i];
-
-                    if (descriptor.id == XRDeviceSimulatorHandsProvider.id)
-                    {
-                        m_SimHandSubsystem = descriptor.Create() as XRDeviceSimulatorHandsSubsystem;
-                        break;
-                    }
-                }
-
-                if (m_SimHandSubsystem == null)
-                {
-                    Debug.LogError("Couldn't create simulated hands subsystem.", this);
-                    return;
-                }
-
-                m_SimHandSubsystem.SetUpdateHandsAllowed(false);
-
-                m_SubsystemUpdater = new XRHandProviderUtility.SubsystemUpdater(m_SimHandSubsystem);
-            }
-            else
-            {
 #if XR_HANDS_1_8_OR_NEWER
-                m_HandSubsystem = XRHandSubsystemDescriptor.CreatePlaybackOnly();
+            m_HandSubsystem = XRHandSubsystemDescriptor.CreatePlaybackOnly();
 
-                if (m_HandSubsystem == null)
-                {
-                    Debug.LogError("Couldn't find or create playback only hands subsystem.", this);
-                    return;
-                }
-
-                XRHandSubsystemConfiguration configuration = new()
-                {
-                    xrHandDevicePoseSource = XRHandDevicePoseSource.CommonGestures
-                };
-                m_HandSubsystem.UpdateHandsConfiguration(configuration);
-#endif
+            if (m_HandSubsystem == null)
+            {
+                Debug.LogError("Couldn't find or create playback only hands subsystem.", this);
+                return;
             }
+
+            XRHandSubsystemConfiguration configuration = new()
+            {
+                xrHandDevicePoseSource = XRHandDevicePoseSource.CommonGestures
+            };
+            m_HandSubsystem.UpdateHandsConfiguration(configuration);
+#endif
 #endif
         }
 

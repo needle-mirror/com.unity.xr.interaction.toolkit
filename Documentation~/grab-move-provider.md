@@ -14,7 +14,6 @@ Locomotion provider that allows the user to move with one hand as if grabbing th
 | **Enable Free X Movement** | Controls whether to enable unconstrained movement along the x-axis. |
 | **Enable Free Y Movement** | Controls whether to enable unconstrained movement along the y-axis. |
 | **Enable Free Z Movement** | Controls whether to enable unconstrained movement along the z-axis. |
-| **Use Gravity** | Controls whether gravity applies to constrained axes when a `CharacterController` is used. |
 | **Controller Transform** | The controller Transform that will drive grab movement with its local position. Will use this GameObject's Transform if not set. |
 | **Enable Move While Selecting** | Controls whether to allow grab movement while the controller is selecting an interactable. |
 | **Move Factor** | The ratio of actual movement distance to controller movement distance. |

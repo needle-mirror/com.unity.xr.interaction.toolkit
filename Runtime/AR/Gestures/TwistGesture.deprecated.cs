@@ -6,6 +6,8 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
 {
     public partial class TwistGesture
     {
+        const string k_ReinitializeDeprecated = "Reinitialize(Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.";
+
 #if !XRI_LEGACY_INPUT_DISABLED
         /// <summary>
         /// (Deprecated) Initializes and returns an instance of <see cref="TwistGesture"/>.
@@ -16,14 +18,17 @@ namespace UnityEngine.XR.Interaction.Toolkit.AR
         /// <remarks>
         /// This is deprecated for its reference to Input Manager Touch. Set active input handling to New Input System, and use InputSystem.EnhancedTouch.Touch instead.
         /// </remarks>
-        [Obsolete("TwistGesture(DragGestureRecognizer, Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TwistGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
+        [Obsolete("TwistGesture(DragGestureRecognizer, Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use TwistGesture(DragGestureRecognizer, InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.", true)]
         public TwistGesture(TwistGestureRecognizer recognizer, Touch touch1, Touch touch2)
             : this(recognizer, new CommonTouch(touch1), new CommonTouch(touch2))
         {
         }
 
-        [Obsolete("Reinitialize(Touch, Touch) is marked for deprecation in XRI 3.2.0 and will be removed in a future version. Use Reinitialize(InputSystem.EnhancedTouch.Touch, InputSystem.EnhancedTouch.Touch) instead.")]
-        internal void Reinitialize(Touch touch1, Touch touch2) => Reinitialize(new CommonTouch(touch1), new CommonTouch(touch2));
+        [Obsolete(k_ReinitializeDeprecated, true)]
+        internal void Reinitialize(Touch touch1, Touch touch2)
+        {
+            throw new NotSupportedException(k_ReinitializeDeprecated);
+        }
 #endif
     }
 }
